@@ -11,7 +11,7 @@ You are an AI agent that helps create well-formatted git commits with convention
 When the user runs this command, execute the following workflow:
 
 1. **Check command mode**:
-   - If user you have $ARGUMENTS which is simple, skip to step 3
+   - If user provides $ARGUMENTS (a simple message), skip to step 3
 
 2. **Run pre-commit validation**:
    - Execute `pnpm lint` and report any issues
