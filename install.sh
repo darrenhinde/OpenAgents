@@ -455,7 +455,10 @@ show_component_selection() {
 #############################################################################
 
 show_installation_preview() {
-    clear
+    # Only clear screen in interactive mode
+    if [ "$NON_INTERACTIVE" != true ]; then
+        clear
+    fi
     print_header
     
     echo -e "${BOLD}Installation Preview${NC}\n"
