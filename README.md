@@ -231,6 +231,7 @@ openagent (universal coordinator)
 - **/context** - Context management
 - **/prompt-enchancer** - Improve your prompts
 - **/worktrees** - Git worktree management
+- **/validate-repo** - Validate repository consistency
 
 ### 📚 Context Files
 - `core/essential-patterns.md` - Universal coding patterns
@@ -423,12 +424,13 @@ Minimal starter kit - universal agent with core subagents.
 - **Config**: env-example
 - **Best for**: Learning the system, lightweight tasks, minimal setup
 
-### 💼 Developer (Recommended - 19 components)
+### 💼 Developer (Recommended - 30 components)
 Complete software development environment with code generation, testing, review, and build tools.
 - Everything in Essential, plus:
 - **Agents**: codebase-agent
 - **Subagents**: coder-agent, reviewer, tester, build-agent, codebase-pattern-analyst
-- **Commands**: commit, test, optimize
+- **Commands**: commit, test, optimize, validate-repo
+- **Context**: All standards and workflow files (code, patterns, tests, docs, analysis, delegation, sessions, task-breakdown, review, context-guide)
 - **Config**: readme
 - **Best for**: Most developers, daily use, full-featured development
 
@@ -443,13 +445,13 @@ Business process automation, content creation, and visual workflows.
 - **Config**: env-example, readme
 - **Best for**: Business automation, content creation, non-developers
 
-### 📦 Full (25 components)
+### 📦 Full (36 components)
 Everything included - all agents, subagents, tools, and plugins.
 - Everything in Developer and Business combined, plus:
-- **Commands**: worktrees (git worktree management)
+- **Commands**: worktrees (git worktree management), validate-repo
 - **Best for**: Power users, exploring all features
 
-### 🚀 Advanced (32 components)
+### 🚀 Advanced (43 components)
 Full installation plus **System Builder** for creating custom AI architectures.
 - Everything in Full, plus:
 - **System Builder**: Interactive AI system generator

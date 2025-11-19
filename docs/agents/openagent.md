@@ -26,7 +26,7 @@ OpenAgent is your **universal assistant** that:
 
 - ✅ **Answers questions** - Get explanations, comparisons, and guidance
 - ✅ **Executes tasks** - Create files, update code, run commands
-- ✅ **Coordinates workflows** - Breaks down complex features and delegates to specialists
+- ✅ **Coordinates workflows** - Handles most tasks directly, delegates to specialists when needed
 - ✅ **Preserves context** - Remembers information across multiple steps
 - ✅ **Keeps you in control** - Always asks for approval before taking action
 
@@ -34,7 +34,7 @@ Think of OpenAgent as a **smart project manager** who:
 - Understands what you need
 - Plans how to do it
 - Asks for your approval
-- Executes the plan
+- Executes the plan (directly or via delegation)
 - Confirms everything is done right
 
 ---
@@ -63,6 +63,18 @@ graph LR
 
 **For Questions**: You ask → You get an answer
 **For Tasks**: You ask → See plan → Approve → Watch it happen → Confirm done
+
+### Universal Agent Philosophy
+
+OpenAgent is a **universal agent** - it handles most tasks directly:
+
+**Capabilities**: Write code, docs, tests, reviews, analysis, debugging, research, bash operations, file operations
+
+**Default**: Execute directly, fetch context files as needed (lazy), keep it simple, don't over-delegate
+
+**Delegate only when**: 4+ files, specialized expertise needed, thorough multi-component review, complex dependencies, or user requests breakdown
+
+This means OpenAgent is your go-to agent for almost everything. It only calls in specialists when truly necessary.
 
 ---
 
@@ -234,7 +246,7 @@ graph TD
 
 ---
 
-### Stage 2: Approve ⚠️ (MANDATORY for tasks)
+### Stage 2: Approve ⚠️ (MANDATORY - CRITICAL RULE)
 
 ```mermaid
 graph TD
@@ -261,6 +273,8 @@ graph TD
 ```
 
 **What happens**: OpenAgent creates a plan and shows it to you.
+
+**Critical Rule**: OpenAgent **ALWAYS** requests approval before **ANY** execution (bash, write, edit, task delegation). This is absolute and strictly enforced. Read and list operations do not require approval.
 
 **Your experience**: You see something like:
 ```
@@ -327,7 +341,7 @@ graph TD
 
 ---
 
-### Stage 4: Validate ⚠️ (MANDATORY for tasks)
+### Stage 4: Validate ⚠️ (MANDATORY - CRITICAL RULE)
 
 ```mermaid
 graph TD
@@ -379,6 +393,11 @@ graph TD
 
 **What happens**: OpenAgent checks the quality of the work, runs tests if applicable, and ensures everything works correctly.
 
+**Critical Rules Enforced**:
+1. **STOP on failure** - Immediately stops execution when tests fail or errors occur
+2. **REPORT first** - Always reports issues before proposing fixes
+3. **NEVER auto-fix** - Always requests approval before fixing issues
+
 **Your experience when validation passes**: You see:
 ```
 ✅ Validation complete - all checks passed.
@@ -394,13 +413,13 @@ Would you like me to run any additional checks or review the work before I summa
 
 #### Special Case: Test Failures or Issues Found
 
-If OpenAgent runs tests or validation and finds issues, it follows a **strict protocol**:
+If OpenAgent runs tests or validation and finds issues, it follows a **strict protocol** (Critical Rule):
 
 **What happens**:
-1. ⛔ **STOPS** execution immediately
+1. ⛔ **STOPS** execution immediately (no auto-fix)
 2. 📋 **REPORTS** all issues/failures clearly
 3. 📝 **PROPOSES** a fix plan with specific steps
-4. ⚠️ **REQUESTS APPROVAL** before fixing (mandatory)
+4. ⚠️ **REQUESTS APPROVAL** before fixing (absolute requirement)
 5. ✅ **PROCEEDS** only after you approve
 6. 🔄 **RE-VALIDATES** after fixes are applied
 
@@ -420,7 +439,7 @@ If OpenAgent runs tests or validation and finds issues, it follows a **strict pr
 **Approval needed before proceeding with fixes.**
 ```
 
-**Important**: OpenAgent will **NEVER** auto-fix issues without your explicit approval. After fixes are applied, validation runs again to ensure everything passes.
+**Critical**: OpenAgent will **NEVER** auto-fix issues without your explicit approval. This is an absolute rule with strict enforcement. After fixes are applied, validation runs again to ensure everything passes.
 
 ---
 
@@ -470,7 +489,7 @@ Created README.md with project documentation.
 
 ---
 
-### Stage 6: Confirm Completion ⚠️ (MANDATORY for tasks)
+### Stage 6: Confirm Completion ⚠️ (MANDATORY - CRITICAL RULE)
 
 ```mermaid
 graph TD
@@ -507,6 +526,8 @@ graph TD
 ```
 
 **What happens**: OpenAgent asks if you're satisfied and if temporary files should be cleaned up.
+
+**Critical Rule**: OpenAgent **ALWAYS** confirms before deleting session files or cleanup operations. This is absolute and strictly enforced.
 
 **Your experience**: You see:
 ```
@@ -584,11 +605,11 @@ sequenceDiagram
 
 ### Key Features
 
-**Lazy Initialization**: Sessions are only created when actually needed (not for simple tasks).
+**Lazy Initialization**: Sessions are only created when actually needed (not for simple tasks). OpenAgent follows a "lazy" philosophy - only creates sessions/files when truly necessary.
 
 **Unique IDs**: Each session gets a unique ID like `20250118-143022-a4f2` to prevent conflicts.
 
-**Safe Cleanup**: OpenAgent only deletes files it created, and only after you approve.
+**Safe Cleanup**: OpenAgent only deletes files it created, and only after you approve (Critical Rule).
 
 **Concurrent Safety**: Multiple users can work simultaneously without interfering with each other.
 
@@ -677,7 +698,22 @@ The manifest is like an **index** that tracks all context files:
 
 ## When OpenAgent Delegates
 
-OpenAgent knows when to do work itself and when to call in specialists.
+OpenAgent is a **universal agent** that handles most tasks directly. It only delegates when truly needed.
+
+### Execution Philosophy
+
+**OpenAgent's Capabilities**: Write code, docs, tests, reviews, analysis, debugging, research, bash operations, file operations
+
+**Default Approach**: Execute directly, fetch context files as needed (lazy loading), keep it simple
+
+**Delegate Only When**:
+- 4+ files to modify/create
+- Specialized expertise needed (security, algorithms, architecture, performance)
+- Thorough multi-component review required
+- Complex dependencies and coordination
+- Need fresh perspective or alternative approaches
+- Testing scenarios, edge cases, what-if analysis
+- User explicitly requests breakdown/delegation
 
 ### Decision Tree
 
@@ -689,17 +725,20 @@ graph TD
     
     B -->|Task| D{How complex?}
     
-    D -->|3+ files OR 60+ min OR complex| E[Delegate to task-manager]
+    D -->|4+ files OR specialized expertise| E[Delegate to task-manager]
     E --> E1[Breaks down into subtasks]
     
     D -->|Comprehensive docs OR multi-page| F[Delegate to documentation]
     F --> F1[Creates structured docs]
     
-    D -->|Specialized code task| G[Delegate to code specialists]
-    G --> G1[Testing, review, build]
+    D -->|Need perspective OR simulation| G[Delegate to general agent]
+    G --> G1[Fresh eyes, alternatives, testing]
     
-    D -->|Simple OR single file OR under 30 min| H[Execute Directly]
-    H --> H1[OpenAgent handles it]
+    D -->|Specialized code task| H[Delegate to code specialists]
+    H --> H1[Testing, review, build]
+    
+    D -->|Simple OR 1-3 files OR straightforward| I[Execute Directly]
+    I --> I1[OpenAgent handles it]
     
     style A fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
     style B fill:#F5A623,stroke:#C17D11,stroke-width:3px,color:#000
@@ -708,19 +747,19 @@ graph TD
     style E fill:#6B7C93,stroke:#4A5568,stroke-width:3px,color:#fff
     style F fill:#6B7C93,stroke:#4A5568,stroke-width:3px,color:#fff
     style G fill:#6B7C93,stroke:#4A5568,stroke-width:3px,color:#fff
-    style H fill:#7ED321,stroke:#5FA319,stroke-width:3px,color:#000
+    style H fill:#6B7C93,stroke:#4A5568,stroke-width:3px,color:#fff
+    style I fill:#7ED321,stroke:#5FA319,stroke-width:3px,color:#000
 ```
 
 ### Delegation Criteria
 
 #### Delegate to @task-manager when:
-- ✅ Feature spans **3+ files/modules**
-- ✅ Estimated effort **>60 minutes**
-- ✅ Needs **breakdown into subtasks**
+- ✅ Feature spans **4+ files/modules**
 - ✅ **Complex dependencies** between components
+- ✅ Needs **breakdown into subtasks**
 - ✅ User **explicitly requests** task breakdown
 
-**Example**: "Build user authentication system"
+**Example**: "Build user authentication system with 5+ components"
 
 ---
 
@@ -734,8 +773,22 @@ graph TD
 
 ---
 
+#### Delegate to @general agent when:
+- ✅ Need **fresh perspective** or alternative approaches
+- ✅ **Simulation** of scenarios, edge cases, what-if analysis
+- ✅ **Brainstorming** different solutions
+- ✅ **Complex research** requiring multiple rounds of search
+
+**Examples**:
+- "Review this API design - what could go wrong?" → Fresh perspective
+- "Simulate edge cases for this algorithm" → Testing scenarios
+- "What are alternative approaches to solve X?" → Brainstorming
+
+---
+
 #### Delegate to @code/* when:
-- ✅ **Code-specific specialized task** (testing, review, build)
+- ✅ **Specialized code task** (testing, review, build)
+- ✅ **Thorough review** across multiple components
 - ✅ Code subagents are **available** in current profile
 
 **Examples**:
@@ -746,15 +799,16 @@ graph TD
 ---
 
 #### Execute directly when:
-- ✅ **Single file** operation
-- ✅ **Simple, straightforward** task (<30 min)
+- ✅ **1-3 files** to modify/create
+- ✅ **Straightforward** task with clear implementation
 - ✅ **Quick updates/edits**
 - ✅ User **explicitly asks** openagent to handle it
 
 **Examples**:
 - "Create a README"
+- "Fix this bug in auth.ts"
+- "Add input validation to this function"
 - "Update this function to use async/await"
-- "Add a comment to this code"
 
 ---
 
@@ -956,11 +1010,11 @@ When making follow-up requests, reference previous work:
 You can adjust when OpenAgent delegates by modifying the criteria in `.opencode/agent/openagent.md`:
 
 **Current defaults**:
-- 3+ files → Delegate to task-manager
-- >60 minutes → Delegate to task-manager
-- <30 minutes → Execute directly
+- 4+ files → Delegate to task-manager
+- Specialized expertise needed → Delegate to appropriate specialist
+- 1-3 files → Execute directly
 
-**To customize**: Edit the `<delegation_criteria>` section to match your preferences.
+**To customize**: Edit the `<delegation_rules>` section to match your preferences.
 
 ---
 
@@ -1090,41 +1144,48 @@ Concise responses, no over-explanation. Gets to the point quickly.
 Conversational for questions, formal for tasks. Matches the context.
 
 ### ⚡ Lazy
-Only creates sessions/files when actually needed. No unnecessary overhead.
+Only creates sessions/files when actually needed. No unnecessary overhead. Fetches context files on-demand.
 
-### 🔒 Safe
-**ALWAYS** requests approval before ANY execution. Confirms before cleanup.
+### 🔒 Safe (CRITICAL RULE - Absolute & Strict)
+**ALWAYS** requests approval before ANY execution (bash, write, edit, task delegation). Confirms before cleanup. This is an absolute rule with strict enforcement.
 
-### 📋 Report First
+### 📋 Report First (CRITICAL RULE - Absolute & Strict)
 When tests fail or issues are found:
-1. **REPORT** the issues
-2. **PLAN** the fixes
-3. **REQUEST APPROVAL**
-4. **FIX** (only after approval)
+1. **STOP** immediately (no auto-fix)
+2. **REPORT** the issues clearly
+3. **PROPOSE** fix plan
+4. **REQUEST APPROVAL** (mandatory)
+5. **FIX** (only after approval)
 
-**Never auto-fixes** - you're always in control.
+**Never auto-fixes** - you're always in control. This is an absolute rule with strict enforcement.
+
+### 🛡️ Critical Rules Summary
+Three critical rules are enforced with absolute priority:
+1. **Approval Gate** - Always request approval before execution
+2. **Stop on Failure** - Stop immediately on test failures or errors, never auto-fix
+3. **Confirm Cleanup** - Always confirm before deleting session files
 
 ---
 
 ## Summary
 
-OpenAgent is your **intelligent project manager** that:
+OpenAgent is your **intelligent universal agent** that:
 
-✅ **Plans before acting** - Shows you the plan and waits for approval
+✅ **Plans before acting** - Shows you the plan and waits for approval (Critical Rule)
 ✅ **Preserves context** - Remembers information across multiple steps
-✅ **Delegates wisely** - Calls in specialists when needed
-✅ **Keeps you in control** - Always confirms before cleanup
-✅ **Handles complexity** - Breaks down big tasks into manageable pieces
-✅ **Reports before fixing** - Never auto-fixes issues without approval
+✅ **Executes directly** - Handles most tasks itself, delegates only when needed
+✅ **Keeps you in control** - Always confirms before cleanup (Critical Rule)
+✅ **Handles complexity** - Capable of code, docs, tests, reviews, analysis, debugging
+✅ **Reports before fixing** - Never auto-fixes issues without approval (Critical Rule)
 
 **Key Takeaways**:
 1. Be specific in your requests
 2. Review plans before approving
 3. Use multi-step workflows for complex projects
-4. Let OpenAgent delegate to specialists
+4. OpenAgent handles most tasks directly - delegation is the exception, not the rule
 5. Clean up sessions when done
 6. Customize to fit your workflow
-7. Expect reports before fixes when issues are found
+7. Expect reports before fixes when issues are found (never auto-fix)
 
 **Ready to get started?** Just ask OpenAgent a question or request a task!
 
@@ -1133,32 +1194,48 @@ OpenAgent is your **intelligent project manager** that:
 ## Configuration
 
 OpenAgent is configured in `.opencode/agent/openagent.md`. You can customize:
-- Delegation thresholds
-- Categories
-- Error handling
-- Test failure protocol
+- Delegation thresholds (when to delegate vs execute directly)
+- Execution philosophy (universal agent approach)
+- Critical rules enforcement
+- Workflow stages
+- Context loading behavior
 - And more!
 
-### Recent Optimizations (Nov 2025)
+### Architecture & Design (Nov 2025)
 
 OpenAgent has been optimized based on research-backed prompt engineering patterns:
 
-✅ **Critical rules positioned early** - Safety rules now appear in the first 15% of the prompt (10.7% position)
-✅ **Minimal nesting complexity** - Flattened XML structure to only 2 levels for maximum clarity
-✅ **Modular design** - Session management and context discovery extracted to reference files
-✅ **Explicit prioritization** - 3-tier priority system for conflict resolution
+✅ **Critical rules positioned early** - Safety rules appear in the first 15% of the prompt with absolute priority
+✅ **Minimal nesting complexity** - Flattened XML structure (max 2 levels) for maximum clarity
+✅ **Modular design** - Context files loaded on-demand (lazy loading)
+✅ **Explicit prioritization** - 3-tier priority system with conflict resolution
 ✅ **Single source of truth** - Critical rules defined once and referenced throughout
+✅ **Universal agent philosophy** - Execute directly first, delegate only when truly needed
+
+**Key Principles**:
+- **Tier 1 (Highest)**: Safety & Approval Gates - Always override other tiers
+- **Tier 2**: Core Workflow - Stage progression and delegation routing
+- **Tier 3**: Optimization - Lazy initialization, session management, context discovery
 
 **Effectiveness improvements are model- and task-specific.** These patterns are validated by Stanford/Anthropic research but actual performance gains vary based on your specific use case.
 
-### Required Context Files
+### Static Context Files
 
-OpenAgent requires these context files to function properly:
-- `.opencode/context/core/session-management.md` - Session lifecycle and cleanup policies
-- `.opencode/context/core/context-discovery.md` - Dynamic context loading and discovery
-- `.opencode/context/core/context-management.md` - Overall context management strategy
-- `.opencode/context/core/essential-patterns.md` - Core coding patterns and best practices
+OpenAgent uses context files from `.opencode/context/core/` on-demand (lazy loading):
 
-These files are automatically loaded when OpenAgent starts.
+**Standards** (quality guidelines):
+- `standards/code.md` - Modular, functional code patterns
+- `standards/docs.md` - Documentation standards
+- `standards/tests.md` - Testing standards
+- `standards/patterns.md` - Core patterns
+- `standards/analysis.md` - Analysis framework
+
+**Workflows** (process templates):
+- `workflows/delegation.md` - Delegation template and process
+- `workflows/task-breakdown.md` - Task breakdown methodology
+- `workflows/sessions.md` - Session lifecycle management
+- `workflows/review.md` - Code review guidelines
+
+These files are fetched only when needed, keeping the system lean and efficient. OpenAgent references them without the `@` symbol (e.g., `standards/code.md` not `@standards/code.md`).
 
 Happy building! 🚀

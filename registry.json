@@ -371,6 +371,21 @@
           "agent:system-builder"
         ],
         "category": "meta"
+      },
+      {
+        "id": "validate-repo",
+        "name": "Validate Repository",
+        "type": "command",
+        "path": ".opencode/command/validate-repo.md",
+        "description": "Comprehensive validation of repository consistency between CLI, docs, registry, and components",
+        "tags": [
+          "validation",
+          "quality",
+          "consistency",
+          "maintenance"
+        ],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "tools": [
@@ -464,6 +479,146 @@
         ],
         "dependencies": [],
         "category": "essential"
+      },
+      {
+        "id": "standards-code",
+        "name": "Code Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/code.md",
+        "description": "Modular, functional code standards",
+        "tags": [
+          "standards",
+          "code",
+          "quality"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "standards-patterns",
+        "name": "Pattern Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/patterns.md",
+        "description": "Language-agnostic pattern catalog",
+        "tags": [
+          "standards",
+          "patterns",
+          "architecture"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "standards-tests",
+        "name": "Testing Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/tests.md",
+        "description": "Testing best practices and guidelines",
+        "tags": [
+          "standards",
+          "testing",
+          "quality"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "standards-docs",
+        "name": "Documentation Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/docs.md",
+        "description": "Documentation guidelines and templates",
+        "tags": [
+          "standards",
+          "documentation",
+          "writing"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "standards-analysis",
+        "name": "Analysis Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/analysis.md",
+        "description": "Code analysis framework and guidelines",
+        "tags": [
+          "standards",
+          "analysis",
+          "quality"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-delegation",
+        "name": "Delegation Workflow",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/delegation.md",
+        "description": "Delegation template and process",
+        "tags": [
+          "workflows",
+          "delegation",
+          "coordination"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-sessions",
+        "name": "Session Management Workflow",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/sessions.md",
+        "description": "Session lifecycle and management",
+        "tags": [
+          "workflows",
+          "sessions",
+          "management"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-task-breakdown",
+        "name": "Task Breakdown Workflow",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/task-breakdown.md",
+        "description": "Task breakdown methodology",
+        "tags": [
+          "workflows",
+          "tasks",
+          "planning"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-review",
+        "name": "Code Review Workflow",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/review.md",
+        "description": "Code review process and guidelines",
+        "tags": [
+          "workflows",
+          "review",
+          "quality"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "system-context-guide",
+        "name": "Context System Guide",
+        "type": "context",
+        "path": ".opencode/context/core/system/context-guide.md",
+        "description": "Guide to the context system and file organization",
+        "tags": [
+          "system",
+          "guide",
+          "context"
+        ],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "config": [
@@ -532,9 +687,20 @@
         "command:context",
         "command:clean",
         "command:optimize",
+        "command:validate-repo",
         "tool:env",
         "context:essential-patterns",
         "context:project-context",
+        "context:standards-code",
+        "context:standards-patterns",
+        "context:standards-tests",
+        "context:standards-docs",
+        "context:standards-analysis",
+        "context:workflows-delegation",
+        "context:workflows-sessions",
+        "context:workflows-task-breakdown",
+        "context:workflows-review",
+        "context:system-context-guide",
         "config:env-example",
         "config:readme"
       ]
@@ -581,12 +747,23 @@
         "command:optimize",
         "command:prompt-enhancer",
         "command:worktrees",
+        "command:validate-repo",
         "tool:env",
         "tool:gemini",
         "plugin:notify",
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
+        "context:standards-code",
+        "context:standards-patterns",
+        "context:standards-tests",
+        "context:standards-docs",
+        "context:standards-analysis",
+        "context:workflows-delegation",
+        "context:workflows-sessions",
+        "context:workflows-task-breakdown",
+        "context:workflows-review",
+        "context:system-context-guide",
         "config:env-example",
         "config:readme"
       ]
@@ -619,12 +796,23 @@
         "command:prompt-enhancer",
         "command:worktrees",
         "command:build-context-system",
+        "command:validate-repo",
         "tool:env",
         "tool:gemini",
         "plugin:notify",
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
+        "context:standards-code",
+        "context:standards-patterns",
+        "context:standards-tests",
+        "context:standards-docs",
+        "context:standards-analysis",
+        "context:workflows-delegation",
+        "context:workflows-sessions",
+        "context:workflows-task-breakdown",
+        "context:workflows-review",
+        "context:system-context-guide",
         "config:env-example",
         "config:readme"
       ],
