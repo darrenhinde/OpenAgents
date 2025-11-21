@@ -197,3 +197,10 @@ temp/
 
 # Bun
 .bun
+
+# Evaluation results
+evals/results/*
+!evals/results/.gitkeep
+
+# Task tracking (temporary)
+tasks/

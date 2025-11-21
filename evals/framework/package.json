@@ -1,0 +1,38 @@
+{
+  "name": "@opencode-agents/eval-framework",
+  "version": "0.1.0",
+  "description": "Evaluation framework for OpenCode agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:integration": "vitest --config vitest.integration.config.ts",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "eval": "node dist/cli.js",
+    "report": "node dist/cli.js report"
+  },
+  "keywords": [
+    "opencode",
+    "evaluation",
+    "testing",
+    "agents",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}
