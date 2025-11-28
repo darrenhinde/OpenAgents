@@ -272,6 +272,13 @@ export class TestRunner {
       throw new Error('Test runner not started. Call start() first.');
     }
 
+    // Stop event handler if it's still listening from previous test
+    if (this.eventHandler.listening()) {
+      this.eventHandler.stopListening();
+      // Wait a bit for cleanup
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
     // Create approval strategy
     const approvalStrategy = this.createApprovalStrategy(testCase);
 
@@ -372,7 +379,16 @@ export class TestRunner {
   async runTests(testCases: TestCase[]): Promise<TestResult[]> {
     const results: TestResult[] = [];
 
-    for (const testCase of testCases) {
+    for (let i = 0; i < testCases.length; i++) {
+      const testCase = testCases[i];
+      
+      // Add delay between tests to avoid rate limiting (except for first test)
+      if (i > 0) {
+        const delayMs = 3000; // 3 second delay between tests
+        this.logger.log(`⏳ Waiting ${delayMs}ms before next test to avoid rate limiting...\n`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+      
       const result = await this.runTest(testCase);
       results.push(result);
 

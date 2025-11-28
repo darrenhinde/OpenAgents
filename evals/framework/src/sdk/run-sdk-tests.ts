@@ -7,6 +7,7 @@
  *   npm run eval:sdk
  *   npm run eval:sdk -- --debug
  *   npm run eval:sdk -- --no-evaluators
+ *   npm run eval:sdk -- --core
  *   npm run eval:sdk -- --agent=opencoder
  *   npm run eval:sdk -- --agent=openagent
  *   npm run eval:sdk -- --model=opencode/grok-code-fast
@@ -16,6 +17,7 @@
  * Options:
  *   --debug              Enable debug logging
  *   --no-evaluators      Skip running evaluators (faster)
+ *   --core               Run core test suite only (7 tests, ~5-8 min)
  *   --agent=AGENT        Run tests for specific agent (openagent, opencoder)
  *   --model=PROVIDER/MODEL  Override default model (default: opencode/grok-code-fast)
  *   --pattern=GLOB       Run specific test files (default: star-star/star.yaml)
@@ -37,6 +39,7 @@ const __dirname = dirname(__filename);
 interface CliArgs {
   debug: boolean;
   noEvaluators: boolean;
+  core: boolean;
   agent?: string;
   pattern?: string;
   timeout?: number;
@@ -49,6 +52,7 @@ function parseArgs(): CliArgs {
   return {
     debug: args.includes('--debug'),
     noEvaluators: args.includes('--no-evaluators'),
+    core: args.includes('--core'),
     agent: args.find(a => a.startsWith('--agent='))?.split('=')[1],
     pattern: args.find(a => a.startsWith('--pattern='))?.split('=')[1],
     timeout: parseInt(args.find(a => a.startsWith('--timeout='))?.split('=')[1] || '60000'),
@@ -186,12 +190,35 @@ async function main() {
   }
   
   // Find test files across all test directories
-  const pattern = args.pattern || '**/*.yaml';
+  let pattern = args.pattern || '**/*.yaml';
   let testFiles: string[] = [];
   
-  for (const testDir of testDirs) {
-    const files = globSync(pattern, { cwd: testDir, absolute: true });
-    testFiles = testFiles.concat(files);
+  // If --core flag is set, use core test patterns
+  if (args.core) {
+    console.log('🎯 Running CORE test suite (7 tests)\n');
+    const coreTests = [
+      '01-critical-rules/approval-gate/05-approval-before-execution-positive.yaml',
+      '01-critical-rules/context-loading/01-code-task.yaml',
+      '01-critical-rules/context-loading/09-multi-standards-to-docs.yaml',
+      '01-critical-rules/stop-on-failure/02-stop-and-report-positive.yaml',
+      '08-delegation/simple-task-direct.yaml',
+      '06-integration/medium/04-subagent-verification.yaml',
+      '09-tool-usage/dedicated-tools-usage.yaml'
+    ];
+    
+    for (const testDir of testDirs) {
+      for (const coreTest of coreTests) {
+        const testPath = join(testDir, coreTest);
+        if (existsSync(testPath)) {
+          testFiles.push(testPath);
+        }
+      }
+    }
+  } else {
+    for (const testDir of testDirs) {
+      const files = globSync(pattern, { cwd: testDir, absolute: true });
+      testFiles = testFiles.concat(files);
+    }
   }
   
   if (testFiles.length === 0) {

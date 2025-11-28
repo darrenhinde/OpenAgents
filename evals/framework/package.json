@@ -16,6 +16,7 @@
     "eval": "node dist/cli.js",
     "report": "node dist/cli.js report",
     "eval:sdk": "tsx src/sdk/run-sdk-tests.ts",
+    "eval:sdk:core": "tsx src/sdk/run-sdk-tests.ts --core",
     "eval:sdk:debug": "tsx src/sdk/run-sdk-tests.ts --debug",
     "eval:sdk:interactive": "tsx src/sdk/run-sdk-tests.ts --interactive"
   },
