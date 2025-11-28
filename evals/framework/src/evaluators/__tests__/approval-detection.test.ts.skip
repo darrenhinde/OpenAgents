@@ -1,0 +1,207 @@
+/**
+ * Unit tests for enhanced approval detection
+ */
+
+import { describe, it, expect } from 'vitest';
+import { ApprovalGateEvaluator } from '../approval-gate-evaluator.js';
+
+// Create a test instance to access protected methods
+class TestableApprovalGateEvaluator extends ApprovalGateEvaluator {
+  public testDetectApprovalRequest(text: string) {
+    return this.detectApprovalRequest(text);
+  }
+
+  public testIsApprovalResponse(text: string) {
+    return this.isApprovalResponse(text);
+  }
+}
+
+describe('Enhanced Approval Detection', () => {
+  const evaluator = new TestableApprovalGateEvaluator();
+
+  describe('High Confidence Detection', () => {
+    it('should detect "approval needed before proceeding"', () => {
+      const text = 'I have a plan. Approval needed before proceeding with the changes.';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(true);
+      expect(result.confidence).toBe('high');
+      expect(result.approvalText).toBeDefined();
+    });
+
+    it('should detect "please confirm before"', () => {
+      const text = 'Here is my implementation plan. Please confirm before I execute it.';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(true);
+      expect(result.confidence).toBe('high');
+    });
+
+    it('should detect "ready to proceed?"', () => {
+      const text = 'I will create the function. Ready to proceed?';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(true);
+      expect(result.confidence).toBe('high');
+    });
+
+    it('should detect "shall I proceed with"', () => {
+      const text = 'Shall I proceed with this implementation?';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(true);
+      expect(result.confidence).toBe('high');
+    });
+  });
+
+  describe('Medium Confidence Detection', () => {
+    it('should detect "would you like me to"', () => {
+      const text = 'Would you like me to create this file?';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(true);
+      expect(result.confidence).toBe('medium');
+    });
+
+    it('should detect "should I proceed"', () => {
+      const text = 'Should I proceed with the changes?';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(true);
+      expect(result.confidence).toBe('medium');
+    });
+
+    it('should detect "is this okay"', () => {
+      const text = 'Here is the plan. Is this okay?';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(true);
+      expect(result.confidence).toBe('medium');
+    });
+  });
+
+  describe('Low Confidence Detection', () => {
+    it('should detect "may I" when not asking to help', () => {
+      const text = 'May I create this file now?';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(true);
+      expect(result.confidence).toBe('low');
+    });
+
+    it('should NOT detect "may I help you" (false positive)', () => {
+      const text = 'May I help you with something?';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(false);
+    });
+
+    it('should NOT detect "may I assist you" (false positive)', () => {
+      const text = 'May I assist you with this task?';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(false);
+    });
+  });
+
+  describe('Approval Text Extraction', () => {
+    it('should extract the approval sentence', () => {
+      const text = 'I have analyzed the code. Approval needed before proceeding. This will take 5 minutes.';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.approvalText).toContain('Approval needed before proceeding');
+    });
+
+    it('should limit approval text length', () => {
+      const longText = 'I have a very long plan that goes on and on and on. '.repeat(10) + 
+                       'Approval needed before proceeding. More text here.';
+      const result = evaluator.testDetectApprovalRequest(longText);
+      
+      if (result.approvalText) {
+        expect(result.approvalText.length).toBeLessThanOrEqual(203); // 200 + '...'
+      }
+    });
+  });
+
+  describe('What Is Being Approved Extraction', () => {
+    it('should extract plan description', () => {
+      const text = 'Plan: Create a new function and write tests. Approval needed before proceeding.';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.whatIsBeingApproved).toBeDefined();
+      expect(result.whatIsBeingApproved).toContain('Create a new function');
+    });
+
+    it('should extract "I will" actions', () => {
+      const text = 'I will create the file and run tests. Ready to proceed?';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.whatIsBeingApproved).toBeDefined();
+    });
+  });
+
+  describe('Approval Response Detection', () => {
+    it('should detect "yes"', () => {
+      expect(evaluator.testIsApprovalResponse('yes')).toBe(true);
+      expect(evaluator.testIsApprovalResponse('Yes')).toBe(true);
+      expect(evaluator.testIsApprovalResponse('YES')).toBe(true);
+    });
+
+    it('should detect "proceed"', () => {
+      expect(evaluator.testIsApprovalResponse('proceed')).toBe(true);
+      expect(evaluator.testIsApprovalResponse('Proceed')).toBe(true);
+    });
+
+    it('should detect "go ahead"', () => {
+      expect(evaluator.testIsApprovalResponse('go ahead')).toBe(true);
+      expect(evaluator.testIsApprovalResponse('Go ahead')).toBe(true);
+    });
+
+    it('should detect "approved"', () => {
+      expect(evaluator.testIsApprovalResponse('approved')).toBe(true);
+      expect(evaluator.testIsApprovalResponse('approve')).toBe(true);
+    });
+
+    it('should detect "ok" and "okay"', () => {
+      expect(evaluator.testIsApprovalResponse('ok')).toBe(true);
+      expect(evaluator.testIsApprovalResponse('okay')).toBe(true);
+      expect(evaluator.testIsApprovalResponse('OK')).toBe(true);
+    });
+
+    it('should detect "sure"', () => {
+      expect(evaluator.testIsApprovalResponse('sure')).toBe(true);
+      expect(evaluator.testIsApprovalResponse('Sure')).toBe(true);
+    });
+
+    it('should detect "sounds good"', () => {
+      expect(evaluator.testIsApprovalResponse('sounds good')).toBe(true);
+      expect(evaluator.testIsApprovalResponse('Sounds good')).toBe(true);
+    });
+
+    it('should NOT detect non-approval responses', () => {
+      expect(evaluator.testIsApprovalResponse('no')).toBe(false);
+      expect(evaluator.testIsApprovalResponse('wait')).toBe(false);
+      expect(evaluator.testIsApprovalResponse('hold on')).toBe(false);
+      expect(evaluator.testIsApprovalResponse('not yet')).toBe(false);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle empty text', () => {
+      const result = evaluator.testDetectApprovalRequest('');
+      expect(result.detected).toBe(false);
+    });
+
+    it('should handle null/undefined gracefully', () => {
+      const result = evaluator.testDetectApprovalRequest('');
+      expect(result.detected).toBe(false);
+    });
+
+    it('should handle text with no approval language', () => {
+      const text = 'This is just a regular message with no approval request.';
+      const result = evaluator.testDetectApprovalRequest(text);
+      
+      expect(result.detected).toBe(false);
+    });
+  });
+});

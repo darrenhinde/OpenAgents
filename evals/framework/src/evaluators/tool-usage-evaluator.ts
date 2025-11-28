@@ -33,13 +33,69 @@ export class ToolUsageEvaluator extends BaseEvaluator {
   // Patterns for detecting suboptimal bash usage
   // NOTE: grep, rg, npm, git, and other valid bash commands are ALLOWED
   private bashAntiPatterns = [
-    { pattern: /\bcat\s+[^\s|>]+(?!\s*[|>])/i, tool: 'read', message: 'Use Read tool instead of cat for reading files' },
-    { pattern: /\bhead\s+/i, tool: 'read', message: 'Use Read tool instead of head' },
-    { pattern: /\btail\s+/i, tool: 'read', message: 'Use Read tool instead of tail' },
-    { pattern: /\bls\s+(?!-[al]*\s)/i, tool: 'list', message: 'Use List tool instead of ls (unless ls -la for detailed info)' },
-    { pattern: /\bfind\s+.*-name/i, tool: 'glob', message: 'Use Glob tool instead of find for pattern matching' },
-    { pattern: /echo\s+.*>\s*[^\s]+/i, tool: 'write', message: 'Use Write tool instead of echo redirection' },
-    { pattern: /cat\s*<<.*EOF/i, tool: 'write', message: 'Use Write tool instead of cat with heredoc' }
+    { 
+      pattern: /\bcat\s+([^\s|>]+)(?!\s*[|>])/i, 
+      tool: 'read', 
+      message: 'Use Read tool instead of cat for reading files',
+      severity: 'warning' as const,
+      example: 'read(filePath: "path/to/file")'
+    },
+    { 
+      pattern: /\bhead\s+(-n\s*\d+\s+)?([^\s]+)/i, 
+      tool: 'read', 
+      message: 'Use Read tool with limit parameter instead of head',
+      severity: 'warning' as const,
+      example: 'read(filePath: "file", limit: 10)'
+    },
+    { 
+      pattern: /\btail\s+(-n\s*\d+\s+)?([^\s]+)/i, 
+      tool: 'read', 
+      message: 'Use Read tool with offset parameter instead of tail',
+      severity: 'warning' as const,
+      example: 'read(filePath: "file", offset: -10)'
+    },
+    { 
+      pattern: /\bls\s+(?!-[al]+\s)([^\s]*)/i, 
+      tool: 'list', 
+      message: 'Use List tool instead of ls (unless ls -la for detailed info)',
+      severity: 'info' as const,
+      example: 'list(path: "directory")'
+    },
+    { 
+      pattern: /\bfind\s+.*-name\s+["']?([^"'\s]+)["']?/i, 
+      tool: 'glob', 
+      message: 'Use Glob tool instead of find for pattern matching',
+      severity: 'warning' as const,
+      example: 'glob(pattern: "**/*.ts")'
+    },
+    { 
+      pattern: /echo\s+["']?([^"'>]+)["']?\s*>\s*([^\s]+)/i, 
+      tool: 'write', 
+      message: 'Use Write tool instead of echo redirection',
+      severity: 'warning' as const,
+      example: 'write(filePath: "file", content: "text")'
+    },
+    { 
+      pattern: /cat\s*<<\s*EOF/i, 
+      tool: 'write', 
+      message: 'Use Write tool instead of cat with heredoc',
+      severity: 'warning' as const,
+      example: 'write(filePath: "file", content: "multiline\\ntext")'
+    },
+    {
+      pattern: /\bsed\s+/i,
+      tool: 'edit',
+      message: 'Use Edit tool instead of sed for file modifications',
+      severity: 'warning' as const,
+      example: 'edit(filePath: "file", oldString: "old", newString: "new")'
+    },
+    {
+      pattern: /\bawk\s+/i,
+      tool: 'edit',
+      message: 'Use Edit tool or Read tool instead of awk',
+      severity: 'info' as const,
+      example: 'read(filePath: "file") then process in code'
+    }
   ];
   
   // Allowed bash commands that should NOT be flagged
@@ -110,13 +166,16 @@ export class ToolUsageEvaluator extends BaseEvaluator {
       };
 
       if (antiPattern) {
+        const suggestion = this.generateSuggestion(command, antiPattern);
+        
         check.toolUsed = 'bash';
         check.expectedTool = antiPattern.tool;
         check.reason = antiPattern.message;
         check.evidence.push(
           `Command: ${command}`,
           `Issue: ${antiPattern.message}`,
-          `Suggested tool: ${antiPattern.tool}`
+          `Suggested tool: ${antiPattern.tool}`,
+          `Better approach: ${suggestion}`
         );
 
         // Add check (failed)
@@ -125,21 +184,26 @@ export class ToolUsageEvaluator extends BaseEvaluator {
           passed: false,
           weight: 100 / bashCalls.length,
           evidence: check.evidence.map(e =>
-            this.createEvidence('suboptimal-tool', e, { command, suggestedTool: antiPattern.tool })
+            this.createEvidence('suboptimal-tool', e, { 
+              command, 
+              suggestedTool: antiPattern.tool,
+              example: antiPattern.example 
+            })
           )
         });
 
-        // Add violation (warning - not critical)
+        // Add violation with appropriate severity
         violations.push(
           this.createViolation(
             'suboptimal-tool-usage',
-            'info',
+            antiPattern.severity,
             antiPattern.message,
             bashCall.timestamp,
             {
               command,
               suggestedTool: antiPattern.tool,
-              actualTool: 'bash'
+              actualTool: 'bash',
+              example: antiPattern.example
             }
           )
         );
@@ -199,7 +263,13 @@ export class ToolUsageEvaluator extends BaseEvaluator {
   /**
    * Detect anti-patterns in bash commands
    */
-  private detectAntiPattern(command: string): { pattern: RegExp; tool: string; message: string } | null {
+  private detectAntiPattern(command: string): { 
+    pattern: RegExp; 
+    tool: string; 
+    message: string; 
+    severity: 'error' | 'warning' | 'info';
+    example: string;
+  } | null {
     // First check if this is an allowed bash command
     for (const allowed of this.allowedBashCommands) {
       if (allowed.test(command)) {
@@ -214,5 +284,53 @@ export class ToolUsageEvaluator extends BaseEvaluator {
       }
     }
     return null;
+  }
+
+  /**
+   * Generate a specific suggestion for a command
+   */
+  private generateSuggestion(command: string, antiPattern: { tool: string; example: string }): string {
+    // Try to extract file path from command
+    const fileMatch = command.match(/["']?([^\s"']+\.[a-z]+)["']?/i);
+    const filePath = fileMatch ? fileMatch[1] : 'path/to/file';
+    
+    // Generate context-specific example
+    switch (antiPattern.tool) {
+      case 'read':
+        if (command.includes('head')) {
+          const limitMatch = command.match(/-n\s*(\d+)/);
+          const limit = limitMatch ? limitMatch[1] : '10';
+          return `read(filePath: "${filePath}", limit: ${limit})`;
+        } else if (command.includes('tail')) {
+          return `read(filePath: "${filePath}", offset: -10)`;
+        }
+        return `read(filePath: "${filePath}")`;
+      
+      case 'write':
+        const contentMatch = command.match(/echo\s+["']?([^"'>]+)["']?/);
+        const content = contentMatch ? contentMatch[1] : 'content';
+        return `write(filePath: "${filePath}", content: "${content}")`;
+      
+      case 'list':
+        const dirMatch = command.match(/ls\s+([^\s]+)/);
+        const dir = dirMatch ? dirMatch[1] : '.';
+        return `list(path: "${dir}")`;
+      
+      case 'glob':
+        const patternMatch = command.match(/-name\s+["']?([^"'\s]+)["']?/);
+        const pattern = patternMatch ? patternMatch[1] : '*.ts';
+        return `glob(pattern: "**/${pattern}")`;
+      
+      case 'grep':
+        const searchMatch = command.match(/grep\s+["']?([^"'\s]+)["']?/);
+        const search = searchMatch ? searchMatch[1] : 'pattern';
+        return `grep(pattern: "${search}", path: ".")`;
+      
+      case 'edit':
+        return `edit(filePath: "${filePath}", oldString: "old", newString: "new")`;
+      
+      default:
+        return antiPattern.example;
+    }
   }
 }

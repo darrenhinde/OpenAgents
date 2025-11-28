@@ -29,6 +29,11 @@ export { ApprovalGateEvaluator } from './evaluators/approval-gate-evaluator';
 export { ContextLoadingEvaluator } from './evaluators/context-loading-evaluator';
 export { DelegationEvaluator } from './evaluators/delegation-evaluator';
 export { ToolUsageEvaluator } from './evaluators/tool-usage-evaluator';
+export { StopOnFailureEvaluator } from './evaluators/stop-on-failure-evaluator';
+export { ReportFirstEvaluator } from './evaluators/report-first-evaluator';
+export { CleanupConfirmationEvaluator } from './evaluators/cleanup-confirmation-evaluator';
+export { BehaviorEvaluator } from './evaluators/behavior-evaluator';
+export type { BehaviorExpectation } from './evaluators/behavior-evaluator';
 export { EvaluatorRunner } from './evaluators/evaluator-runner';
 export type { RunnerConfig, AggregatedResult } from './evaluators/evaluator-runner';
 

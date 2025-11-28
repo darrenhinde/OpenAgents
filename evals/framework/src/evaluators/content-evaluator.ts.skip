@@ -1,0 +1,451 @@
+/**
+ * ContentEvaluator - Validates file content from write/edit operations
+ * 
+ * Validates that files written or edited contain the expected content:
+ * 1. Checks if required patterns are present
+ * 2. Checks if forbidden patterns are absent
+ * 3. Validates content length
+ * 4. Supports regex pattern matching
+ * 
+ * Uses the new contentExpectations from test schema:
+ * - filePath: File to validate
+ * - mustContain: Required strings/patterns
+ * - mustNotContain: Forbidden strings/patterns
+ * - mustMatch: Regex pattern for full content
+ * - minLength/maxLength: Content length constraints
+ */
+
+import { BaseEvaluator } from './base-evaluator.js';
+import {
+  TimelineEvent,
+  SessionInfo,
+  EvaluationResult,
+  Violation,
+  Evidence,
+  Check,
+} from '../types/index.js';
+import type { ContentExpectation } from '../sdk/test-case-schema.js';
+
+export class ContentEvaluator extends BaseEvaluator {
+  name = 'content';
+  description = 'Validates file content from write/edit operations';
+
+  // Store expectations (set by test runner)
+  public expectations?: ContentExpectation[];
+
+  async evaluate(
+    timeline: TimelineEvent[],
+    sessionInfo: SessionInfo
+  ): Promise<EvaluationResult> {
+    const checks: Check[] = [];
+    const violations: Violation[] = [];
+    const evidence: Evidence[] = [];
+
+    // If no expectations, skip evaluation
+    if (!this.expectations || this.expectations.length === 0) {
+      return this.buildResult(this.name, checks, violations, evidence, {
+        skipped: true,
+        reason: 'No content expectations specified'
+      });
+    }
+
+    // Get all write and edit tool calls
+    const writeCalls = this.getToolCallsByName(timeline, 'write');
+    const editCalls = this.getToolCallsByName(timeline, 'edit');
+    const allFileOps = [...writeCalls, ...editCalls];
+
+    // Build a map of file paths to their content
+    const fileContents = this.extractFileContents(allFileOps);
+
+    evidence.push(
+      this.createEvidence(
+        'file-operations',
+        `Found ${allFileOps.length} file operations (${writeCalls.length} writes, ${editCalls.length} edits)`,
+        {
+          writeCount: writeCalls.length,
+          editCount: editCalls.length,
+          files: Object.keys(fileContents)
+        }
+      )
+    );
+
+    // Validate each expectation
+    for (const expectation of this.expectations) {
+      const content = fileContents[expectation.filePath];
+
+      if (!content) {
+        // File was not written/edited
+        violations.push(
+          this.createViolation(
+            'file-not-found',
+            'error',
+            `Expected file '${expectation.filePath}' was not written or edited`,
+            Date.now(),
+            { filePath: expectation.filePath, availableFiles: Object.keys(fileContents) }
+          )
+        );
+
+        checks.push({
+          name: `file-exists-${expectation.filePath}`,
+          passed: false,
+          weight: 100,
+          evidence: [
+            this.createEvidence(
+              'file-check',
+              `File not found: ${expectation.filePath}`,
+              { filePath: expectation.filePath }
+            )
+          ]
+        });
+
+        continue;
+      }
+
+      // File exists, validate content
+      const validationResults = this.validateContent(content, expectation);
+
+      // Add checks for this file
+      checks.push(...validationResults.checks);
+      violations.push(...validationResults.violations);
+      evidence.push(...validationResults.evidence);
+    }
+
+    return this.buildResult(this.name, checks, violations, evidence, {
+      expectations: this.expectations,
+      filesValidated: Object.keys(fileContents).length
+    });
+  }
+
+  /**
+   * Normalize file path to relative path from project root
+   */
+  private normalizePath(filePath: string): string {
+    // If path is absolute, try to make it relative
+    if (filePath.startsWith('/')) {
+      // Try to find 'evals/test_tmp' in the path
+      const evalsTmpIndex = filePath.indexOf('evals/test_tmp/');
+      if (evalsTmpIndex !== -1) {
+        return filePath.substring(evalsTmpIndex);
+      }
+      
+      // Try to find 'opencode-agents/' and get everything after it
+      const projectIndex = filePath.indexOf('opencode-agents/');
+      if (projectIndex !== -1) {
+        return filePath.substring(projectIndex + 'opencode-agents/'.length);
+      }
+    }
+    return filePath;
+  }
+
+  /**
+   * Extract file contents from write/edit tool calls
+   */
+  private extractFileContents(toolCalls: TimelineEvent[]): Record<string, string> {
+    const contents: Record<string, string> = {};
+
+    for (const call of toolCalls) {
+      const tool = call.data?.tool;
+      // Input is in call.data.state.input for completed tool calls
+      const input = call.data?.state?.input || call.data?.input;
+
+      if (!input) continue;
+
+      if (tool === 'write') {
+        // Write tool has content directly
+        const filePath = input.filePath;
+        const content = input.content;
+
+        if (filePath && content !== undefined) {
+          // Store with both absolute and normalized paths
+          contents[filePath] = content;
+          const normalized = this.normalizePath(filePath);
+          if (normalized !== filePath) {
+            contents[normalized] = content;
+          }
+        }
+      } else if (tool === 'edit') {
+        // Edit tool modifies existing content
+        // For now, we track that the file was edited
+        // In a real implementation, we'd need to read the final file state
+        const filePath = input.filePath;
+        const newString = input.newString;
+
+        if (filePath && newString !== undefined) {
+          // Store the new string as a partial content indicator
+          // This is a simplified approach - ideally we'd read the actual file
+          contents[filePath] = newString;
+          const normalized = this.normalizePath(filePath);
+          if (normalized !== filePath) {
+            contents[normalized] = newString;
+          }
+        }
+      }
+    }
+
+    return contents;
+  }
+
+  /**
+   * Validate content against expectations
+   */
+  private validateContent(
+    content: string,
+    expectation: ContentExpectation
+  ): {
+    checks: Check[];
+    violations: Violation[];
+    evidence: Evidence[];
+  } {
+    const checks: Check[] = [];
+    const violations: Violation[] = [];
+    const evidence: Evidence[] = [];
+
+    const filePath = expectation.filePath;
+
+    // Check 1: mustContain patterns
+    if (expectation.mustContain && expectation.mustContain.length > 0) {
+      const missingPatterns: string[] = [];
+
+      for (const pattern of expectation.mustContain) {
+        if (!content.includes(pattern)) {
+          missingPatterns.push(pattern);
+        }
+      }
+
+      const allPatternsFound = missingPatterns.length === 0;
+
+      checks.push({
+        name: `must-contain-${filePath}`,
+        passed: allPatternsFound,
+        weight: 40,
+        evidence: [
+          this.createEvidence(
+            'pattern-check',
+            allPatternsFound
+              ? `All required patterns found in ${filePath}`
+              : `Missing patterns in ${filePath}: ${missingPatterns.join(', ')}`,
+            {
+              filePath,
+              required: expectation.mustContain,
+              missing: missingPatterns
+            }
+          )
+        ]
+      });
+
+      if (!allPatternsFound) {
+        violations.push(
+          this.createViolation(
+            'missing-required-patterns',
+            'error',
+            `File '${filePath}' is missing required patterns: ${missingPatterns.join(', ')}`,
+            Date.now(),
+            {
+              filePath,
+              required: expectation.mustContain,
+              missing: missingPatterns,
+              contentPreview: content.substring(0, 200)
+            }
+          )
+        );
+      }
+    }
+
+    // Check 2: mustNotContain patterns
+    if (expectation.mustNotContain && expectation.mustNotContain.length > 0) {
+      const foundForbidden: string[] = [];
+
+      for (const pattern of expectation.mustNotContain) {
+        if (content.includes(pattern)) {
+          foundForbidden.push(pattern);
+        }
+      }
+
+      const noForbiddenFound = foundForbidden.length === 0;
+
+      checks.push({
+        name: `must-not-contain-${filePath}`,
+        passed: noForbiddenFound,
+        weight: 30,
+        evidence: [
+          this.createEvidence(
+            'forbidden-pattern-check',
+            noForbiddenFound
+              ? `No forbidden patterns found in ${filePath}`
+              : `Found forbidden patterns in ${filePath}: ${foundForbidden.join(', ')}`,
+            {
+              filePath,
+              forbidden: expectation.mustNotContain,
+              found: foundForbidden
+            }
+          )
+        ]
+      });
+
+      if (!noForbiddenFound) {
+        violations.push(
+          this.createViolation(
+            'forbidden-patterns-found',
+            'error',
+            `File '${filePath}' contains forbidden patterns: ${foundForbidden.join(', ')}`,
+            Date.now(),
+            {
+              filePath,
+              forbidden: expectation.mustNotContain,
+              found: foundForbidden,
+              contentPreview: content.substring(0, 200)
+            }
+          )
+        );
+      }
+    }
+
+    // Check 3: mustMatch regex
+    if (expectation.mustMatch) {
+      try {
+        const regex = new RegExp(expectation.mustMatch);
+        const matches = regex.test(content);
+
+        checks.push({
+          name: `must-match-${filePath}`,
+          passed: matches,
+          weight: 20,
+          evidence: [
+            this.createEvidence(
+              'regex-check',
+              matches
+                ? `Content matches regex pattern in ${filePath}`
+                : `Content does not match regex pattern in ${filePath}`,
+              {
+                filePath,
+                pattern: expectation.mustMatch,
+                matches
+              }
+            )
+          ]
+        });
+
+        if (!matches) {
+          violations.push(
+            this.createViolation(
+              'regex-pattern-mismatch',
+              'error',
+              `File '${filePath}' does not match regex pattern: ${expectation.mustMatch}`,
+              Date.now(),
+              {
+                filePath,
+                pattern: expectation.mustMatch,
+                contentPreview: content.substring(0, 200)
+              }
+            )
+          );
+        }
+      } catch (error) {
+        violations.push(
+          this.createViolation(
+            'invalid-regex',
+            'error',
+            `Invalid regex pattern: ${expectation.mustMatch}`,
+            Date.now(),
+            { pattern: expectation.mustMatch, error: (error as Error).message }
+          )
+        );
+      }
+    }
+
+    // Check 4: minLength
+    if (expectation.minLength !== undefined) {
+      const meetsMinLength = content.length >= expectation.minLength;
+
+      checks.push({
+        name: `min-length-${filePath}`,
+        passed: meetsMinLength,
+        weight: 5,
+        evidence: [
+          this.createEvidence(
+            'length-check',
+            meetsMinLength
+              ? `Content length ${content.length} >= ${expectation.minLength}`
+              : `Content length ${content.length} < ${expectation.minLength}`,
+            {
+              filePath,
+              actualLength: content.length,
+              minLength: expectation.minLength
+            }
+          )
+        ]
+      });
+
+      if (!meetsMinLength) {
+        violations.push(
+          this.createViolation(
+            'content-too-short',
+            'error',
+            `File '${filePath}' content is too short: ${content.length} < ${expectation.minLength}`,
+            Date.now(),
+            {
+              filePath,
+              actualLength: content.length,
+              minLength: expectation.minLength
+            }
+          )
+        );
+      }
+    }
+
+    // Check 5: maxLength
+    if (expectation.maxLength !== undefined) {
+      const meetsMaxLength = content.length <= expectation.maxLength;
+
+      checks.push({
+        name: `max-length-${filePath}`,
+        passed: meetsMaxLength,
+        weight: 5,
+        evidence: [
+          this.createEvidence(
+            'length-check',
+            meetsMaxLength
+              ? `Content length ${content.length} <= ${expectation.maxLength}`
+              : `Content length ${content.length} > ${expectation.maxLength}`,
+            {
+              filePath,
+              actualLength: content.length,
+              maxLength: expectation.maxLength
+            }
+          )
+        ]
+      });
+
+      if (!meetsMaxLength) {
+        violations.push(
+          this.createViolation(
+            'content-too-long',
+            'error',
+            `File '${filePath}' content is too long: ${content.length} > ${expectation.maxLength}`,
+            Date.now(),
+            {
+              filePath,
+              actualLength: content.length,
+              maxLength: expectation.maxLength
+            }
+          )
+        );
+      }
+    }
+
+    // Add evidence about the file
+    evidence.push(
+      this.createEvidence(
+        'file-content',
+        `Validated content for ${filePath}`,
+        {
+          filePath,
+          contentLength: content.length,
+          contentPreview: content.substring(0, 100) + (content.length > 100 ? '...' : '')
+        }
+      )
+    );
+
+    return { checks, violations, evidence };
+  }
+}

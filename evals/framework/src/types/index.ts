@@ -312,6 +312,9 @@ export interface ApprovalGateCheck {
   executionTimestamp?: number;
   timeDiffMs?: number;
   toolName?: string;
+  approvalConfidence?: 'high' | 'medium' | 'low';
+  approvalText?: string;
+  whatIsBeingApproved?: string;
   evidence: string[];
 }
 
@@ -324,6 +327,9 @@ export interface ContextLoadingCheck {
   loadTimestamp?: number;
   executionTimestamp?: number;
   requiredContext?: string;
+  taskType?: TaskType;
+  expectedContextFiles?: string[];
+  actualContextFiles?: string[];
   evidence: string[];
 }
 

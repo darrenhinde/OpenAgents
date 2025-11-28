@@ -1,16 +1,16 @@
 {
   "meta": {
-    "timestamp": "2025-11-26T21:29:36.347Z",
+    "timestamp": "2025-11-28T01:37:25.049Z",
     "agent": "openagent",
-    "model": "opencode/grok-code-fast",
+    "model": "anthropic/claude-sonnet-4-5",
     "framework_version": "0.1.0",
-    "git_commit": "f872007"
+    "git_commit": "1a64379"
   },
   "summary": {
     "total": 1,
     "passed": 1,
     "failed": 0,
-    "duration_ms": 42721,
+    "duration_ms": 25132,
     "pass_rate": 1
   },
   "by_category": {
@@ -21,16 +21,23 @@
   },
   "tests": [
     {
-      "id": "ctx-code-001",
+      "id": "smoke-test-001",
       "category": "developer",
       "passed": true,
-      "duration_ms": 42721,
-      "events": 39,
+      "duration_ms": 25132,
+      "events": 29,
       "approvals": 0,
       "violations": {
-        "total": 0,
+        "total": 1,
         "errors": 0,
-        "warnings": 0
+        "warnings": 1,
+        "details": [
+          {
+            "type": "no-context-loaded",
+            "severity": "warning",
+            "message": "Task execution started without loading any context files"
+          }
+        ]
       }
     }
   ]
