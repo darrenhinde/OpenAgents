@@ -28,7 +28,7 @@
     "test:opencoder:developer": "npm run test:opencoder -- --pattern='developer/*.yaml'",
     "test:opencoder:bash": "npm run test:opencoder -- --pattern='developer/bash-*.yaml'",
     "test:ci": "npm run test:ci:openagent && npm run test:ci:opencoder",
-    "test:ci:openagent": "npm run test:openagent -- --pattern='developer/ctx-code-001.yaml' --no-evaluators",
+    "test:ci:openagent": "npm run test:openagent -- --pattern='smoke-test.yaml' --no-evaluators",
     "test:ci:opencoder": "npm run test:opencoder -- --pattern='developer/simple-bash-test.yaml' --no-evaluators",
     "dashboard": "cd evals/results && ./serve.sh",
     "dashboard:open": "npm run dashboard && open http://localhost:8000",
