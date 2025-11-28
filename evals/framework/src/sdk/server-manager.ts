@@ -23,7 +23,20 @@ export class ServerManager {
   constructor(private config: ServerConfig = {}) {
     this.port = config.port || 0; // 0 = random port
     this.hostname = config.hostname || '127.0.0.1';
-    // Always use manual spawn for now (SDK integration needs more work)
+    
+    // IMPORTANT: SDK mode is currently broken (session creation fails)
+    // Always use manual spawn until SDK mode is fixed
+    // 
+    // Background:
+    // - Commit 9949220 enabled SDK mode to avoid CLI installation in CI/CD
+    // - SDK mode causes "No data in response" errors during session creation
+    // - Manual spawn works reliably but requires opencode CLI to be installed
+    // 
+    // Current workflow (.github/workflows/test-agents.yml) installs CLI via:
+    //   npm install -g opencode-ai
+    // 
+    // TODO: Investigate and fix SDK mode session creation issue
+    // TODO: Once fixed, use SDK mode in CI: this.useSDK = !!config.agent && isCI
     this.useSDK = false;
   }
 

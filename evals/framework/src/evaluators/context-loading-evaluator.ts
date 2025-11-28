@@ -25,7 +25,8 @@ import {
   Violation,
   Evidence,
   Check,
-  ContextLoadingCheck
+  ContextLoadingCheck,
+  TaskType
 } from '../types/index.js';
 
 export class ContextLoadingEvaluator extends BaseEvaluator {
@@ -37,9 +38,147 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
     /\.opencode\/agent\/.*\.md$/,
     /\.opencode\/context\/.*\.md$/,
     /docs\/.*\.md$/,
+    /standards\/.*\.md$/,  // Allow standards/ paths
+    /workflows\/.*\.md$/,  // Allow workflows/ paths
     /CONTRIBUTING\.md$/,
     /README\.md$/
   ];
+
+  /**
+   * Context file mapping per task type
+   * Maps task types to their required context files (with flexible matching)
+   */
+  private readonly CONTEXT_FILE_MAP: Record<TaskType, string[]> = {
+    'code': [
+      '.opencode/context/core/standards/code.md',
+      'standards/code.md',
+      'code.md'
+    ],
+    'docs': [
+      '.opencode/context/core/standards/docs.md',
+      'standards/docs.md',
+      'docs.md'
+    ],
+    'tests': [
+      '.opencode/context/core/standards/tests.md',
+      'standards/tests.md',
+      'tests.md'
+    ],
+    'review': [
+      '.opencode/context/core/workflows/review.md',
+      'workflows/review.md',
+      'review.md'
+    ],
+    'delegation': [
+      '.opencode/context/core/workflows/delegation.md',
+      'workflows/delegation.md',
+      'delegation.md'
+    ],
+    'bash-only': [], // No context required
+    'unknown': []    // Any context file acceptable
+  };
+
+  /**
+   * Classify task type from user message and tool calls
+   */
+  private classifyTaskType(userMessage: string, executionTools: TimelineEvent[]): TaskType {
+    const message = userMessage.toLowerCase();
+    
+    // Check for bash-only (no write/edit/task tools)
+    const hasFileModification = executionTools.some(tool => 
+      tool.data?.tool === 'write' || 
+      tool.data?.tool === 'edit' ||
+      tool.data?.tool === 'task'
+    );
+    
+    if (!hasFileModification) {
+      const allBash = executionTools.every(tool => tool.data?.tool === 'bash');
+      if (allBash && executionTools.length > 0) {
+        return 'bash-only';
+      }
+    }
+    
+    // Check for delegation
+    const hasTaskTool = executionTools.some(tool => tool.data?.tool === 'task');
+    if (hasTaskTool) {
+      return 'delegation';
+    }
+    
+    // Classify by message content (order matters - most specific first)
+    const patterns: [RegExp, TaskType][] = [
+      [/test|spec|jest|vitest|mocha|pytest|unittest/i, 'tests'],
+      [/document|readme|docs|jsdoc|tsdoc|docstring/i, 'docs'],
+      [/review|audit|check|analyze|inspect/i, 'review'],
+      [/create|implement|write|add|build|develop|code|function|class|component/i, 'code'],
+      [/refactor|fix|update|modify|change|edit/i, 'code'],
+    ];
+    
+    for (const [pattern, taskType] of patterns) {
+      if (pattern.test(message)) {
+        return taskType;
+      }
+    }
+    
+    return 'unknown';
+  }
+
+  /**
+   * Validate that the correct context file was loaded for the task type
+   */
+  private validateContextFileForTask(
+    contextReads: Array<{ filePath: string; timestamp: number }>,
+    taskType: TaskType
+  ): {
+    passed: boolean;
+    expected: string[];
+    actual: string[];
+    matchedFile?: string;
+  } {
+    const expectedFiles = this.CONTEXT_FILE_MAP[taskType];
+    const actualFiles = contextReads.map(r => r.filePath);
+    
+    // Bash-only doesn't require specific context
+    if (taskType === 'bash-only') {
+      return {
+        passed: true,
+        expected: [],
+        actual: actualFiles,
+        matchedFile: undefined
+      };
+    }
+    
+    // Unknown tasks - any context file is acceptable
+    if (taskType === 'unknown' || expectedFiles.length === 0) {
+      return {
+        passed: actualFiles.length > 0,
+        expected: ['any context file'],
+        actual: actualFiles,
+        matchedFile: actualFiles[0]
+      };
+    }
+    
+    // Check if any loaded file matches expected patterns
+    for (const actualFile of actualFiles) {
+      for (const expectedPattern of expectedFiles) {
+        if (actualFile.includes(expectedPattern) || actualFile.endsWith(expectedPattern)) {
+          return {
+            passed: true,
+            expected: expectedFiles,
+            actual: actualFiles,
+            matchedFile: actualFile
+          };
+        }
+      }
+    }
+    
+    // No match found - wrong context file loaded
+    return {
+      passed: false,
+      expected: expectedFiles,
+      actual: actualFiles,
+      matchedFile: undefined
+    };
+  }
 
   async evaluate(timeline: TimelineEvent[], sessionInfo: SessionInfo): Promise<EvaluationResult> {
     const checks: Check[] = [];
@@ -96,11 +235,21 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
       });
     }
 
+    // Get user message for task classification
+    const userMessages = this.getUserMessages(timeline);
+    const firstUserMessage = userMessages[0]?.data?.text || userMessages[0]?.data?.content || '';
+    
+    // Classify task type
+    const taskType = this.classifyTaskType(firstUserMessage, executionTools);
+    
     // Get all read tool calls
     const readTools = this.getReadTools(timeline);
     
     // Find context file reads
     const contextReads = this.findContextReads(readTools);
+
+    // Validate correct context file for task type
+    const contextValidation = this.validateContextFileForTask(contextReads, taskType);
 
     // For multi-turn sessions, check if ANY context was loaded at ANY point
     // This is more lenient for complex conversations where context might be loaded
@@ -134,19 +283,35 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
       }
     }
 
-    // Build check
+    // Build check with task type validation
     const check: ContextLoadingCheck = {
-      contextFileLoaded: hasAnyContextLoaded && allExecutionsHaveContext,
-      contextFilePath: contextReads.length > 0 ? contextReads[0].filePath : undefined,
+      contextFileLoaded: hasAnyContextLoaded && allExecutionsHaveContext && contextValidation.passed,
+      contextFilePath: contextValidation.matchedFile || (contextReads.length > 0 ? contextReads[0].filePath : undefined),
       loadTimestamp: contextReads.length > 0 ? contextReads[0].timestamp : undefined,
       executionTimestamp: firstExecution.timestamp,
+      taskType,
+      expectedContextFiles: contextValidation.expected,
+      actualContextFiles: contextValidation.actual,
       evidence: []
     };
 
     if (hasAnyContextLoaded) {
       check.evidence.push(
+        `Task type: ${taskType}`,
+        `Expected context: ${contextValidation.expected.length > 0 ? contextValidation.expected.join(' or ') : 'none'}`,
+        ``,
         `Context files loaded: ${contextReads.length}`,
         ...contextReads.map(r => `  - ${r.filePath} at ${new Date(r.timestamp).toISOString()}`),
+        ``
+      );
+      
+      if (contextValidation.passed) {
+        check.evidence.push(`✓ Correct context file loaded for task type '${taskType}'`);
+      } else if (taskType !== 'bash-only' && contextValidation.expected.length > 0) {
+        check.evidence.push(`✗ Wrong context file - expected: ${contextValidation.expected.join(' or ')}`);
+      }
+      
+      check.evidence.push(
         ``,
         `Execution checks (${executionsRequiringContext.length} total):`,
         ...executionChecks
@@ -159,6 +324,9 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
       }
     } else {
       check.evidence.push(
+        `Task type: ${taskType}`,
+        `Expected context: ${contextValidation.expected.length > 0 ? contextValidation.expected.join(' or ') : 'none'}`,
+        ``,
         `No context files loaded in session`,
         `First execution: ${new Date(firstExecution.timestamp).toISOString()}`,
         `Execution tool: ${firstExecution.data?.tool}`
@@ -168,14 +336,17 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
     // Add check result
     checks.push({
       name: 'context-loaded-before-execution',
-      passed: hasAnyContextLoaded && allExecutionsHaveContext,
+      passed: hasAnyContextLoaded && allExecutionsHaveContext && contextValidation.passed,
       weight: 100,
       evidence: check.evidence.map(e =>
         this.createEvidence('context-check', e, {
           contextFiles: contextReads.map(r => r.filePath),
           executionTool: firstExecution.data?.tool,
           totalExecutions: executionsRequiringContext.length,
-          executionsWithContext: executionChecks.filter(c => c.includes('✓')).length
+          executionsWithContext: executionChecks.filter(c => c.includes('✓')).length,
+          taskType,
+          expectedContext: contextValidation.expected,
+          actualContext: contextValidation.actual
         })
       )
     });
@@ -191,7 +362,26 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
           {
             executionTool: firstExecution.data?.tool,
             timestamp: firstExecution.timestamp,
-            contextFilesRead: 0
+            contextFilesRead: 0,
+            taskType,
+            expectedContext: contextValidation.expected
+          }
+        )
+      );
+    } else if (!contextValidation.passed && taskType !== 'bash-only' && taskType !== 'unknown') {
+      // Wrong context file loaded
+      violations.push(
+        this.createViolation(
+          'wrong-context-file',
+          'error',
+          `Task type '${taskType}' requires context file(s): ${contextValidation.expected.join(' or ')}. ` +
+          `Loaded: ${contextValidation.actual.length > 0 ? contextValidation.actual.join(', ') : 'none'}`,
+          firstExecution.timestamp,
+          {
+            taskType,
+            expected: contextValidation.expected,
+            actual: contextValidation.actual,
+            executionTool: firstExecution.data?.tool
           }
         )
       );
@@ -242,11 +432,15 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
       isTaskSession: true,
       executionToolCount: executionTools.length,
       contextFileCount: contextReads.length,
-      contextLoadedBeforeExecution: hasAnyContextLoaded && allExecutionsHaveContext,
+      contextLoadedBeforeExecution: hasAnyContextLoaded && allExecutionsHaveContext && contextValidation.passed,
       contextCheck: check,
       multiTurn: executionsRequiringContext.length > 1,
       executionsRequiringContext: executionsRequiringContext.length,
-      executionsWithContext: executionChecks.filter(c => c.includes('✓')).length
+      executionsWithContext: executionChecks.filter(c => c.includes('✓')).length,
+      taskType,
+      expectedContextFiles: contextValidation.expected,
+      actualContextFiles: contextValidation.actual,
+      correctContextLoaded: contextValidation.passed
     });
   }
 

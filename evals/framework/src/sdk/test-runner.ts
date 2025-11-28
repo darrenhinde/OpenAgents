@@ -26,6 +26,9 @@ import { ApprovalGateEvaluator } from '../evaluators/approval-gate-evaluator.js'
 import { ContextLoadingEvaluator } from '../evaluators/context-loading-evaluator.js';
 import { DelegationEvaluator } from '../evaluators/delegation-evaluator.js';
 import { ToolUsageEvaluator } from '../evaluators/tool-usage-evaluator.js';
+import { StopOnFailureEvaluator } from '../evaluators/stop-on-failure-evaluator.js';
+import { ReportFirstEvaluator } from '../evaluators/report-first-evaluator.js';
+import { CleanupConfirmationEvaluator } from '../evaluators/cleanup-confirmation-evaluator.js';
 import { BehaviorEvaluator } from '../evaluators/behavior-evaluator.js';
 import { TestExecutor } from './test-executor.js';
 import { ResultValidator } from './result-validator.js';
@@ -234,6 +237,9 @@ export class TestRunner {
         new ContextLoadingEvaluator(),
         new DelegationEvaluator(),
         new ToolUsageEvaluator(),
+        new StopOnFailureEvaluator(),
+        new ReportFirstEvaluator(),
+        new CleanupConfirmationEvaluator(),
       ],
     });
 
@@ -353,6 +359,11 @@ export class TestRunner {
     this.logger.log(`Events captured: ${executionResult.events.length}`);
     this.logger.log(`Approvals given: ${executionResult.approvalsGiven}`);
     this.logger.log(`Errors: ${executionResult.errors.length}`);
+    
+    if (evaluation) {
+      this.logger.log(`Evaluation Score: ${evaluation.overallScore}/100`);
+      this.logger.log(`Violations: ${evaluation.totalViolations} (E:${evaluation.violationsBySeverity.error} W:${evaluation.violationsBySeverity.warning})`);
+    }
   }
 
   /**

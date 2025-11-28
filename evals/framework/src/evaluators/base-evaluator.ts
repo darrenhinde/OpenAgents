@@ -138,6 +138,147 @@ export abstract class BaseEvaluator implements IEvaluator {
   }
 
   /**
+   * Enhanced approval detection with confidence levels
+   * Returns detailed information about approval request
+   */
+  protected detectApprovalRequest(text: string): {
+    detected: boolean;
+    confidence: 'high' | 'medium' | 'low';
+    approvalText?: string;
+    whatIsBeingApproved?: string;
+  } {
+    // High confidence patterns - explicit approval requests
+    const highConfidencePatterns = [
+      /approval\s+needed\s+before/i,
+      /please\s+confirm\s+before/i,
+      /request\s+approval/i,
+      /need\s+your\s+approval/i,
+      /awaiting\s+approval/i,
+      /\*\*approval\s+needed/i
+    ];
+
+    // Medium confidence patterns - approval-like language
+    const mediumConfidencePatterns = [
+      /would\s+you\s+like\s+me\s+to/i,
+      /should\s+i\s+proceed/i,
+      /can\s+i\s+proceed/i,
+      /shall\s+i\s+proceed/i,
+      /do\s+you\s+want\s+me\s+to/i,
+      /is\s+it\s+ok(?:ay)?\s+to/i
+    ];
+
+    // Low confidence patterns - weak signals (with context checks)
+    const lowConfidencePatterns = [
+      /may\s+i/i,
+      /should\s+i/i,
+      /shall\s+i/i
+    ];
+
+    // False positive filters for low confidence
+    const falsePositivePatterns = [
+      /may\s+i\s+help/i,
+      /may\s+i\s+ask/i,
+      /may\s+i\s+suggest/i
+    ];
+
+    // Check high confidence
+    for (const pattern of highConfidencePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return {
+          detected: true,
+          confidence: 'high',
+          approvalText: this.extractApprovalSentence(text, match.index!),
+          whatIsBeingApproved: this.extractWhatIsBeingApproved(text)
+        };
+      }
+    }
+
+    // Check medium confidence
+    for (const pattern of mediumConfidencePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return {
+          detected: true,
+          confidence: 'medium',
+          approvalText: this.extractApprovalSentence(text, match.index!),
+          whatIsBeingApproved: this.extractWhatIsBeingApproved(text)
+        };
+      }
+    }
+
+    // Check low confidence (with false positive filtering)
+    for (const pattern of lowConfidencePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        // Check for false positives
+        if (falsePositivePatterns.some(fp => fp.test(text))) {
+          continue;
+        }
+        
+        return {
+          detected: true,
+          confidence: 'low',
+          approvalText: this.extractApprovalSentence(text, match.index!),
+          whatIsBeingApproved: this.extractWhatIsBeingApproved(text)
+        };
+      }
+    }
+
+    return { detected: false, confidence: 'low' };
+  }
+
+  /**
+   * Extract the sentence containing approval request
+   */
+  private extractApprovalSentence(text: string, matchIndex: number): string {
+    // Find sentence boundaries around the match
+    const beforeMatch = text.substring(0, matchIndex);
+    const afterMatch = text.substring(matchIndex);
+    
+    const sentenceStart = Math.max(
+      beforeMatch.lastIndexOf('.'),
+      beforeMatch.lastIndexOf('!'),
+      beforeMatch.lastIndexOf('?'),
+      beforeMatch.lastIndexOf('\n')
+    ) + 1;
+    
+    const sentenceEnd = Math.min(
+      afterMatch.search(/[.!?]/),
+      afterMatch.indexOf('\n')
+    );
+    
+    const sentence = text.substring(
+      sentenceStart,
+      matchIndex + (sentenceEnd > 0 ? sentenceEnd + 1 : afterMatch.length)
+    ).trim();
+    
+    return sentence.length > 200 ? sentence.substring(0, 200) + '...' : sentence;
+  }
+
+  /**
+   * Extract what is being approved from the text
+   */
+  private extractWhatIsBeingApproved(text: string): string | undefined {
+    // Look for plan descriptions, action lists, etc.
+    const planPatterns = [
+      /##\s*(?:proposed\s+)?plan[:\s]+([\s\S]{0,300})/i,
+      /i\s+(?:will|would|plan\s+to)[:\s]+([\s\S]{0,200})/i,
+      /(?:steps?|actions?)[:\s]+\n([\s\S]{0,200})/i
+    ];
+
+    for (const pattern of planPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const description = match[1].trim();
+        return description.length > 150 ? description.substring(0, 150) + '...' : description;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
    * Extract file paths from text
    */
   protected extractFilePaths(text: string): string[] {

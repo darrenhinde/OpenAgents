@@ -29,8 +29,10 @@ export class DelegationEvaluator extends BaseEvaluator {
   name = 'delegation';
   description = 'Validates 4+ file delegation rule for complex tasks';
 
-  // Delegation threshold
-  private readonly DELEGATION_THRESHOLD = 4;
+  // Delegation thresholds
+  private readonly FILE_COUNT_THRESHOLD = 4;
+  private readonly TIME_ESTIMATE_THRESHOLD_MINUTES = 60;
+  private readonly COMPLEXITY_SCORE_THRESHOLD = 10;
 
   async evaluate(timeline: TimelineEvent[], sessionInfo: SessionInfo): Promise<EvaluationResult> {
     const checks: Check[] = [];
@@ -43,12 +45,21 @@ export class DelegationEvaluator extends BaseEvaluator {
     // Count affected files
     const fileCount = this.countAffectedFiles(fileModTools);
 
+    // Calculate complexity score
+    const complexityScore = this.calculateComplexityScore(timeline, fileModTools);
+    
+    // Estimate time required
+    const estimatedMinutes = this.estimateTimeRequired(fileCount, complexityScore);
+
     // Get delegation tool calls (task tool)
     const delegationCalls = this.getToolCallsByName(timeline, 'task');
     const didDelegate = delegationCalls.length > 0;
 
-    // Determine if delegation was required
-    const shouldDelegate = fileCount >= this.DELEGATION_THRESHOLD;
+    // Determine if delegation was required (multiple criteria)
+    const shouldDelegate = 
+      fileCount >= this.FILE_COUNT_THRESHOLD ||
+      estimatedMinutes >= this.TIME_ESTIMATE_THRESHOLD_MINUTES ||
+      complexityScore >= this.COMPLEXITY_SCORE_THRESHOLD;
 
     // Check if user said not to delegate
     const userMessages = this.getUserMessages(timeline);
@@ -59,7 +70,7 @@ export class DelegationEvaluator extends BaseEvaluator {
       shouldDelegate,
       didDelegate,
       fileCount,
-      delegationThreshold: this.DELEGATION_THRESHOLD,
+      delegationThreshold: this.FILE_COUNT_THRESHOLD,
       evidence: []
     };
 
@@ -81,7 +92,7 @@ export class DelegationEvaluator extends BaseEvaluator {
     } else if (shouldDelegate && !didDelegate && !skipDelegation) {
       // Should have delegated but didn't
       check.evidence.push(
-        `File count: ${fileCount} (threshold: ${this.DELEGATION_THRESHOLD})`,
+        `File count: ${fileCount} (threshold: ${this.FILE_COUNT_THRESHOLD})`,
         `Delegation required but not used`,
         `Files affected: ${fileCount}`
       );
@@ -99,11 +110,11 @@ export class DelegationEvaluator extends BaseEvaluator {
         this.createViolation(
           'missing-delegation',
           'warning',
-          `Task modified ${fileCount} files (>= ${this.DELEGATION_THRESHOLD}) without delegating to task-manager`,
+          `Task modified ${fileCount} files (>= ${this.FILE_COUNT_THRESHOLD}) without delegating to task-manager`,
           fileModTools[0]?.timestamp || Date.now(),
           {
             fileCount,
-            threshold: this.DELEGATION_THRESHOLD,
+            threshold: this.FILE_COUNT_THRESHOLD,
             filesAffected: this.getAffectedFilePaths(fileModTools)
           }
         )
@@ -111,7 +122,7 @@ export class DelegationEvaluator extends BaseEvaluator {
     } else if (shouldDelegate && didDelegate) {
       // Correctly delegated
       check.evidence.push(
-        `File count: ${fileCount} (threshold: ${this.DELEGATION_THRESHOLD})`,
+        `File count: ${fileCount} (threshold: ${this.FILE_COUNT_THRESHOLD})`,
         `Correctly delegated to task-manager`,
         `Delegation calls: ${delegationCalls.length}`
       );
@@ -127,8 +138,8 @@ export class DelegationEvaluator extends BaseEvaluator {
     } else if (!shouldDelegate && didDelegate) {
       // Over-delegated (delegated when not needed)
       check.evidence.push(
-        `File count: ${fileCount} (threshold: ${this.DELEGATION_THRESHOLD})`,
-        `Delegated unnecessarily (< ${this.DELEGATION_THRESHOLD} files)`,
+        `File count: ${fileCount} (threshold: ${this.FILE_COUNT_THRESHOLD})`,
+        `Delegated unnecessarily (< ${this.FILE_COUNT_THRESHOLD} files)`,
         `This is acceptable but not required`
       );
 
@@ -151,8 +162,8 @@ export class DelegationEvaluator extends BaseEvaluator {
     } else {
       // Correctly executed directly (< 4 files, no delegation)
       check.evidence.push(
-        `File count: ${fileCount} (threshold: ${this.DELEGATION_THRESHOLD})`,
-        `Correctly executed directly (< ${this.DELEGATION_THRESHOLD} files)`,
+        `File count: ${fileCount} (threshold: ${this.FILE_COUNT_THRESHOLD})`,
+        `Correctly executed directly (< ${this.FILE_COUNT_THRESHOLD} files)`,
         `No delegation required`
       );
 
@@ -174,7 +185,7 @@ export class DelegationEvaluator extends BaseEvaluator {
         {
           fileCount,
           files: this.getAffectedFilePaths(fileModTools),
-          threshold: this.DELEGATION_THRESHOLD
+          threshold: this.FILE_COUNT_THRESHOLD
         }
       )
     );
@@ -207,11 +218,16 @@ export class DelegationEvaluator extends BaseEvaluator {
 
     return this.buildResult(this.name, checks, violations, evidence, {
       fileCount,
-      delegationThreshold: this.DELEGATION_THRESHOLD,
+      complexityScore,
+      estimatedMinutes,
+      delegationThreshold: this.FILE_COUNT_THRESHOLD,
+      timeThreshold: this.TIME_ESTIMATE_THRESHOLD_MINUTES,
+      complexityThreshold: this.COMPLEXITY_SCORE_THRESHOLD,
       shouldDelegate,
       didDelegate,
       skipDelegation,
-      delegationCheck: check
+      delegationCheck: check,
+      delegationReasons: this.getDelegationReasons(fileCount, complexityScore, estimatedMinutes)
     });
   }
 
@@ -264,5 +280,114 @@ export class DelegationEvaluator extends BaseEvaluator {
     }
 
     return false;
+  }
+
+  /**
+   * Calculate complexity score based on multiple factors
+   * 
+   * Factors:
+   * - Number of different file types
+   * - Number of different directories
+   * - Presence of test files
+   * - Presence of configuration files
+   * - Multiple module types (frontend + backend)
+   */
+  private calculateComplexityScore(timeline: TimelineEvent[], fileModTools: TimelineEvent[]): number {
+    let score = 0;
+    const filePaths = this.getAffectedFilePaths(fileModTools);
+    
+    if (filePaths.length === 0) return 0;
+
+    // Factor 1: Multiple file types (+2 per unique extension beyond first)
+    const extensions = new Set(filePaths.map(f => {
+      const match = f.match(/\.([^.]+)$/);
+      return match ? match[1] : '';
+    }).filter(Boolean));
+    score += Math.max(0, (extensions.size - 1) * 2);
+
+    // Factor 2: Multiple directories (+1 per unique directory beyond first)
+    const directories = new Set(filePaths.map(f => {
+      const parts = f.split('/');
+      return parts.slice(0, -1).join('/');
+    }).filter(Boolean));
+    score += Math.max(0, (directories.size - 1));
+
+    // Factor 3: Test files present (+3)
+    const hasTests = filePaths.some(f => 
+      f.includes('/test/') || 
+      f.includes('/tests/') || 
+      f.includes('.test.') || 
+      f.includes('.spec.')
+    );
+    if (hasTests) score += 3;
+
+    // Factor 4: Configuration files (+2)
+    const hasConfig = filePaths.some(f =>
+      f.includes('config') ||
+      f.includes('.json') ||
+      f.includes('.yaml') ||
+      f.includes('.yml')
+    );
+    if (hasConfig) score += 2;
+
+    // Factor 5: Multiple module types (+4)
+    const hasFrontend = filePaths.some(f => 
+      f.includes('/components/') ||
+      f.includes('/pages/') ||
+      f.includes('/ui/')
+    );
+    const hasBackend = filePaths.some(f =>
+      f.includes('/api/') ||
+      f.includes('/server/') ||
+      f.includes('/services/')
+    );
+    if (hasFrontend && hasBackend) score += 4;
+
+    // Factor 6: Read operations suggest research needed (+1 per 3 reads)
+    const readCalls = this.getToolCallsByName(timeline, 'read');
+    score += Math.floor(readCalls.length / 3);
+
+    return score;
+  }
+
+  /**
+   * Estimate time required in minutes
+   * 
+   * Base estimates:
+   * - 15 minutes per file
+   * - +5 minutes per complexity point
+   * - Minimum 10 minutes
+   */
+  private estimateTimeRequired(fileCount: number, complexityScore: number): number {
+    const baseTime = fileCount * 15; // 15 min per file
+    const complexityTime = complexityScore * 5; // 5 min per complexity point
+    const total = baseTime + complexityTime;
+    
+    return Math.max(10, total); // Minimum 10 minutes
+  }
+
+  /**
+   * Get reasons why delegation was/wasn't required
+   */
+  private getDelegationReasons(fileCount: number, complexityScore: number, estimatedMinutes: number): string[] {
+    const reasons: string[] = [];
+    
+    if (fileCount >= this.FILE_COUNT_THRESHOLD) {
+      reasons.push(`File count (${fileCount}) >= threshold (${this.FILE_COUNT_THRESHOLD})`);
+    }
+    
+    if (complexityScore >= this.COMPLEXITY_SCORE_THRESHOLD) {
+      reasons.push(`Complexity score (${complexityScore}) >= threshold (${this.COMPLEXITY_SCORE_THRESHOLD})`);
+    }
+    
+    if (estimatedMinutes >= this.TIME_ESTIMATE_THRESHOLD_MINUTES) {
+      reasons.push(`Estimated time (${estimatedMinutes} min) >= threshold (${this.TIME_ESTIMATE_THRESHOLD_MINUTES} min)`);
+    }
+    
+    if (reasons.length === 0) {
+      reasons.push('Task is simple enough for direct execution');
+    }
+    
+    return reasons;
   }
 }

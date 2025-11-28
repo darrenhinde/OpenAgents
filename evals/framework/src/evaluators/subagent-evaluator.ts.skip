@@ -1,0 +1,347 @@
+/**
+ * SubagentEvaluator - Verifies subagent delegation and execution
+ * 
+ * When a test expects delegation with specific subagent behavior, this evaluator:
+ * 1. Tracks task tool calls
+ * 2. Verifies correct subagent type was invoked
+ * 3. Checks if subagent executed expected tools
+ * 4. Validates subagent completed successfully
+ * 
+ * Uses the new delegationExpectations from test schema:
+ * - subagentType: Expected subagent (e.g., 'subagents/code/coder-agent')
+ * - subagentMustUseTools: Tools the subagent must use
+ * - subagentMinToolCalls: Minimum tool calls by subagent
+ * - subagentMustComplete: Subagent must complete successfully
+ */
+
+import { BaseEvaluator } from './base-evaluator.js';
+import {
+  TimelineEvent,
+  SessionInfo,
+  EvaluationResult,
+  Violation,
+  Evidence,
+  Check,
+} from '../types/index.js';
+import type { DelegationExpectation } from '../sdk/test-case-schema.js';
+
+export class SubagentEvaluator extends BaseEvaluator {
+  name = 'subagent';
+  description = 'Verifies subagent delegation and execution';
+  
+  // Store expectations (set by test runner)
+  public expectations?: DelegationExpectation;
+
+  async evaluate(
+    timeline: TimelineEvent[],
+    sessionInfo: SessionInfo
+  ): Promise<EvaluationResult> {
+    const expectations = this.expectations;
+    const checks: Check[] = [];
+    const violations: Violation[] = [];
+    const evidence: Evidence[] = [];
+
+    // If no expectations, skip evaluation
+    if (!expectations) {
+      return this.buildResult(this.name, checks, violations, evidence, {
+        skipped: true,
+        reason: 'No delegation expectations specified'
+      });
+    }
+
+    // Find all task tool calls
+    const taskCalls = this.getToolCallsByName(timeline, 'task');
+
+    if (taskCalls.length === 0) {
+      // No task calls found
+      violations.push(
+        this.createViolation(
+          'no-task-call',
+          'error',
+          'Expected delegation via task tool, but no task calls found',
+          Date.now(),
+          { expectedSubagent: expectations.subagentType }
+        )
+      );
+
+      checks.push({
+        name: 'task-tool-called',
+        passed: false,
+        weight: 100,
+        evidence: [
+          this.createEvidence(
+            'task-calls',
+            'No task tool calls found',
+            { taskCalls: 0 }
+          )
+        ]
+      });
+
+      return this.buildResult(this.name, checks, violations, evidence, {
+        taskCalls: 0,
+        expectations
+      });
+    }
+
+    // Analyze each task call
+    for (const taskCall of taskCalls) {
+      const taskInput = taskCall.data?.input || {};
+      const taskOutput = taskCall.data?.output || {};
+      const subagentType = taskInput.subagent_type;
+      const sessionId = taskInput.session_id || taskOutput.session_id;
+
+      evidence.push(
+        this.createEvidence(
+          'task-call',
+          'Task tool called for delegation',
+          {
+            timestamp: taskCall.timestamp,
+            subagentType,
+            sessionId,
+            description: taskInput.description,
+            prompt: taskInput.prompt?.substring(0, 100) + '...'
+          },
+          taskCall.timestamp
+        )
+      );
+
+      // Check 1: Verify correct subagent type
+      if (expectations.subagentType) {
+        const correctSubagent = subagentType === expectations.subagentType;
+        
+        checks.push({
+          name: 'correct-subagent-type',
+          passed: correctSubagent,
+          weight: 30,
+          evidence: [
+            this.createEvidence(
+              'subagent-type',
+              correctSubagent 
+                ? `Correct subagent type: ${subagentType}`
+                : `Wrong subagent type: expected ${expectations.subagentType}, got ${subagentType}`,
+              { expected: expectations.subagentType, actual: subagentType }
+            )
+          ]
+        });
+
+        if (!correctSubagent) {
+          violations.push(
+            this.createViolation(
+              'wrong-subagent-type',
+              'error',
+              `Expected subagent '${expectations.subagentType}' but got '${subagentType}'`,
+              taskCall.timestamp,
+              { expected: expectations.subagentType, actual: subagentType }
+            )
+          );
+        }
+      }
+
+      // Check 2: Verify subagent tool usage (from enhanced event logging)
+      // Note: This requires the subagent's tool calls to be in the output
+      if (expectations.subagentMustUseTools && expectations.subagentMustUseTools.length > 0) {
+        const subagentTools = this.extractSubagentTools(taskOutput);
+        const missingTools = expectations.subagentMustUseTools.filter(
+          tool => !subagentTools.includes(tool)
+        );
+
+        const allToolsUsed = missingTools.length === 0;
+
+        checks.push({
+          name: 'subagent-tool-usage',
+          passed: allToolsUsed,
+          weight: 40,
+          evidence: [
+            this.createEvidence(
+              'subagent-tools',
+              allToolsUsed
+                ? `Subagent used all required tools: ${expectations.subagentMustUseTools.join(', ')}`
+                : `Subagent missing tools: ${missingTools.join(', ')}`,
+              {
+                expected: expectations.subagentMustUseTools,
+                actual: subagentTools,
+                missing: missingTools
+              }
+            )
+          ]
+        });
+
+        if (!allToolsUsed) {
+          violations.push(
+            this.createViolation(
+              'missing-subagent-tools',
+              'error',
+              `Subagent did not use required tools: ${missingTools.join(', ')}`,
+              taskCall.timestamp,
+              {
+                expected: expectations.subagentMustUseTools,
+                actual: subagentTools,
+                missing: missingTools
+              }
+            )
+          );
+        }
+      }
+
+      // Check 3: Verify minimum tool calls
+      if (expectations.subagentMinToolCalls !== undefined) {
+        const subagentToolCount = this.extractSubagentToolCount(taskOutput);
+        const meetsMinimum = subagentToolCount >= expectations.subagentMinToolCalls;
+
+        checks.push({
+          name: 'subagent-min-tool-calls',
+          passed: meetsMinimum,
+          weight: 20,
+          evidence: [
+            this.createEvidence(
+              'subagent-tool-count',
+              meetsMinimum
+                ? `Subagent made ${subagentToolCount} tool calls (>= ${expectations.subagentMinToolCalls})`
+                : `Subagent made ${subagentToolCount} tool calls (< ${expectations.subagentMinToolCalls})`,
+              {
+                expected: expectations.subagentMinToolCalls,
+                actual: subagentToolCount
+              }
+            )
+          ]
+        });
+
+        if (!meetsMinimum) {
+          violations.push(
+            this.createViolation(
+              'insufficient-subagent-tools',
+              'error',
+              `Subagent made ${subagentToolCount} tool calls, expected at least ${expectations.subagentMinToolCalls}`,
+              taskCall.timestamp,
+              {
+                expected: expectations.subagentMinToolCalls,
+                actual: subagentToolCount
+              }
+            )
+          );
+        }
+      }
+
+      // Check 4: Verify subagent completion
+      if (expectations.subagentMustComplete) {
+        const completed = this.checkSubagentCompletion(taskOutput);
+
+        checks.push({
+          name: 'subagent-completion',
+          passed: completed,
+          weight: 10,
+          evidence: [
+            this.createEvidence(
+              'subagent-status',
+              completed
+                ? 'Subagent completed successfully'
+                : 'Subagent did not complete or encountered errors',
+              { completed, output: taskOutput }
+            )
+          ]
+        });
+
+        if (!completed) {
+          violations.push(
+            this.createViolation(
+              'subagent-incomplete',
+              'error',
+              'Subagent did not complete successfully',
+              taskCall.timestamp,
+              { output: taskOutput }
+            )
+          );
+        }
+      }
+    }
+
+    // Add summary evidence
+    evidence.push(
+      this.createEvidence(
+        'delegation-summary',
+        `Found ${taskCalls.length} task delegation(s)`,
+        {
+          taskCalls: taskCalls.length,
+          expectations
+        }
+      )
+    );
+
+    return this.buildResult(this.name, checks, violations, evidence, {
+      taskCalls: taskCalls.length,
+      expectations
+    });
+  }
+
+  /**
+   * Extract tools used by subagent from task output
+   */
+  private extractSubagentTools(taskOutput: any): string[] {
+    const tools = new Set<string>();
+
+    // Check if output contains tool information
+    if (taskOutput.tools && Array.isArray(taskOutput.tools)) {
+      taskOutput.tools.forEach((tool: string) => tools.add(tool));
+    }
+
+    // Check if output contains events with tool calls
+    if (taskOutput.events && Array.isArray(taskOutput.events)) {
+      taskOutput.events.forEach((event: any) => {
+        if (event.type === 'tool_call' && event.data?.tool) {
+          tools.add(event.data.tool);
+        }
+      });
+    }
+
+    // Check if output has toolDetails from enhanced logging
+    if (taskOutput.toolDetails && Array.isArray(taskOutput.toolDetails)) {
+      taskOutput.toolDetails.forEach((detail: any) => {
+        if (detail.name) {
+          tools.add(detail.name);
+        }
+      });
+    }
+
+    return Array.from(tools);
+  }
+
+  /**
+   * Extract tool call count from task output
+   */
+  private extractSubagentToolCount(taskOutput: any): number {
+    let count = 0;
+
+    if (taskOutput.toolCalls !== undefined) {
+      count = taskOutput.toolCalls;
+    } else if (taskOutput.events && Array.isArray(taskOutput.events)) {
+      count = taskOutput.events.filter((e: any) => e.type === 'tool_call').length;
+    } else if (taskOutput.toolDetails && Array.isArray(taskOutput.toolDetails)) {
+      count = taskOutput.toolDetails.length;
+    }
+
+    return count;
+  }
+
+  /**
+   * Check if subagent completed successfully
+   */
+  private checkSubagentCompletion(taskOutput: any): boolean {
+    // Check for explicit completion status
+    if (taskOutput.completed !== undefined) {
+      return taskOutput.completed === true;
+    }
+
+    // Check for error
+    if (taskOutput.error) {
+      return false;
+    }
+
+    // Check for success status
+    if (taskOutput.status) {
+      return taskOutput.status === 'completed' || taskOutput.status === 'success';
+    }
+
+    // If we have output, assume it completed
+    return Object.keys(taskOutput).length > 0;
+  }
+}
