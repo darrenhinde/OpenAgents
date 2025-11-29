@@ -97,6 +97,7 @@ export const ExpectedViolationSchema = z.object({
     'confirm-cleanup',
     'cleanup-confirmation',
     'report-first',
+    'execution-balance',
   ]),
   /**
    * Should this rule be violated?

@@ -1,41 +1,61 @@
 {
   "meta": {
-    "timestamp": "2025-11-28T01:37:25.049Z",
+    "timestamp": "2025-11-29T06:55:58.141Z",
     "agent": "openagent",
-    "model": "anthropic/claude-sonnet-4-5",
+    "model": "opencode/grok-code-fast",
     "framework_version": "0.1.0",
-    "git_commit": "1a64379"
+    "git_commit": "79110ed"
   },
   "summary": {
-    "total": 1,
-    "passed": 1,
-    "failed": 0,
-    "duration_ms": 25132,
-    "pass_rate": 1
+    "total": 2,
+    "passed": 0,
+    "failed": 2,
+    "duration_ms": 43350,
+    "pass_rate": 0
   },
   "by_category": {
     "developer": {
-      "passed": 1,
-      "total": 1
+      "passed": 0,
+      "total": 2
     }
   },
   "tests": [
     {
-      "id": "smoke-test-001",
+      "id": "execution-balance-positive-001",
       "category": "developer",
-      "passed": true,
-      "duration_ms": 25132,
-      "events": 29,
+      "passed": false,
+      "duration_ms": 22285,
+      "events": 40,
       "approvals": 0,
       "violations": {
         "total": 1,
-        "errors": 0,
-        "warnings": 1,
+        "errors": 1,
+        "warnings": 0,
         "details": [
           {
-            "type": "no-context-loaded",
-            "severity": "warning",
-            "message": "Task execution started without loading any context files"
+            "type": "missing-required-tool",
+            "severity": "error",
+            "message": "Required tool 'write' was not used"
+          }
+        ]
+      }
+    },
+    {
+      "id": "execution-balance-negative-001",
+      "category": "developer",
+      "passed": false,
+      "duration_ms": 21065,
+      "events": 78,
+      "approvals": 0,
+      "violations": {
+        "total": 1,
+        "errors": 1,
+        "warnings": 0,
+        "details": [
+          {
+            "type": "wrong-context-file",
+            "severity": "error",
+            "message": "Task type 'tests' requires context file(s): .opencode/context/core/standards/tests.md or standards/tests.md or tests.md. Loaded: .opencode/context/core/standards/code.md"
           }
         ]
       }

@@ -151,6 +151,7 @@ export class ResultValidator {
         'tool-usage': ['tool', 'suboptimal-tool'],
         'stop-on-failure': ['stop', 'failure'],
         'confirm-cleanup': ['cleanup', 'confirm'],
+        'execution-balance': ['execution-balance', 'insufficient-read', 'execution-before-read', 'read-exec-ratio'],
       };
 
       const patterns = rulePatterns[expectedViolation.rule] || [expectedViolation.rule];
