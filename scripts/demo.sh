@@ -1,6 +1,11 @@
 #!/bin/bash
 # OpenCode Repository Demo
 # Shows repository structure and prompt library system
+#
+# Usage:
+#   ./scripts/demo.sh           # Interactive mode
+#   ./scripts/demo.sh --quick   # Quick tour (non-interactive)
+#   ./scripts/demo.sh --full    # Full demo (non-interactive)
 
 set -e
 
@@ -37,8 +42,12 @@ print_info() {
 }
 
 pause() {
-  echo ""
-  read -p "Press Enter to continue..."
+  if [ "$NON_INTERACTIVE" != "true" ]; then
+    echo ""
+    read -p "Press Enter to continue..."
+  else
+    echo ""
+  fi
 }
 
 # Main demo functions
@@ -363,6 +372,30 @@ EOF
 
 # Main
 main() {
+  # Check for command line arguments
+  if [ "$1" = "--quick" ]; then
+    NON_INTERACTIVE=true
+    quick_tour
+    exit 0
+  elif [ "$1" = "--full" ]; then
+    NON_INTERACTIVE=true
+    full_demo
+    exit 0
+  elif [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat << EOF
+OpenCode Repository Demo
+
+Usage:
+  ./scripts/demo.sh           Interactive mode with menu
+  ./scripts/demo.sh --quick   Quick tour (non-interactive)
+  ./scripts/demo.sh --full    Full demo (non-interactive)
+  ./scripts/demo.sh --help    Show this help
+
+EOF
+    exit 0
+  fi
+  
+  # Interactive mode
   choice=$(show_welcome)
   
   case $choice in
@@ -374,4 +407,4 @@ main() {
   esac
 }
 
-main
+main "$@"
