@@ -36,6 +36,8 @@ PROMPTS_DIR="$ROOT_DIR/.opencode/prompts"
 AGENT_DIR="$ROOT_DIR/.opencode/agent"
 EVALS_DIR="$ROOT_DIR/evals/framework"
 RESULTS_FILE="$ROOT_DIR/evals/results/latest.json"
+VARIANT_RESULTS_DIR="$PROMPTS_DIR/$AGENT_NAME/results"
+VARIANT_RESULTS_FILE="$VARIANT_RESULTS_DIR/$PROMPT_VARIANT-results.json"
 
 usage() {
     echo "Usage: $0 <agent-name> <prompt-variant>"
@@ -114,24 +116,47 @@ fi
 # Clean up backup
 rm -f "$BACKUP_FILE"
 
-# Step 5: Show results summary
+# Step 5: Save and show results summary
 echo ""
-echo -e "${YELLOW}[5/5] Results Summary${NC}"
-echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${YELLOW}[5/5] Saving Results${NC}"
+
+# Create results directory if it doesn't exist
+mkdir -p "$VARIANT_RESULTS_DIR"
 
 if [[ -f "$RESULTS_FILE" ]]; then
     # Extract summary from results
     PASS_COUNT=$(cat "$RESULTS_FILE" | grep -o '"passed":true' | wc -l | tr -d ' ')
     TOTAL_COUNT=$(cat "$RESULTS_FILE" | grep -o '"passed":' | wc -l | tr -d ' ')
+    FAIL_COUNT=$((TOTAL_COUNT - PASS_COUNT))
+    
+    # Create variant results JSON
+    cat > "$VARIANT_RESULTS_FILE" <<EOF
+{
+  "variant": "$PROMPT_VARIANT",
+  "agent": "$AGENT_NAME",
+  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "passed": $PASS_COUNT,
+  "failed": $FAIL_COUNT,
+  "total": $TOTAL_COUNT,
+  "passRate": "$(awk "BEGIN {printf \"%.1f\", ($PASS_COUNT/$TOTAL_COUNT)*100}")%",
+  "fullResults": "$RESULTS_FILE"
+}
+EOF
+    
+    echo "      Saved results to: $VARIANT_RESULTS_FILE"
     
     echo ""
-    echo -e "  Agent:   ${GREEN}$AGENT_NAME${NC}"
-    echo -e "  Prompt:  ${GREEN}$PROMPT_VARIANT${NC}"
-    echo -e "  Results: ${GREEN}$PASS_COUNT/$TOTAL_COUNT tests passed${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
     echo ""
-    echo "  Full results: $RESULTS_FILE"
+    echo -e "  Agent:     ${GREEN}$AGENT_NAME${NC}"
+    echo -e "  Prompt:    ${GREEN}$PROMPT_VARIANT${NC}"
+    echo -e "  Results:   ${GREEN}$PASS_COUNT/$TOTAL_COUNT tests passed${NC} ($(awk "BEGIN {printf \"%.1f\", ($PASS_COUNT/$TOTAL_COUNT)*100}")%)"
+    echo ""
+    echo "  Variant results: $VARIANT_RESULTS_FILE"
+    echo "  Full results:    $RESULTS_FILE"
 else
     echo -e "  ${RED}No results file found${NC}"
+    echo "  Tests may not have run successfully"
 fi
 
 echo ""
@@ -140,4 +165,4 @@ echo ""
 echo -e "${GREEN}Done!${NC} Default prompt restored to agent location."
 echo ""
 echo "To use this prompt permanently:"
-echo "  cp $PROMPT_FILE $AGENT_FILE"
+echo "  ./scripts/prompts/use-prompt.sh $AGENT_NAME $PROMPT_VARIANT"
