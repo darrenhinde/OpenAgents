@@ -7,6 +7,7 @@
 ## Quick Start
 
 ```bash
+
 # Run core tests (RECOMMENDED - 7 tests, ~5-8 min)
 npm run test:core
 
@@ -14,6 +15,7 @@ npm run test:core
 npm run test:openagent
 
 # Run critical tests only
+
 npm run eval:sdk -- --agent=openagent --pattern="01-critical-rules/**/*.yaml"
 
 # Run specific category
@@ -74,6 +76,7 @@ cd evals/framework && npm run eval:sdk:core -- --agent=openagent
 **See**: `../CORE_TESTS.md` for detailed documentation
 
 ---
+
 
 ## Folder Structure
 

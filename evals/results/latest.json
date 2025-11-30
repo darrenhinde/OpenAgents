@@ -2,7 +2,7 @@
   "meta": {
     "timestamp": "2025-11-28T12:51:51.671Z",
     "agent": "openagent",
-    "model": "opencode/grok-code-fast",
+    "model": "anthropic/claude-sonnet-4-5",
     "framework_version": "0.1.0",
     "git_commit": "5e80a2f"
   },
@@ -21,7 +21,7 @@
   },
   "tests": [
     {
-      "id": "ctx-code-001",
+      "id": "smoke-test-001",
       "category": "developer",
       "passed": false,
       "duration_ms": 41674,
