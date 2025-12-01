@@ -3,8 +3,8 @@
 # use-prompt.sh - Switch an agent to use a specific prompt variant
 #
 # Usage:
-#   ./scripts/prompts/use-prompt.sh <agent> <prompt-variant>
-#   ./scripts/prompts/use-prompt.sh openagent sonnet-4
+#   ./scripts/prompts/use-prompt.sh --agent=openagent --variant=default
+#   ./scripts/prompts/use-prompt.sh --agent=openagent --variant=sonnet-4
 #
 # What it does:
 #   1. Copies the specified prompt to the agent location
@@ -22,21 +22,28 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Arguments
-AGENT_NAME="${1:-}"
-PROMPT_VARIANT="${2:-}"
+# Default values
+AGENT_NAME=""
+PROMPT_VARIANT=""
 
 # Paths
 PROMPTS_DIR="$ROOT_DIR/.opencode/prompts"
 AGENT_DIR="$ROOT_DIR/.opencode/agent"
 
 usage() {
-    echo "Usage: $0 <agent-name> <prompt-variant>"
+    echo "Usage: $0 --agent=<name> --variant=<name>"
+    echo ""
+    echo "Required:"
+    echo "  --agent=NAME       Agent name (e.g., openagent, opencoder)"
+    echo "  --variant=NAME     Prompt variant (e.g., default, sonnet-4)"
+    echo ""
+    echo "Optional:"
+    echo "  --help, -h         Show this help"
     echo ""
     echo "Examples:"
-    echo "  $0 openagent default      # Use the default prompt"
-    echo "  $0 openagent sonnet-4     # Use the Sonnet 4 prompt"
-    echo "  $0 openagent grok-fast    # Use the Grok Fast prompt"
+    echo "  $0 --agent=openagent --variant=default"
+    echo "  $0 --agent=openagent --variant=sonnet-4"
+    echo "  $0 --agent=opencoder --variant=default"
     echo ""
     echo "Available prompts:"
     for agent_dir in "$PROMPTS_DIR"/*/; do
@@ -49,8 +56,32 @@ usage() {
     exit 1
 }
 
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --agent=*)
+            AGENT_NAME="${arg#*=}"
+            shift
+            ;;
+        --variant=*)
+            PROMPT_VARIANT="${arg#*=}"
+            shift
+            ;;
+        --help|-h)
+            usage
+            ;;
+        *)
+            echo -e "${RED}Unknown argument: $arg${NC}"
+            echo ""
+            usage
+            ;;
+    esac
+done
+
 # Validate arguments
 if [[ -z "$AGENT_NAME" ]] || [[ -z "$PROMPT_VARIANT" ]]; then
+    echo -e "${RED}Error: Missing required arguments${NC}"
+    echo ""
     usage
 fi
 
@@ -75,4 +106,4 @@ echo "  Source: $PROMPT_FILE"
 echo "  Active: $AGENT_FILE"
 echo ""
 echo "To test this prompt:"
-echo "  npm run eval:sdk:core -- --agent=$AGENT_NAME"
+echo "  ./scripts/prompts/test-prompt.sh --agent=$AGENT_NAME --variant=$PROMPT_VARIANT"

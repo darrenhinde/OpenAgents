@@ -3,10 +3,9 @@
 # test-prompt.sh - Test a specific prompt variant for an agent
 #
 # Usage:
-#   ./scripts/prompts/test-prompt.sh <agent> <prompt-variant> [model]
-#   ./scripts/prompts/test-prompt.sh openagent default
-#   ./scripts/prompts/test-prompt.sh openagent default anthropic/claude-sonnet-4-5
-#   ./scripts/prompts/test-prompt.sh openagent sonnet-4 opencode/grok-code-fast
+#   ./scripts/prompts/test-prompt.sh --agent=openagent --variant=default
+#   ./scripts/prompts/test-prompt.sh --agent=openagent --variant=default --model=anthropic/claude-sonnet-4-5
+#   ./scripts/prompts/test-prompt.sh --agent=openagent --variant=sonnet-4 --model=opencode/grok-code-fast
 #
 # What it does:
 #   1. Backs up current agent prompt
@@ -28,45 +27,81 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Arguments
-AGENT_NAME="${1:-}"
-PROMPT_VARIANT="${2:-}"
-MODEL="${3:-anthropic/claude-sonnet-4-5}"  # Default to Sonnet 4.5
+# Default values
+AGENT_NAME=""
+PROMPT_VARIANT=""
+MODEL="anthropic/claude-sonnet-4-5"  # Default to Sonnet 4.5
 
 # Paths
 PROMPTS_DIR="$ROOT_DIR/.opencode/prompts"
 AGENT_DIR="$ROOT_DIR/.opencode/agent"
 EVALS_DIR="$ROOT_DIR/evals/framework"
 RESULTS_FILE="$ROOT_DIR/evals/results/latest.json"
-VARIANT_RESULTS_DIR="$PROMPTS_DIR/$AGENT_NAME/results"
-VARIANT_RESULTS_FILE="$VARIANT_RESULTS_DIR/$PROMPT_VARIANT-results.json"
 
 usage() {
-    echo "Usage: $0 <agent-name> <prompt-variant> [model]"
+    echo "Usage: $0 --agent=<name> --variant=<name> [--model=<model>]"
+    echo ""
+    echo "Required:"
+    echo "  --agent=NAME       Agent name (e.g., openagent, opencoder)"
+    echo "  --variant=NAME     Prompt variant (e.g., default, sonnet-4)"
+    echo ""
+    echo "Optional:"
+    echo "  --model=MODEL      Model to test with (default: anthropic/claude-sonnet-4-5)"
+    echo "  --help, -h         Show this help"
     echo ""
     echo "Examples:"
-    echo "  $0 openagent default                              # Test with Sonnet 4.5 (default)"
-    echo "  $0 openagent default anthropic/claude-sonnet-4-5  # Test with Sonnet 4.5 (explicit)"
-    echo "  $0 openagent sonnet-4 opencode/grok-code-fast     # Test with Grok Fast"
+    echo "  $0 --agent=openagent --variant=default"
+    echo "  $0 --agent=openagent --variant=default --model=anthropic/claude-sonnet-4-5"
+    echo "  $0 --agent=openagent --variant=sonnet-4 --model=opencode/grok-code-fast"
     echo ""
     echo "Available models:"
-    echo "  anthropic/claude-sonnet-4-5      # Claude Sonnet 4.5 (default)"
+    echo "  anthropic/claude-sonnet-4-5           # Claude Sonnet 4.5 (default)"
     echo "  anthropic/claude-3-5-sonnet-20241022  # Claude Sonnet 3.5"
-    echo "  opencode/grok-code-fast          # Grok Fast (free tier)"
+    echo "  opencode/grok-code-fast               # Grok Fast (free tier)"
     echo ""
     echo "Available prompts for an agent:"
     echo "  ls $PROMPTS_DIR/<agent-name>/"
     exit 1
 }
 
-# Validate arguments
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --agent=*)
+            AGENT_NAME="${arg#*=}"
+            shift
+            ;;
+        --variant=*)
+            PROMPT_VARIANT="${arg#*=}"
+            shift
+            ;;
+        --model=*)
+            MODEL="${arg#*=}"
+            shift
+            ;;
+        --help|-h)
+            usage
+            ;;
+        *)
+            echo -e "${RED}Unknown argument: $arg${NC}"
+            echo ""
+            usage
+            ;;
+    esac
+done
+
+# Validate required arguments
 if [[ -z "$AGENT_NAME" ]] || [[ -z "$PROMPT_VARIANT" ]]; then
+    echo -e "${RED}Error: Missing required arguments${NC}"
+    echo ""
     usage
 fi
 
 PROMPT_FILE="$PROMPTS_DIR/$AGENT_NAME/$PROMPT_VARIANT.md"
 AGENT_FILE="$AGENT_DIR/$AGENT_NAME.md"
 BACKUP_FILE="$AGENT_DIR/.$AGENT_NAME.md.backup"
+VARIANT_RESULTS_DIR="$PROMPTS_DIR/$AGENT_NAME/results"
+VARIANT_RESULTS_FILE="$VARIANT_RESULTS_DIR/$PROMPT_VARIANT-results.json"
 
 # Check prompt exists
 if [[ ! -f "$PROMPT_FILE" ]]; then
@@ -117,9 +152,11 @@ echo ""
 
 cd "$EVALS_DIR"
 
-# Run tests with real-time output (no capture)
-npm run eval:sdk:core -- --agent="$AGENT_NAME" --model="$MODEL" 2>&1 | tee /tmp/test-output-$AGENT_NAME.txt
-TEST_EXIT_CODE=${PIPESTATUS[0]}
+# Run tests with real-time output
+set +e  # Don't exit on test failure
+npm run eval:sdk:core -- --agent="$AGENT_NAME" --model="$MODEL"
+TEST_EXIT_CODE=$?
+set -e
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
@@ -213,4 +250,4 @@ echo ""
 echo -e "${GREEN}Done!${NC} Default prompt restored to agent location."
 echo ""
 echo "To use this prompt permanently:"
-echo "  ./scripts/prompts/use-prompt.sh $AGENT_NAME $PROMPT_VARIANT"
+echo "  ./scripts/prompts/use-prompt.sh --agent=$AGENT_NAME --variant=$PROMPT_VARIANT"
