@@ -9,7 +9,9 @@
   "scripts": {
     "test": "npm run test:all",
     "test:all": "cd evals/framework && npm run eval:sdk",
+    "test:core": "npm run test:openagent:core",
     "test:openagent": "cd evals/framework && npm run eval:sdk -- --agent=openagent",
+    "test:openagent:core": "cd evals/framework && npm run eval:sdk:core -- --agent=openagent",
     "test:opencoder": "cd evals/framework && npm run eval:sdk -- --agent=opencoder",
     "test:openagent:grok": "npm run test:openagent -- --model=opencode/grok-code-fast",
     "test:openagent:claude": "npm run test:openagent -- --model=anthropic/claude-3-5-sonnet-20241022",

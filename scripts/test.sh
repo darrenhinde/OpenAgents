@@ -1,6 +1,10 @@
 #!/bin/bash
 # Advanced test runner with multi-agent support
 # Usage: ./scripts/test.sh [agent] [model] [options]
+# Examples:
+#   ./scripts/test.sh openagent --core                    # Run core tests
+#   ./scripts/test.sh openagent opencode/grok-code-fast   # Run all tests with specific model
+#   ./scripts/test.sh openagent --core --debug            # Run core tests with debug
 
 set -e
 
@@ -17,9 +21,18 @@ MODEL=${2:-opencode/grok-code-fast}
 shift 2 2>/dev/null || true
 EXTRA_ARGS="$@"
 
+# Check if --core flag is present
+CORE_MODE=false
+if [[ "$AGENT" == "--core" ]] || [[ "$MODEL" == "--core" ]] || [[ "$EXTRA_ARGS" == *"--core"* ]]; then
+  CORE_MODE=true
+fi
+
 echo -e "${BLUE}🧪 OpenCode Agents Test Runner${NC}"
 echo -e "${BLUE}================================${NC}"
 echo ""
+if [ "$CORE_MODE" = true ]; then
+  echo -e "Mode:   ${YELLOW}CORE TEST SUITE (7 tests, ~5-8 min)${NC}"
+fi
 echo -e "Agent:  ${GREEN}${AGENT}${NC}"
 echo -e "Model:  ${GREEN}${MODEL}${NC}"
 if [ -n "$EXTRA_ARGS" ]; then

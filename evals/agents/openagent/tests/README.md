@@ -7,10 +7,15 @@
 ## Quick Start
 
 ```bash
-# Run all tests (full suite)
-npm run eval:sdk -- --agent=openagent
 
-# Run critical tests only (fast, must pass)
+# Run core tests (RECOMMENDED - 7 tests, ~5-8 min)
+npm run test:core
+
+# Run all tests (full suite - 71 tests, ~40-80 min)
+npm run test:openagent
+
+# Run critical tests only
+
 npm run eval:sdk -- --agent=openagent --pattern="01-critical-rules/**/*.yaml"
 
 # Run specific category
@@ -19,6 +24,59 @@ npm run eval:sdk -- --agent=openagent --pattern="01-critical-rules/approval-gate
 # Debug mode (keeps sessions, verbose output)
 npm run eval:sdk -- --agent=openagent --debug
 ```
+
+---
+
+## Core Test Suite ⚡
+
+**NEW**: We now have a **core test suite** with 7 carefully selected tests that provide ~85% coverage in just 5-8 minutes!
+
+### Quick Commands
+
+```bash
+# NPM (from root)
+npm run test:core
+
+# Script
+./scripts/test.sh openagent --core
+
+# Direct
+cd evals/framework && npm run eval:sdk:core -- --agent=openagent
+```
+
+### What's Included?
+
+| # | Test | Category | Time | Priority |
+|---|------|----------|------|----------|
+| 1 | Approval Gate | Critical Rules | 30-60s | ⚡ CRITICAL |
+| 2 | Context Loading (Simple) | Critical Rules | 60-90s | ⚡ CRITICAL |
+| 3 | Context Loading (Multi-Turn) | Critical Rules | 120-180s | 🔥 HIGH |
+| 4 | Stop on Failure | Critical Rules | 60-90s | ⚡ CRITICAL |
+| 5 | Simple Task (No Delegation) | Delegation | 30-60s | 🔥 HIGH |
+| 6 | Subagent Delegation | Integration | 90-120s | 🔥 HIGH |
+| 7 | Tool Usage | Tool Usage | 30-60s | 📋 MEDIUM |
+
+**Total Runtime**: 5-8 minutes  
+**Coverage**: ~85% of critical functionality
+
+### When to Use Core vs Full?
+
+**Use Core Suite** (7 tests, 5-8 min):
+- ✅ Prompt iteration and testing
+- ✅ Development and quick validation
+- ✅ Pre-commit hooks
+- ✅ PR validation in CI/CD
+
+**Use Full Suite** (71 tests, 40-80 min):
+- 🔬 Release validation
+- 🔬 Comprehensive testing
+- 🔬 Edge case coverage
+- 🔬 Regression testing
+
+**See**: `../CORE_TESTS.md` for detailed documentation
+
+---
+
 
 ## Folder Structure
 
