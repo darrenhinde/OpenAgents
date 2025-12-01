@@ -147,10 +147,24 @@ if [[ -f "/tmp/test-output-$AGENT_NAME.txt" ]]; then
 fi
 
 if [[ -f "$RESULTS_FILE" ]]; then
-    # Extract summary from results
-    PASS_COUNT=$(cat "$RESULTS_FILE" | grep -o '"passed":true' | wc -l | tr -d ' ')
-    TOTAL_COUNT=$(cat "$RESULTS_FILE" | grep -o '"passed":' | wc -l | tr -d ' ')
-    FAIL_COUNT=$((TOTAL_COUNT - PASS_COUNT))
+    # Extract summary from results JSON
+    if command -v jq &> /dev/null; then
+        PASS_COUNT=$(jq -r '.summary.passed // 0' "$RESULTS_FILE")
+        TOTAL_COUNT=$(jq -r '.summary.total // 0' "$RESULTS_FILE")
+        FAIL_COUNT=$(jq -r '.summary.failed // 0' "$RESULTS_FILE")
+    else
+        # Fallback if jq not available
+        PASS_COUNT=$(grep -o '"passed":[0-9]*' "$RESULTS_FILE" | head -1 | grep -o '[0-9]*')
+        TOTAL_COUNT=$(grep -o '"total":[0-9]*' "$RESULTS_FILE" | head -1 | grep -o '[0-9]*')
+        FAIL_COUNT=$((TOTAL_COUNT - PASS_COUNT))
+    fi
+    
+    # Calculate pass rate
+    if [ $TOTAL_COUNT -gt 0 ]; then
+        PASS_RATE=$(echo "scale=1; ($PASS_COUNT * 100) / $TOTAL_COUNT" | bc)
+    else
+        PASS_RATE="0.0"
+    fi
     
     # Create variant results JSON
     cat > "$VARIANT_RESULTS_FILE" <<EOF
@@ -161,7 +175,7 @@ if [[ -f "$RESULTS_FILE" ]]; then
   "passed": $PASS_COUNT,
   "failed": $FAIL_COUNT,
   "total": $TOTAL_COUNT,
-  "passRate": "$(awk "BEGIN {printf \"%.1f\", ($PASS_COUNT/$TOTAL_COUNT)*100}")%",
+  "passRate": "${PASS_RATE}%",
   "fullResults": "$RESULTS_FILE"
 }
 EOF
@@ -173,7 +187,7 @@ EOF
     echo ""
     echo -e "  Agent:     ${GREEN}$AGENT_NAME${NC}"
     echo -e "  Prompt:    ${GREEN}$PROMPT_VARIANT${NC}"
-    echo -e "  Results:   ${GREEN}$PASS_COUNT/$TOTAL_COUNT tests passed${NC} ($(awk "BEGIN {printf \"%.1f\", ($PASS_COUNT/$TOTAL_COUNT)*100}")%)"
+    echo -e "  Results:   ${GREEN}$PASS_COUNT/$TOTAL_COUNT tests passed${NC} (${PASS_RATE}%)"
     echo ""
     echo "  Variant results: $VARIANT_RESULTS_FILE"
     echo "  Full results:    $RESULTS_FILE"

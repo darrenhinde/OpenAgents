@@ -4,7 +4,7 @@
 
 | Variant | Approval Gate | Context Loading | Stop on Failure | Simple Tasks | Tool Usage | Delegation | Pass Rate | Last Tested |
 |---------|---------------|-----------------|-----------------|--------------|------------|------------|-----------|-------------|
-| default | ⚠️ | ✅ | ⚠️ | ✅ | ✅ | ✅ | 3/7 (42.9%) | Not yet tested |
+| default | ❌ | ⚠️ | ❌ | ❌ | ❌ | ✅ | 2/7 (28.6%) | 2025-12-01 |
 
 **Legend:**
 - ✅ Works reliably
