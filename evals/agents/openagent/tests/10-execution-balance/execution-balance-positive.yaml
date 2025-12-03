@@ -1,19 +1,19 @@
 id: execution-balance-positive-001
-name: Execution Balance - Lectura antes de ejecución
+name: Execution Balance - Read before execution
 description: |
-  Verifica que el agente realiza al menos una operación de lectura antes de ejecutar una acción de escritura.
-  Esperamos que NO viole la regla execution-balance.
+  Verifies that the agent performs at least one read operation before executing a write action.
+  We expect NO violations of the execution-balance rule.
 category: developer
 agent: openagent
 
 prompts:
   - text: |
-      Primero inspecciona el directorio evals/test_tmp/ para entender su contenido antes de crear o modificar archivos.
+      First inspect the evals/test_tmp/ directory to understand its contents before creating or modifying files.
   - text: |
-      Sí, procede con el plan.
+      Yes, proceed with the plan.
     delayMs: 2000
   - text: |
-      Crea un archivo en evals/test_tmp/execution-balance-pass.txt con el contenido "balance ok".
+      Create a file in evals/test_tmp/execution-balance-pass.txt with the content "balance ok".
 
 behavior:
   mustUseTools: [write]

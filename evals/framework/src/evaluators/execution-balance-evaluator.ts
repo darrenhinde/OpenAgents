@@ -1,13 +1,13 @@
 /**
- * ExecutionBalanceEvaluator - Evalúa equilibrio y orden entre lectura y ejecución.
+ * ExecutionBalanceEvaluator - Evaluates balance and order between read and execution operations.
  *
- * Reglas:
- * 1. Debe existir al menos una operación de lectura (read/glob/grep/list) antes de la primera herramienta de ejecución (bash/write/edit/task).
- * 2. La relación lecturas:ejecuciones debe ser >= 1 cuando hay ejecuciones (favorece exploración antes de modificar).
+ * Rules:
+ * 1. At least one read operation (read/glob/grep/list) must occur before the first execution tool (bash/write/edit/task).
+ * 2. The read-to-execution ratio must be >= 1 when there are executions (promotes exploration before modification).
  *
- * Violaciones:
- * - execution-before-read (error): Se ejecuta una herramienta de modificación sin ninguna lectura previa.
- * - insufficient-read (warning): Menos lecturas que ejecuciones totales.
+ * Violations:
+ * - execution-before-read (error): A modification tool is executed without any prior read operations.
+ * - insufficient-read (warning): Fewer reads than total executions.
  */
 
 import { BaseEvaluator } from './base-evaluator.js';
@@ -22,7 +22,7 @@ import {
 
 export class ExecutionBalanceEvaluator extends BaseEvaluator {
   name = 'execution-balance';
-  description = 'Verifica que se lea antes de ejecutar y mantiene un ratio saludable lectura/ejecución';
+  description = 'Verifies that reads occur before executions and maintains a healthy read/execution ratio';
 
   async evaluate(timeline: TimelineEvent[], sessionInfo: SessionInfo): Promise<EvaluationResult> {
     const checks: Check[] = [];
@@ -35,7 +35,7 @@ export class ExecutionBalanceEvaluator extends BaseEvaluator {
     const firstExec = execEvents.sort((a,b)=>a.timestamp-b.timestamp)[0];
     const firstRead = readEvents.sort((a,b)=>a.timestamp-b.timestamp)[0];
 
-    // Check 1: Lectura antes de la primera ejecución
+    // Check 1: Read before first execution
     const readBeforeExec = !firstExec || (firstRead && firstRead.timestamp < firstExec.timestamp);
     checks.push({
       name: 'read-before-first-exec',
@@ -44,7 +44,7 @@ export class ExecutionBalanceEvaluator extends BaseEvaluator {
       evidence: [
         this.createEvidence(
           'ordering',
-          'Orden de primera lectura y primera ejecución',
+          'Order of first read and first execution',
           {
             firstReadTs: firstRead?.timestamp,
             firstExecTs: firstExec?.timestamp,
@@ -60,7 +60,7 @@ export class ExecutionBalanceEvaluator extends BaseEvaluator {
         this.createViolation(
           'execution-before-read',
           'error',
-          'Se ejecutó una herramienta de modificación sin lectura previa',
+          'A modification tool was executed without prior read operations',
           firstExec.timestamp,
           {
             tool: firstExec.data?.tool,
@@ -70,7 +70,7 @@ export class ExecutionBalanceEvaluator extends BaseEvaluator {
       );
     }
 
-    // Check 2: Ratio lecturas:ejecuciones >= 1 (solo si hay ejecuciones)
+    // Check 2: Read/execution ratio >= 1 (only if there are executions)
     const readCount = readEvents.length;
     const execCount = execEvents.length;
     const ratio = execCount === 0 ? Infinity : readCount / execCount;
@@ -83,31 +83,31 @@ export class ExecutionBalanceEvaluator extends BaseEvaluator {
       evidence: [
         this.createEvidence(
           'ratio-metrics',
-          'Métricas de relación lectura/ejecución',
+          'Read/execution ratio metrics',
           { readCount, execCount, ratio }
         )
       ]
     });
 
     if (!ratioPass && execCount > 0) {
-      // Usamos warning para incentivar mejora sin bloquear completamente
+      // We use warning to encourage improvement without completely blocking
       const firstBad = execEvents[0];
       violations.push(
         this.createViolation(
           'insufficient-read',
           'warning',
-          `Ratio lectura/ejecución < 1 (${ratio.toFixed(2)})`,
+          `Read/execution ratio < 1 (${ratio.toFixed(2)})`,
           firstBad.timestamp,
           { readCount, execCount, ratio }
         )
       );
     }
 
-    // Evidencia contextual
+    // Contextual evidence
     evidence.push(
       this.createEvidence(
         'session-summary',
-        'Resumen básico de sesión para balance de ejecución',
+        'Basic session summary for execution balance',
         {
           title: sessionInfo.title,
           readCount,

@@ -1,17 +1,17 @@
 id: execution-balance-negative-001
-name: Execution Balance - Ejecución sin lectura
+name: Execution Balance - Execution without reading
 description: |
-  Test negativo que intenta forzar ejecución (write) sin operaciones de lectura previas.
-  Puede fallar si el agente decide leer de forma proactiva.
-  Si el agente realiza lectura previa, el test marcará ausencia de la violación esperada.
+  Negative test that attempts to force execution (write) without prior read operations.
+  May fail if the agent decides to read proactively.
+  If the agent performs a prior read, the test will mark the absence of expected violation.
 category: developer
 agent: openagent
 
 prompts:
   - text: |
-      Crea directamente un archivo en evals/test_tmp/execution-balance-fail.txt con el contenido "sin lectura previa". Hazlo de forma directa.
+      Create a file directly in evals/test_tmp/execution-balance-fail.txt with the content "without prior reading". Do it directly.
   - text: |
-      Aprobar.
+      Approve.
     delayMs: 1500
 
 behavior:
