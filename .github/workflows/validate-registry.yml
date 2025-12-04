@@ -11,6 +11,12 @@ on:
       - 'scripts/validate-registry.sh'
       - 'scripts/auto-detect-components.sh'
   workflow_dispatch:
+    inputs:
+      skip_validation:
+        description: 'Skip validation checks (maintainer override)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -24,7 +30,8 @@ jobs:
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          # Use head SHA for forks (head_ref is empty), head_ref for internal PRs
+          ref: ${{ github.event.pull_request.head.sha || github.head_ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
@@ -124,7 +131,7 @@ jobs:
           fi
       
       - name: Commit registry updates
-        if: steps.auto_detect.outputs.new_components == 'true'
+        if: steps.auto_detect.outputs.new_components == 'true' && github.head_ref != ''
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -138,7 +145,26 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Registry has been automatically updated with new components." >> $GITHUB_STEP_SUMMARY
             echo "Changes have been pushed to this PR branch." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ℹ️ No Changes to Commit" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Registry is already up to date." >> $GITHUB_STEP_SUMMARY
           fi
+      
+      - name: Fork PR notice
+        if: steps.auto_detect.outputs.new_components == 'true' && github.head_ref == ''
+        run: |
+          echo "## ⚠️ External PR - Manual Action Required" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "New components detected, but cannot auto-commit to fork." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Please run locally:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "./scripts/auto-detect-components.sh --auto-add" >> $GITHUB_STEP_SUMMARY
+          echo "git add registry.json" >> $GITHUB_STEP_SUMMARY
+          echo "git commit -m 'chore: update registry'" >> $GITHUB_STEP_SUMMARY
+          echo "git push" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
       
       - name: Post validation summary
         if: always()
@@ -178,7 +204,10 @@ jobs:
           fi
       
       - name: Fail if validation failed
-        if: steps.validate_prompts.outputs.prompt_validation == 'failed' || steps.validate.outputs.validation == 'failed'
+        if: |
+          (steps.validate_prompts.outputs.prompt_validation == 'failed' || steps.validate.outputs.validation == 'failed') &&
+          github.event.inputs.skip_validation != 'true'
         run: |
           echo "❌ Validation failed - blocking PR merge"
+          echo "Maintainer can override by running workflow manually with 'skip_validation' enabled"
           exit 1

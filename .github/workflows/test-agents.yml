@@ -10,6 +10,12 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip tests (maintainer override)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   # Check if this is a PR merge commit (skip tests if so - they already ran on PR)
@@ -31,11 +37,17 @@ jobs:
             exit 0
           fi
           
-          # For workflow_dispatch, always run tests
+          # For workflow_dispatch, check skip_tests input
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "should_test=true" >> $GITHUB_OUTPUT
-            echo "should_bump=false" >> $GITHUB_OUTPUT
-            echo "Manual trigger - will run tests"
+            if [ "${{ github.event.inputs.skip_tests }}" == "true" ]; then
+              echo "should_test=false" >> $GITHUB_OUTPUT
+              echo "should_bump=false" >> $GITHUB_OUTPUT
+              echo "Manual trigger - tests skipped by maintainer"
+            else
+              echo "should_test=true" >> $GITHUB_OUTPUT
+              echo "should_bump=false" >> $GITHUB_OUTPUT
+              echo "Manual trigger - will run tests"
+            fi
             exit 0
           fi
           
