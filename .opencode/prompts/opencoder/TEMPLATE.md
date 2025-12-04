@@ -1,27 +1,51 @@
 <!-- 
-  OpenCoder Prompt Variant Template
+  OpenCoder Prompt Template
   
-  Copy this file to create a new variant.
-  Name it descriptively: {model}-{focus}.md
-  Examples: sonnet-4-fast.md, grok-minimal.md, opus-detailed.md
+  Copy this file to create a new model-specific prompt.
+  Name it by model family: gpt.md, gemini.md, grok.md, llama.md, etc.
+  
+  Examples:
+  - gpt.md (OpenAI GPT family)
+  - gemini.md (Google Gemini family)
+  - grok.md (xAI Grok family)
+  - llama.md (Meta Llama family)
+  - claude-opus.md (Claude Opus specifically, if different from default)
 -->
 
-## Variant Info
-- **Target Model**: [e.g., Claude Sonnet 4, Grok Fast, GPT-4]
-- **Focus**: [e.g., Faster iteration, More detailed planning, Minimal tokens]
-- **Author**: [Your name/handle]
-- **Date**: [YYYY-MM-DD]
+---
+# Prompt Metadata (YAML frontmatter - optional but recommended)
+model_family: "model-name"           # e.g., "gpt", "gemini", "grok", "llama"
+recommended_models:
+  - "provider/model-id"              # e.g., "openai/gpt-4o" (primary recommendation)
+  - "provider/model-id-variant"      # e.g., "openai/gpt-4o-mini" (alternative)
+tested_with: "provider/model-id"     # Model used for testing
+last_tested: "YYYY-MM-DD"            # Date of last test
+maintainer: "your-name"              # Your name/handle
+---
 
-## Changes from Default
-<!-- List what you changed and why -->
-- Change 1: [Description]
-- Change 2: [Description]
+## Prompt Info
+- **Model Family**: [e.g., GPT, Gemini, Grok, Llama]
+- **Target Models**: [List specific model IDs this is optimized for]
+- **Status**: [🚧 Needs Testing | ✅ Tested | ⚠️ Experimental]
+- **Maintainer**: [Your name/handle]
+- **Last Updated**: [YYYY-MM-DD]
 
-## Expected Improvements
-<!-- What should this variant do better? -->
-- [ ] Faster development cycles
-- [ ] Better code quality
-- [ ] Improved test coverage
+## Optimizations for This Model
+<!-- Document model-specific optimizations -->
+- Optimization 1: [What you changed and why it helps this model]
+- Optimization 2: [Description]
+
+**Example:**
+- Reduced verbosity for faster models (Grok, GPT-4o-mini)
+- Added more explicit TDD instructions for reasoning models (o1, Claude Opus)
+- Simplified structure for smaller context windows
+
+## Expected Strengths
+<!-- What should this model/prompt combination do well? -->
+- [ ] Fast iteration
+- [ ] High code quality
+- [ ] Strong test coverage
+- [ ] Good refactoring
 - [ ] Other: [describe]
 
 ## Test Results

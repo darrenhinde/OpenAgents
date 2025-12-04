@@ -26,14 +26,15 @@ permissions:
     ".git/**": "deny"
 
 # Prompt Metadata
-model_family: "claude"
+model_family: "llama"
 recommended_models:
-  - "anthropic/claude-sonnet-4-5"      # Primary recommendation
-  - "anthropic/claude-3-5-sonnet-20241022"  # Alternative
-tested_with: "anthropic/claude-sonnet-4-5"
-last_tested: "2025-12-01"
-maintainer: "darrenhinde"
-status: "stable"
+  - "ollama/llama3.1:70b"              # Local, powerful
+  - "ollama/llama3.2:latest"           # Local, efficient
+  - "together/llama-3.1-70b"           # Hosted alternative
+tested_with: null
+last_tested: null
+maintainer: "community"
+status: "needs-testing"
 ---
 
 <context>

@@ -26,14 +26,14 @@ permissions:
     ".git/**": "deny"
 
 # Prompt Metadata
-model_family: "claude"
+model_family: "grok"
 recommended_models:
-  - "anthropic/claude-sonnet-4-5"      # Primary recommendation
-  - "anthropic/claude-3-5-sonnet-20241022"  # Alternative
-tested_with: "anthropic/claude-sonnet-4-5"
-last_tested: "2025-12-01"
-maintainer: "darrenhinde"
-status: "stable"
+  - "opencode/grok-code-fast"          # Free tier, fast
+  - "x-ai/grok-beta"                   # xAI direct access
+tested_with: null
+last_tested: null
+maintainer: "community"
+status: "needs-testing"
 ---
 
 <context>

@@ -30,14 +30,15 @@ permissions:
     ".git/**": "deny"
 
 # Prompt Metadata
-model_family: "claude"
+model_family: "gemini"
 recommended_models:
-  - "anthropic/claude-sonnet-4-5"      # Primary recommendation
-  - "anthropic/claude-3-5-sonnet-20241022"  # Alternative
-tested_with: "anthropic/claude-sonnet-4-5"
-last_tested: "2025-12-04"
-maintainer: "darrenhinde"
-status: "stable"
+  - "google/gemini-2.0-flash-exp"      # Fast, primary recommendation
+  - "google/gemini-2.0-pro"            # Balanced performance
+  - "google/gemini-exp-1206"           # Experimental latest
+tested_with: null
+last_tested: null
+maintainer: "community"
+status: "needs-testing"
 ---
 
 # Development Agent

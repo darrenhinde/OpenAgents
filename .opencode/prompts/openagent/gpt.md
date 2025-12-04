@@ -26,14 +26,15 @@ permissions:
     ".git/**": "deny"
 
 # Prompt Metadata
-model_family: "claude"
+model_family: "gpt"
 recommended_models:
-  - "anthropic/claude-sonnet-4-5"      # Primary recommendation
-  - "anthropic/claude-3-5-sonnet-20241022"  # Alternative
-tested_with: "anthropic/claude-sonnet-4-5"
-last_tested: "2025-12-01"
-maintainer: "darrenhinde"
-status: "stable"
+  - "openai/gpt-4o"                    # Latest, primary recommendation
+  - "openai/gpt-4o-mini"               # Faster, cheaper alternative
+  - "openai/o1"                        # Reasoning-focused
+tested_with: null
+last_tested: null
+maintainer: "community"
+status: "needs-testing"
 ---
 
 <context>
