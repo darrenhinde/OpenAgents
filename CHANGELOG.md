@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No unreleased changes yet._
+
+## [0.0.2] - 2025-11-29
+
+### Added
+- New `ExecutionBalanceEvaluator` in `evals/framework` to assess read vs execution ordering and ratio.
+- Contributor guide: `docs/contributing/ADDING_EVALUATOR.md` (English) describing evaluator design principles.
+- Test cases under `evals/agents/openagent/tests/10-execution-balance/` (positive & negative scenarios).
+
+### Changed
+- Framework README updated with section documenting `ExecutionBalanceEvaluator` and violation codes.
+
 ---
 
 ## Version Format

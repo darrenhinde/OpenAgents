@@ -146,6 +146,18 @@ const evaluator = new ToolUsageEvaluator();
 const result = evaluator.evaluate(timeline);
 ```
 
+**ExecutionBalanceEvaluator** - Assess balance and ordering of read vs execution actions
+```typescript
+import { ExecutionBalanceEvaluator } from '@evals/framework';
+const evaluator = new ExecutionBalanceEvaluator();
+const result = await evaluator.evaluate(timeline);
+console.log(result.meta?.ratio); // read/exec ratio
+```
+
+Violations it may produce:
+- `execution-before-read` (error): first execution tool used before any read tools.
+- `insufficient-read` (warning): fewer reads than executions overall.
+
 ### Runner
 
 **TestRunner** - Execute test suites
@@ -296,6 +308,8 @@ npm run lint:fix
 4. Add tests
 5. Register in config
 6. Export from `index.ts`
+
+For a detailed step-by-step contributor guide see: [`docs/contributing/ADDING_EVALUATOR.md`](../../docs/contributing/ADDING_EVALUATOR.md)
 
 **Example:**
 ```typescript

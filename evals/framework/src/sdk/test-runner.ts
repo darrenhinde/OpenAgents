@@ -29,6 +29,7 @@ import { ToolUsageEvaluator } from '../evaluators/tool-usage-evaluator.js';
 import { StopOnFailureEvaluator } from '../evaluators/stop-on-failure-evaluator.js';
 import { ReportFirstEvaluator } from '../evaluators/report-first-evaluator.js';
 import { CleanupConfirmationEvaluator } from '../evaluators/cleanup-confirmation-evaluator.js';
+import { ExecutionBalanceEvaluator } from '../evaluators/execution-balance-evaluator.js';
 import { BehaviorEvaluator } from '../evaluators/behavior-evaluator.js';
 import { TestExecutor } from './test-executor.js';
 import { ResultValidator } from './result-validator.js';
@@ -240,6 +241,7 @@ export class TestRunner {
         new StopOnFailureEvaluator(),
         new ReportFirstEvaluator(),
         new CleanupConfirmationEvaluator(),
+        new ExecutionBalanceEvaluator(),
       ],
     });
 
