@@ -1,16 +1,16 @@
 {
   "meta": {
-    "timestamp": "2025-11-28T01:37:25.049Z",
+    "timestamp": "2025-12-08T22:11:16.481Z",
     "agent": "openagent",
-    "model": "anthropic/claude-sonnet-4-5",
+    "model": "opencode/grok-code-fast",
     "framework_version": "0.1.0",
-    "git_commit": "1a64379"
+    "git_commit": "9cc0dd9"
   },
   "summary": {
     "total": 1,
     "passed": 1,
     "failed": 0,
-    "duration_ms": 25132,
+    "duration_ms": 22682,
     "pass_rate": 1
   },
   "by_category": {
@@ -24,20 +24,13 @@
       "id": "smoke-test-001",
       "category": "developer",
       "passed": true,
-      "duration_ms": 25132,
-      "events": 29,
+      "duration_ms": 22682,
+      "events": 34,
       "approvals": 0,
       "violations": {
-        "total": 1,
+        "total": 0,
         "errors": 0,
-        "warnings": 1,
-        "details": [
-          {
-            "type": "no-context-loaded",
-            "severity": "warning",
-            "message": "Task execution started without loading any context files"
-          }
-        ]
+        "warnings": 0
       }
     }
   ]
