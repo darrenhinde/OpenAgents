@@ -1,10 +1,10 @@
 #!/bin/bash
 # Advanced test runner with multi-agent support
-# Usage: ./scripts/test.sh [agent] [model] [options]
+# Usage: ./scripts/testing/test.sh [agent] [model] [options]
 # Examples:
-#   ./scripts/test.sh openagent --core                    # Run core tests
-#   ./scripts/test.sh openagent opencode/grok-code-fast   # Run all tests with specific model
-#   ./scripts/test.sh openagent --core --debug            # Run core tests with debug
+#   ./scripts/testing/test.sh openagent --core                    # Run core tests
+#   ./scripts/testing/test.sh openagent opencode/grok-code-fast   # Run all tests with specific model
+#   ./scripts/testing/test.sh openagent --core --debug            # Run core tests with debug
 
 set -e
 
@@ -41,7 +41,7 @@ fi
 echo ""
 
 # Navigate to framework directory
-cd "$(dirname "$0")/../evals/framework" || exit 1
+cd "$(dirname "$0")/../../evals/framework" || exit 1
 
 # Check if dependencies are installed
 if [ ! -d "node_modules" ]; then

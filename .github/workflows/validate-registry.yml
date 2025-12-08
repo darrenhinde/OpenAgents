@@ -39,9 +39,9 @@ jobs:
       
       - name: Make scripts executable
         run: |
-          chmod +x scripts/validate-registry.sh
-          chmod +x scripts/auto-detect-components.sh
-          chmod +x scripts/register-component.sh
+          chmod +x scripts/registry/validate-registry.sh
+          chmod +x scripts/registry/auto-detect-components.sh
+          chmod +x scripts/registry/register-component.sh
           chmod +x scripts/prompts/validate-pr.sh
       
       - name: Auto-detect new components
@@ -51,7 +51,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Run auto-detect in dry-run mode first to see what would be added
-          if ./scripts/auto-detect-components.sh --dry-run > /tmp/detect-output.txt 2>&1; then
+          if ./scripts/registry/auto-detect-components.sh --dry-run > /tmp/detect-output.txt 2>&1; then
             cat /tmp/detect-output.txt >> $GITHUB_STEP_SUMMARY
             
             # Check if new components were found
@@ -74,7 +74,7 @@ jobs:
           echo "## 📝 Adding New Components" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          ./scripts/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
+          ./scripts/registry/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
       
       - name: Validate prompts use defaults
         id: validate_prompts
@@ -110,7 +110,7 @@ jobs:
           echo "## ✅ Registry Validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if ./scripts/validate-registry.sh -v > /tmp/validation-output.txt 2>&1; then
+          if ./scripts/registry/validate-registry.sh -v > /tmp/validation-output.txt 2>&1; then
             echo "validation=passed" >> $GITHUB_OUTPUT
             echo "✅ All registry paths are valid!" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -128,7 +128,11 @@ jobs:
           fi
       
       - name: Commit registry updates
-        if: steps.auto_detect.outputs.new_components == 'true' && github.head_ref != ''
+        if: |
+          steps.auto_detect.outputs.new_components == 'true' &&
+          github.head_ref != '' &&
+          steps.validate_prompts.outputs.prompt_validation == 'passed' &&
+          steps.validate.outputs.validation == 'passed'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -149,7 +153,11 @@ jobs:
           fi
       
       - name: Fork PR notice
-        if: steps.auto_detect.outputs.new_components == 'true' && github.head_ref == ''
+        if: |
+          steps.auto_detect.outputs.new_components == 'true' &&
+          github.head_ref == '' &&
+          steps.validate_prompts.outputs.prompt_validation == 'passed' &&
+          steps.validate.outputs.validation == 'passed'
         run: |
           echo "## ⚠️ External PR - Manual Action Required" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -157,7 +165,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Please run locally:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "./scripts/auto-detect-components.sh --auto-add" >> $GITHUB_STEP_SUMMARY
+          echo "./scripts/registry/auto-detect-components.sh --auto-add" >> $GITHUB_STEP_SUMMARY
           echo "git add registry.json" >> $GITHUB_STEP_SUMMARY
           echo "git commit -m 'chore: update registry'" >> $GITHUB_STEP_SUMMARY
           echo "git push" >> $GITHUB_STEP_SUMMARY

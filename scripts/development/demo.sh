@@ -3,9 +3,9 @@
 # Shows repository structure and prompt library system
 #
 # Usage:
-#   ./scripts/demo.sh           # Interactive mode
-#   ./scripts/demo.sh --quick   # Quick tour (non-interactive)
-#   ./scripts/demo.sh --full    # Full demo (non-interactive)
+#   ./scripts/development/demo.sh           # Interactive mode
+#   ./scripts/development/demo.sh --quick   # Quick tour (non-interactive)
+#   ./scripts/development/demo.sh --full    # Full demo (non-interactive)
 
 set -e
 
@@ -340,7 +340,7 @@ ${GREEN}Next Steps:${NC}
   • Contribute: ${BLUE}docs/contributing/CONTRIBUTING.md${NC}
 
 ${YELLOW}For more details, run:${NC}
-  ./scripts/demo.sh
+  ./scripts/development/demo.sh
 
 EOF
 }
@@ -386,10 +386,10 @@ main() {
 OpenCode Repository Demo
 
 Usage:
-  ./scripts/demo.sh           Interactive mode with menu
-  ./scripts/demo.sh --quick   Quick tour (non-interactive)
-  ./scripts/demo.sh --full    Full demo (non-interactive)
-  ./scripts/demo.sh --help    Show this help
+  ./scripts/development/demo.sh           Interactive mode with menu
+  ./scripts/development/demo.sh --quick   Quick tour (non-interactive)
+  ./scripts/development/demo.sh --full    Full demo (non-interactive)
+  ./scripts/development/demo.sh --help    Show this help
 
 EOF
     exit 0

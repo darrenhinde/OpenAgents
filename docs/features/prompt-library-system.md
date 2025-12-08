@@ -1,100 +1,254 @@
 # Prompt Library System
 
+**Multi-model prompt variants with integrated evaluation framework for testing, validation, and continuous improvement.**
+
+Last Updated: 2025-12-08
+Status: ✅ Production Ready
+
+---
+
+## 📋 Quick Links
+
+- [Main Prompts README](../../.opencode/prompts/README.md)
+- [OpenAgent Variants](../../.opencode/prompts/openagent/README.md)
+- [Eval Framework Guide](../../evals/EVAL_FRAMEWORK_GUIDE.md)
+- [Test Suite Validation](../../evals/TEST_SUITE_VALIDATION.md)
+
+---
+
 ## Overview
-Implementation plan for a model-specific prompt library system that allows testing different prompt variants for different models while keeping the main branch stable.
+
+The Prompt Library System enables model-specific prompt optimization with comprehensive testing and validation.
+
+### Key Features
+
+✅ **Multi-Model Support** - Variants for Claude, GPT-4, Gemini, Grok, Llama/OSS
+✅ **Integrated Testing** - Test variants with eval framework
+✅ **Results Tracking** - Per-variant and per-model results
+✅ **Easy Switching** - Switch between variants with one command
+✅ **Validation** - JSON Schema + TypeScript validation
+✅ **Dashboard** - Visual results with variant filtering
+
+### Quick Start
+
+```bash
+# Test a variant
+cd evals/framework
+npm run eval:sdk -- --agent=openagent --prompt-variant=llama --suite=smoke-test
+
+# View results
+open ../results/index.html
+```
+
+---
+
+## System Status
+
+**Completed Features:**
+- ✅ Prompt variant management (PromptManager)
+- ✅ Evaluation framework integration (--prompt-variant flag)
+- ✅ Results tracking (dual save: main + per-variant)
+- ✅ Dashboard filtering (variant badges and filters)
+- ✅ Test suite validation (JSON Schema + Zod)
+- ✅ CLI validation tool
+- ✅ GitHub Actions workflow
+- ✅ Comprehensive documentation
+
+**Tested & Working:**
+- ✅ All 5 variants (default, gpt, gemini, grok, llama)
+- ✅ Smoke test suite (1 test)
+- ✅ Core test suite (7 tests)
+- ✅ Grok model integration
+- ✅ Results dashboard
+- ✅ Suite validation
+
+---
+
+## Documentation
+
+See the comprehensive documentation files:
+
+1. **[Main Prompts README](../../.opencode/prompts/README.md)**
+   - Quick start guide
+   - Creating variants
+   - Testing workflow
+   - Advanced usage
+
+2. **[OpenAgent Variants README](../../.opencode/prompts/openagent/README.md)**
+   - Capabilities matrix
+   - Variant details
+   - Test results
+   - Best practices
+
+3. **[Eval Framework Guide](../../evals/EVAL_FRAMEWORK_GUIDE.md)**
+   - How tests work
+   - Running tests
+   - Understanding results
+
+4. **[Test Suite Validation](../../evals/TEST_SUITE_VALIDATION.md)**
+   - Creating test suites
+   - Validation system
+   - JSON Schema reference
+
+5. **[Validation Quick Reference](../../evals/VALIDATION_QUICK_REF.md)**
+   - Quick commands
+   - Common fixes
+   - Troubleshooting
+
+---
 
 ## Architecture
 
+### Components
+
 ```
-.opencode/prompts/{agent}/
-├── README.md              # Capabilities table, how to use
-├── default.md             # Safe fallback (enforced in PRs)
-├── {variant}.md           # Experimental variants
-├── TEMPLATE.md            # For contributors
-└── results/               # Test results
-    └── {variant}-results.json
+┌─────────────────────────────────────────────────────────────┐
+│                    Prompt Library System                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  ┌──────────────┐      ┌──────────────┐      ┌───────────┐ │
+│  │   Variants   │─────▶│ Eval Framework│─────▶│ Dashboard │ │
+│  │  (.md files) │      │  (Test Runner)│      │ (Results) │ │
+│  └──────────────┘      └──────────────┘      └───────────┘ │
+│         │                      │                     │       │
+│         │                      │                     │       │
+│  ┌──────▼──────┐      ┌───────▼────────┐   ┌────────▼────┐ │
+│  │   Metadata  │      │  Test Suites   │   │   Results   │ │
+│  │(YAML Front) │      │  (JSON files)  │   │(JSON files) │ │
+│  └─────────────┘      └────────────────┘   └─────────────┘ │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Key Principles
+### Key Files
 
-1. **Default in PRs**: CI enforces that `.opencode/agent/{agent}.md` matches `.opencode/prompts/{agent}/default.md`
-2. **Test from Library**: Scripts copy from prompts library → agent location during tests
-3. **Store Results**: All test runs save results to `results/` folder
-4. **Documentation**: Each variant documents its tested capabilities
+**Prompt Variants:**
+- `.opencode/prompts/openagent/*.md` - Variant files
+- `.opencode/prompts/openagent/results/*.json` - Per-variant results
 
-## Implementation Tasks
+**Test Suites:**
+- `evals/agents/openagent/config/*.json` - Suite definitions
+- `evals/agents/openagent/config/suite-schema.json` - JSON Schema
 
-### ✅ Completed
+**Framework:**
+- `evals/framework/src/sdk/prompt-manager.ts` - Prompt switching
+- `evals/framework/src/sdk/suite-validator.ts` - Suite validation
+- `evals/framework/src/sdk/run-sdk-tests.ts` - Test runner
 
-1. Created `scripts/prompts/test-prompt.sh` - Basic test script
-2. Created `scripts/prompts/use-prompt.sh` - Basic usage script
-3. Created implementation plan and task breakdown
+**Results:**
+- `evals/results/latest.json` - Main results
+- `evals/results/index.html` - Dashboard
 
-### 🔄 In Progress
+---
 
-None
+## Usage Examples
 
-### 📋 Todo
+### Testing Variants
 
-1. **Create PR Validation Script** (`scripts/prompts/validate-pr.sh`)
-   - Validates all agents use default prompts
-   - Exits 1 if any agent uses non-default
-   - Clear error messages
+```bash
+# Quick smoke test (1 test, ~30s)
+npm run eval:sdk -- --agent=openagent --prompt-variant=llama --suite=smoke-test
 
-2. **Update Test Script to Store Results**
-   - Enhance `test-prompt.sh` to save results
-   - Create results JSON files
-   - Update README with test results
+# Core test suite (7 tests, ~5-8min)
+npm run eval:sdk -- --agent=openagent --prompt-variant=llama --suite=core-tests
 
-3. **Create Prompts Library Structure**
-   - Set up `.opencode/prompts/` directory
-   - Create README files
-   - Copy current prompts as defaults
-   - Create TEMPLATE.md
+# With specific model
+npm run eval:sdk -- --agent=openagent --prompt-variant=llama --model=ollama/llama3.2 --suite=core-tests
 
-4. **Update CI Workflow**
-   - Add prompt validation to `.github/workflows/validate-registry.yml`
-   - Run on all PRs
-   - Show clear error messages
+# Custom test pattern
+npm run eval:sdk -- --agent=openagent --prompt-variant=llama --pattern="01-critical-rules/**/*.yaml"
+```
 
-5. **Update Documentation**
-   - Update `CONTRIBUTING.md` with prompt system
-   - Update main `README.md` with model compatibility
-   - Create `docs/guides/prompt-variants.md`
+### Creating Variants
 
-6. **Create Demo Script**
-   - Interactive repository showcase
-   - Quick tour mode
-   - Full demo mode
-   - Shows prompt library system
+```bash
+# 1. Copy template
+cp .opencode/prompts/openagent/TEMPLATE.md .opencode/prompts/openagent/my-variant.md
 
-## Task Details
+# 2. Edit metadata and content
+# 3. Test
+npm run eval:sdk -- --agent=openagent --prompt-variant=my-variant --suite=smoke-test
 
-See individual task files in `tasks/subtasks/prompt-library-system/`:
-- `01-create-pr-validation-script.md`
-- `02-update-test-script-store-results.md`
-- `03-create-prompts-library-structure.md`
-- `04-update-ci-workflow.md`
-- `05-update-documentation.md`
-- `06-create-demo-script.md`
+# 4. Validate
+cd evals/framework && npm run validate:suites openagent
+```
 
-## Related Work
+### Creating Test Suites
 
-- `tasks/subtasks/openagent-fix/EXPERIMENT_JOURNAL.md` - Experiments that led to this design
-- `tasks/subtasks/openagent-fix/CORE_TEST_FAILURES.md` - Test failure analysis
-- `scripts/prompts/` - Prompt management scripts
+```bash
+# 1. Copy existing suite
+cp evals/agents/openagent/config/smoke-test.json \
+   evals/agents/openagent/config/my-suite.json
 
-## Success Criteria
+# 2. Edit suite
+# 3. Validate
+cd evals/framework && npm run validate:suites openagent
 
-- [ ] PR validation enforces default prompts
-- [ ] Test results are automatically stored
-- [ ] Prompts library is well-documented
-- [ ] CI validates all PRs
-- [ ] Documentation is clear and complete
-- [ ] Demo script showcases the system
+# 4. Run
+npm run eval:sdk -- --agent=openagent --suite=my-suite
+```
 
-## Timeline
+---
 
-- **Week 1**: Scripts and library structure
-- **Week 2**: CI integration and documentation
-- **Week 3**: Testing and refinement
+## API Reference
+
+### PromptManager
+
+```typescript
+class PromptManager {
+  constructor(projectRoot: string);
+  variantExists(agent: string, variant: string): boolean;
+  listVariants(agent: string): string[];
+  readMetadata(agent: string, variant: string): PromptMetadata;
+  switchToVariant(agent: string, variant: string): SwitchResult;
+  restoreDefault(agent: string): boolean;
+}
+```
+
+### SuiteValidator
+
+```typescript
+class SuiteValidator {
+  constructor(agentsDir: string);
+  loadSuite(agent: string, suiteName: string): TestSuite;
+  validateSuite(agent: string, suite: TestSuite): ValidationResult;
+  getTestPaths(agent: string, suite: TestSuite): string[];
+}
+```
+
+---
+
+## Test Results
+
+All variants tested with core test suite (7 tests):
+
+| Variant | Pass Rate | Model Tested | Status |
+|---------|-----------|--------------|--------|
+| default | 7/7 (100%) | opencode/grok-code-fast | ✅ Stable |
+| gpt | 7/7 (100%) | opencode/grok-code-fast | ✅ Stable |
+| gemini | 7/7 (100%) | opencode/grok-code-fast | ✅ Stable |
+| grok | 7/7 (100%) | opencode/grok-code-fast | ✅ Stable |
+| llama | 7/7 (100%) | opencode/grok-code-fast | ✅ Stable |
+
+---
+
+## Future Enhancements
+
+- [ ] Automated variant comparison reports
+- [ ] Performance benchmarking across variants
+- [ ] Variant recommendation based on model
+- [ ] Historical trend analysis
+- [ ] A/B testing framework
+- [ ] Automated regression detection
+
+---
+
+## Related Documentation
+
+- [Main README](../../README.md)
+- [Contributing Guide](../contributing/CONTRIBUTING.md)
+- [Agent System Blueprint](./agent-system-blueprint.md)
+
+---
+
+**Questions?** Open an issue or see the main README.

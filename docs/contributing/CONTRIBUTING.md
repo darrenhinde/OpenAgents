@@ -127,13 +127,13 @@ export function myTool() {
 3. **Test your component**:
    ```bash
    # Validate structure
-   ./scripts/validate-component.sh
+   ./scripts/registry/validate-component.sh
    ```
 
 4. **Update the registry** (automatic on merge to main):
    ```bash
    # Manual update (optional)
-   ./scripts/register-component.sh
+   ./scripts/registry/register-component.sh
    ```
 
 ## Component Categories
@@ -158,7 +158,7 @@ The auto-registration script assigns categories based on component type and loca
 
 2. **Validate structure**:
    ```bash
-   ./scripts/validate-component.sh
+   ./scripts/registry/validate-component.sh
    ```
 
 3. **Test with OpenCode**:
@@ -317,7 +317,7 @@ Automates common database tasks and ensures migration safety.
 - Runs migrations with rollback support
 
 ## Testing
-- [x] Validated with `./scripts/validate-component.sh`
+- [x] Validated with `./scripts/registry/validate-component.sh`
 - [x] Tested with PostgreSQL and MySQL
 - [x] Tested rollback scenarios
 ```
