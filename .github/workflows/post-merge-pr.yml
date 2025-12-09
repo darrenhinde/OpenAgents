@@ -68,14 +68,19 @@ jobs:
             exit 0
           fi
           
-          COMMIT_MSG=$(git log -1 --pretty=%B)
+          # Check commit title (first line only) for skip patterns
+          COMMIT_TITLE=$(git log -1 --pretty=%s)
           
           # Skip if this is an automated commit to prevent loops
-          if echo "$COMMIT_MSG" | grep -qE "\[skip ci\]|chore: bump version|docs: sync|chore: version and docs sync"; then
+          # Only check the title, not the full body to avoid false positives
+          if echo "$COMMIT_TITLE" | grep -qE "\[skip ci\]|chore: bump version|docs: sync|chore: version and docs sync"; then
             echo "should_sync=false" >> $GITHUB_OUTPUT
-            echo "Automated commit detected - skipping to prevent loops"
+            echo "Automated commit detected in title - skipping to prevent loops"
             exit 0
           fi
+          
+          # Get full commit message for version bump type detection
+          COMMIT_MSG=$(git log -1 --pretty=%B)
           
           # Determine version bump type from commit message
           if echo "$COMMIT_MSG" | grep -qiE "^(feat|feature)\(.*\)!:|^BREAKING CHANGE:|^[a-z]+!:"; then
