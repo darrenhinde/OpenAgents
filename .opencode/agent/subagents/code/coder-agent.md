@@ -1,24 +1,48 @@
 ---
-description: "Executes coding subtasks in sequence, ensuring completion as specified"
+# Basic Info
+id: coder-agent
+name: Coder Agent
+description: Executes coding subtasks in sequence, ensuring completion as specified
+category: subagents/code
+type: subagent
+version: 1.0.0
+author: darrenhinde
+
+# Agent Configuration
 mode: subagent
-temperature: 0
+model: anthropic/claude-sonnet-4-5
+temperature: 0.1
+
+# Tools
 tools:
   read: true
-  edit: true
-  write: true
   grep: true
   glob: true
-  bash: false
-  patch: true
+  edit: true
+  write: true
+  bash: true
+
+# Permissions
 permissions:
   bash:
-    "*": "deny"
+    "rm -rf *": "ask"
+    "sudo *": "deny"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
     "**/*.secret": "deny"
-    "node_modules/**": "deny"
-    ".git/**": "deny"
+
+# Dependencies
+dependencies:
+  context:
+    - development/clean-code
+  tools: []
+
+# Tags
+tags:
+  - coding
+  - implementation
+  - subagent
 ---
 
 # Coder Agent (@coder-agent)
