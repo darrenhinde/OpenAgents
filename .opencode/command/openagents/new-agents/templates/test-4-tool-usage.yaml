@@ -1,0 +1,35 @@
+id: tool-usage-001
+name: Tool Usage Clarity
+description: |
+  Tests that {agent-name} uses tools correctly based on their definitions.
+  Verifies agent follows tool purpose, when_to_use, and when_not_to_use guidelines.
+
+category: implementation
+agent: {agent-name}
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  Find all TypeScript files in the src directory and check if they use proper imports.
+
+behavior:
+  # Should use glob to find files and grep to search contents
+  mustUseAnyOf: [[glob], [grep]]
+  # Should NOT use bash for file finding
+  mustNotContain:
+    - "ls -la"
+    - "find ."
+
+expectedViolations:
+  - rule: tool-clarity
+    shouldViolate: false
+    severity: warning
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 30000
+
+tags:
+  - tools
+  - clarity
+  - best-practice

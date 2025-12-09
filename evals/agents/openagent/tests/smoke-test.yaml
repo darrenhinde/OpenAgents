@@ -30,6 +30,11 @@ expectedViolations:
   - rule: approval-gate
     shouldViolate: false
     severity: error
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should check if directory exists before creating file
 
 approvalStrategy:
   type: auto-approve

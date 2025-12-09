@@ -6,6 +6,7 @@
  * Usage:
  *   npm run eval:sdk
  *   npm run eval:sdk -- --debug
+ *   npm run eval:sdk -- --verbose
  *   npm run eval:sdk -- --no-evaluators
  *   npm run eval:sdk -- --core
  *   npm run eval:sdk -- --agent=opencoder
@@ -14,9 +15,12 @@
  *   npm run eval:sdk -- --model=anthropic/claude-3-5-sonnet-20241022
  *   npm run eval:sdk -- --pattern="developer/*.yaml" --model=openai/gpt-4-turbo
  *   npm run eval:sdk -- --prompt-variant=gpt --agent=openagent
+ *   npm run eval:sdk -- --agent=opencoder --verbose  # Show full conversations
  * 
  * Options:
- *   --debug              Enable debug logging
+ *   --debug              Enable debug logging and keep sessions for inspection
+ *   --verbose            Show full conversation (prompts + responses) after each test
+ *                        (automatically enables --debug)
  *   --no-evaluators      Skip running evaluators (faster)
  *   --core               Run core test suite only (7 tests, ~5-8 min)
  *   --agent=AGENT        Run tests for specific agent (openagent, opencoder)
@@ -43,6 +47,7 @@ const __dirname = dirname(__filename);
 
 interface CliArgs {
   debug: boolean;
+  verbose: boolean;
   noEvaluators: boolean;
   core: boolean;
   suite?: string;
@@ -58,6 +63,7 @@ function parseArgs(): CliArgs {
   
   return {
     debug: args.includes('--debug'),
+    verbose: args.includes('--verbose'),
     noEvaluators: args.includes('--no-evaluators'),
     core: args.includes('--core'),
     suite: args.find(a => a.startsWith('--suite='))?.split('=')[1],
@@ -175,8 +181,104 @@ function printResults(results: TestResult[]): void {
   }
 }
 
+/**
+ * Display full conversation from a session
+ */
+async function displayConversation(sessionId: string): Promise<void> {
+  const { homedir } = await import('os');
+  const { readFileSync, readdirSync, existsSync } = await import('fs');
+  
+  const sessionDir = join(homedir(), '.local', 'share', 'opencode', 'storage', 'message', sessionId);
+  const partDir = join(homedir(), '.local', 'share', 'opencode', 'storage', 'part');
+  
+  if (!existsSync(sessionDir)) {
+    console.log(`⚠️  Session not found: ${sessionId}`);
+    return;
+  }
+  
+  console.log('\n' + '='.repeat(70));
+  console.log('FULL CONVERSATION');
+  console.log('='.repeat(70));
+  console.log(`Session: ${sessionId}\n`);
+  
+  // Read all message files and sort by creation time
+  const messageFiles = readdirSync(sessionDir)
+    .filter(f => f.endsWith('.json'))
+    .map(f => {
+      const content = JSON.parse(readFileSync(join(sessionDir, f), 'utf-8'));
+      return { file: f, content, created: content.time?.created || 0 };
+    })
+    .sort((a, b) => a.created - b.created);
+  
+  for (const { content: msg } of messageFiles) {
+    const role = msg.role;
+    const msgId = msg.id;
+    
+    if (role === 'user') {
+      console.log('━'.repeat(70));
+      console.log('👤 USER PROMPT');
+      console.log('━'.repeat(70));
+      
+      // Get actual user prompt from parts
+      const msgPartDir = join(partDir, msgId);
+      if (existsSync(msgPartDir)) {
+        const partFiles = readdirSync(msgPartDir).filter(f => f.endsWith('.json'));
+        for (const partFile of partFiles) {
+          const part = JSON.parse(readFileSync(join(msgPartDir, partFile), 'utf-8'));
+          if (part.type === 'text' && part.text) {
+            console.log(part.text);
+          }
+        }
+      }
+      console.log();
+      
+    } else if (role === 'assistant') {
+      console.log('━'.repeat(70));
+      console.log('🤖 ASSISTANT');
+      console.log('━'.repeat(70));
+      
+      // Read parts from the part directory
+      const msgPartDir = join(partDir, msgId);
+      if (existsSync(msgPartDir)) {
+        const partFiles = readdirSync(msgPartDir)
+          .filter(f => f.endsWith('.json'))
+          .map(f => {
+            const content = JSON.parse(readFileSync(join(msgPartDir, f), 'utf-8'));
+            return { file: f, content, created: content.time?.start || content.time?.created || 0 };
+          })
+          .sort((a, b) => a.created - b.created);
+        
+        for (const { content: part } of partFiles) {
+          if (part.type === 'text' && part.text) {
+            console.log(part.text);
+            console.log();
+          } else if (part.type === 'tool') {
+            console.log(`🔧 TOOL CALL: ${part.tool}`);
+            console.log(`   Input: ${JSON.stringify(part.input || {})}`);
+            console.log();
+          } else if (part.type === 'tool_result' && part.result) {
+            const result = part.result.substring(0, 300);
+            console.log(`📊 TOOL RESULT:`);
+            console.log(result + (part.result.length > 300 ? '...' : ''));
+            console.log();
+          }
+        }
+      }
+      console.log();
+    }
+  }
+  
+  console.log('='.repeat(70) + '\n');
+}
+
 async function main() {
   const args = parseArgs();
+  
+  // If --verbose is set, automatically enable --debug (required for session data)
+  if (args.verbose && !args.debug) {
+    args.debug = true;
+    console.log('ℹ️  --verbose flag automatically enabled --debug (required for session data)\n');
+  }
   
   console.log('🚀 OpenCode SDK Test Runner\n');
   
@@ -430,6 +532,24 @@ async function main() {
     
     // Print results
     printResults(results);
+    
+    // Show full conversations if --verbose flag is set
+    if (args.verbose) {
+      console.log('\n' + '='.repeat(70));
+      console.log('VERBOSE MODE: Displaying full conversations');
+      console.log('='.repeat(70) + '\n');
+      
+      for (const result of results) {
+        console.log(`\nTest: ${result.testCase.id}`);
+        console.log(`Session ID: ${result.sessionId || 'N/A'}`);
+        
+        if (result.sessionId) {
+          await displayConversation(result.sessionId);
+        } else {
+          console.log('⚠️  No session ID available for this test\n');
+        }
+      }
+    }
     
     // Exit with appropriate code
     const allPassed = results.every(r => r.passed);

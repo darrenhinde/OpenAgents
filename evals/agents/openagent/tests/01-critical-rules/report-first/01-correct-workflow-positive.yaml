@@ -38,6 +38,11 @@ expectedViolations:
     shouldViolate: false
     severity: error
     description: Agent should follow REPORT→PROPOSE→REQUEST→FIX workflow
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should check project structure before running tests
 
 approvalStrategy:
   type: auto-approve

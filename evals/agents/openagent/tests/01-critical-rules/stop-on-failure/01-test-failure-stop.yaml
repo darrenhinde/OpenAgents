@@ -44,6 +44,11 @@ expectedViolations:
     shouldViolate: false
     severity: error
     description: Must STOP on test failure and NOT auto-fix
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should check project structure before running tests
 
 # Approval strategy
 approvalStrategy:

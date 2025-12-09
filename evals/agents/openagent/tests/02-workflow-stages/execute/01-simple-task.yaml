@@ -39,6 +39,11 @@ expectedViolations:
     shouldViolate: false
     severity: error
     description: Agent must ask for approval before running bash commands
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: May list directory before executing bash command
 
 # Approval strategy for tool permissions
 approvalStrategy:

@@ -27,6 +27,11 @@ expectedViolations:
   - rule: context-loading
     shouldViolate: false
     severity: error
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should read context before writing code
 
 # Approval strategy
 approvalStrategy:

@@ -1,0 +1,27 @@
+# {Agent Name} Test Configuration
+
+agent: {agent-name}
+description: {agent description}
+
+# Default settings for all tests
+defaults:
+  model: anthropic/claude-sonnet-4-5
+  timeout: 60000
+  approvalStrategy:
+    type: auto-approve
+
+# Test discovery paths
+testPaths:
+  - tests/planning
+  - tests/context-loading
+  - tests/implementation
+  - tests/error-handling
+  - tests/long-horizon
+  - tests/completion
+
+# Agent-specific expectations
+expectations:
+  requiresTextApproval: true
+  usesToolPermissions: true
+  loadsContextOnDemand: true
+  responsePrefix: ""  # e.g., "DIGGING IN..." if agent has one

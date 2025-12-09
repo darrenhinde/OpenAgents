@@ -1,0 +1,36 @@
+id: context-before-code-001
+name: Context Loading Before Code
+description: |
+  Tests that {agent-name} loads relevant context files before writing code.
+  Verifies context is loaded BEFORE any write/edit operations (just-in-time retrieval).
+
+category: context-loading
+agent: {agent-name}
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  Write a simple utility function following our coding standards.
+
+behavior:
+  # Should read context files first
+  mustUseInOrder:
+    - [read]  # Context files
+    - [write, edit]  # Then code
+  # Should reference standards/context
+  mustContain:
+    - "standard"
+
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 30000
+
+tags:
+  - context
+  - just-in-time
+  - critical

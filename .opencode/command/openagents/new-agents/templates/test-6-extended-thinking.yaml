@@ -1,0 +1,42 @@
+id: extended-thinking-001
+name: Extended Thinking for Decomposition
+description: |
+  Tests that {agent-name} uses extended thinking for complex tasks.
+  Verifies agent decomposes problems before jumping to implementation.
+
+category: implementation
+agent: {agent-name}
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  Think hard about how to implement a user authentication system.
+  What files need to change? What are the dependencies? What should we test?
+
+behavior:
+  # Should think before acting and decompose the problem
+  mustContain:
+    - "think"
+    - "approach"
+    - "dependencies"
+    - "files"
+    - "changes"
+    - "test"
+  # Should NOT jump straight to implementation
+  mustNotUseInFirstN:
+    tools: [write, edit]
+    n: 3  # First 3 tool calls
+
+expectedViolations:
+  - rule: extended-thinking
+    shouldViolate: false
+    severity: warning
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 45000
+
+tags:
+  - thinking
+  - decomposition
+  - planning

@@ -59,6 +59,11 @@ expectedViolations:
     shouldViolate: false
     severity: error
     description: Must load standards.md and tests.md before writing
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should read multiple context files before writing tests
 
 # Approval strategy
 approvalStrategy:

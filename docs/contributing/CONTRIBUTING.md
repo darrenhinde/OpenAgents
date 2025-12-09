@@ -2,6 +2,13 @@
 
 Thank you for your interest in contributing! This guide will help you add new components to the registry and understand the repository structure.
 
+## 📚 Documentation
+
+- **[Development Guide](DEVELOPMENT.md)** - Complete guide for developing on this repo (agents, commands, tools, testing)
+- **[Agent Creation System](../../.opencode/command/openagents/new-agents/README.md)** - ⭐ NEW: Research-backed agent creation with templates
+- **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines
+- **[Adding Evaluators](ADDING_EVALUATOR.md)** - How to add new test evaluators
+
 ## Repository Structure
 
 ```
@@ -369,11 +376,60 @@ You don't need to manually edit `registry.json`!
 - Use meaningful variable names
 - Include help text
 
+## Quick Reference
+
+### Creating a New Agent
+
+```bash
+# Use the automated system (recommended)
+/create-agent my-agent-name
+
+# Or manually follow the development guide
+# See: docs/contributing/DEVELOPMENT.md#creating-new-agents
+```
+
+### Running Tests
+
+```bash
+cd evals/framework
+npm test -- --agent=my-agent
+```
+
+### Validating Before PR
+
+```bash
+# Validate structure
+./scripts/registry/validate-component.sh
+
+# Ensure using defaults
+./scripts/prompts/validate-pr.sh
+
+# Run tests
+cd evals/framework && npm test
+```
+
+### Common Commands
+
+```bash
+# List available components
+./install.sh --list
+
+# Validate registry
+make validate-registry
+
+# Update registry
+make update-registry
+
+# Test a prompt variant
+./scripts/prompts/test-prompt.sh openagent my-variant
+```
+
 ## Questions?
 
 - **Issues**: Open an issue for bugs or feature requests
 - **Discussions**: Use GitHub Discussions for questions
 - **Security**: Email security issues privately
+- **Development Help**: See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed guides
 
 ## License
 

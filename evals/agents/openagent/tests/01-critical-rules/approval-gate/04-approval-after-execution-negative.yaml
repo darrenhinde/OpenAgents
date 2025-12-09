@@ -29,6 +29,11 @@ expectedViolations:
     shouldViolate: true  # SHOULD violate - approval after execution
     severity: error
     description: Agent should ask approval BEFORE execution, not after
+  
+  - rule: execution-balance
+    shouldViolate: true
+    severity: warning
+    description: Executes immediately without reading (negative test)
 
 approvalStrategy:
   type: auto-approve

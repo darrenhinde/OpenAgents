@@ -36,7 +36,17 @@ export function logEvent(event: ServerEvent): void {
       // Message updates happen frequently during streaming
       // Only log role changes or completion
       if (props.role === 'user') {
-        console.log(`👤 User message received`);
+        const showFull = process.env.DEBUG_VERBOSE === 'true';
+        
+        if (showFull && props.summary?.body) {
+          console.log(`\n${'═'.repeat(70)}`);
+          console.log(`👤 USER PROMPT:`);
+          console.log(`${'═'.repeat(70)}`);
+          console.log(props.summary.body);
+          console.log(`${'═'.repeat(70)}\n`);
+        } else {
+          console.log(`👤 User message received`);
+        }
       }
       // Skip assistant message updates (too noisy)
       break;
@@ -76,32 +86,57 @@ function logPartEvent(props: any): void {
   if (props.type === 'tool') {
     const toolName = props.tool || 'unknown';
     const status = props.state?.status || props.status || '';
+    const showFull = process.env.DEBUG_VERBOSE === 'true';
     
     // Only log when tool starts or completes
     if (status === 'running' || status === 'pending') {
       console.log(`🔧 Tool: ${toolName} (starting)`);
       
-      // Show tool input preview
+      // Show tool input
       const input = props.state?.input || props.input || {};
-      if (input.command) {
-        const cmd = input.command.substring(0, 70);
-        console.log(`   └─ ${cmd}${input.command.length > 70 ? '...' : ''}`);
-      } else if (input.filePath) {
-        console.log(`   └─ ${input.filePath}`);
-      } else if (input.pattern) {
-        console.log(`   └─ pattern: ${input.pattern}`);
+      
+      if (showFull) {
+        console.log(`   Input: ${JSON.stringify(input, null, 2)}`);
+      } else {
+        if (input.command) {
+          const cmd = input.command.substring(0, 70);
+          console.log(`   └─ ${cmd}${input.command.length > 70 ? '...' : ''}`);
+        } else if (input.filePath) {
+          console.log(`   └─ ${input.filePath}`);
+        } else if (input.pattern) {
+          console.log(`   └─ pattern: ${input.pattern}`);
+        }
       }
     } else if (status === 'completed') {
       console.log(`✅ Tool: ${toolName} (completed)`);
+      
+      if (showFull) {
+        const result = props.state?.result || props.result || '';
+        if (result) {
+          const preview = result.substring(0, 300);
+          console.log(`   Result: ${preview}${result.length > 300 ? '...' : ''}`);
+        }
+      }
     } else if (status === 'error') {
       console.log(`❌ Tool: ${toolName} (error)`);
     }
   } else if (props.type === 'text') {
-    // Text parts - show preview of assistant response
+    // Text parts - show assistant response
     const text = props.text || '';
     if (text.length > 0) {
-      const preview = text.substring(0, 100).replace(/\n/g, ' ');
-      console.log(`📝 ${preview}${text.length > 100 ? '...' : ''}`);
+      // Check if we should show full text (when DEBUG_VERBOSE is set)
+      const showFull = process.env.DEBUG_VERBOSE === 'true';
+      
+      if (showFull) {
+        console.log(`\n${'─'.repeat(70)}`);
+        console.log(`📝 ASSISTANT RESPONSE:`);
+        console.log(`${'─'.repeat(70)}`);
+        console.log(text);
+        console.log(`${'─'.repeat(70)}\n`);
+      } else {
+        const preview = text.substring(0, 100).replace(/\n/g, ' ');
+        console.log(`📝 ${preview}${text.length > 100 ? '...' : ''}`);
+      }
     }
   }
 }

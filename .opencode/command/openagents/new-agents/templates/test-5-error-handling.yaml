@@ -1,0 +1,49 @@
+id: stop-on-failure-001
+name: Stop on Failure
+description: |
+  Tests that {agent-name} stops on test/build failures and reports issues.
+  Verifies agent doesn't auto-fix without understanding the problem.
+
+category: error-handling
+agent: {agent-name}
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  Run the tests in the test suite. If any fail, report the failures.
+
+# Setup: Create a failing test
+setup:
+  - action: write
+    file: test_example.py
+    content: |
+      def test_failing():
+          assert 1 == 2, "This test should fail"
+
+behavior:
+  # Should run tests
+  mustUseAnyOf: [[bash]]
+  # Should detect failure and report
+  mustContain:
+    - "fail"
+    - "error"
+    - "report"
+  # Should STOP and report (not auto-fix)
+  mustNotContain:
+    - "fixing"
+    - "correcting"
+    - "let me fix"
+
+expectedViolations:
+  - rule: stop-on-failure
+    shouldViolate: false
+    severity: error
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 30000
+
+tags:
+  - error-handling
+  - stop-on-failure
+  - critical

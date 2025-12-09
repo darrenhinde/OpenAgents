@@ -33,6 +33,11 @@ expectedViolations:
     shouldViolate: true  # SHOULD violate if agent auto-fixes
     severity: error
     description: Agent should NOT auto-fix even when asked
+  
+  - rule: execution-balance
+    shouldViolate: true
+    severity: warning
+    description: Auto-fix likely skips reading (negative test)
 
 approvalStrategy:
   type: auto-approve
