@@ -71,11 +71,11 @@ jobs:
           # Check commit title (first line only) for skip patterns
           COMMIT_TITLE=$(git log -1 --pretty=%s)
           
-          # Skip if this is an automated commit to prevent loops
+          # Skip if this is an automated version bump commit to prevent loops
           # Only check the title, not the full body to avoid false positives
-          if echo "$COMMIT_TITLE" | grep -qE "\[skip ci\]|chore: bump version"; then
+          if echo "$COMMIT_TITLE" | grep -qE "^chore: bump version to v"; then
             echo "should_bump=false" >> $GITHUB_OUTPUT
-            echo "Automated commit detected in title - skipping to prevent loops"
+            echo "Automated version bump commit detected - skipping to prevent loops"
             exit 0
           fi
           
@@ -164,7 +164,7 @@ jobs:
           NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
           
           git add VERSION package.json CHANGELOG.md
-          git commit -m "chore: bump version to v$NEW_VERSION [skip ci]"
+          git commit -m "chore: bump version to v$NEW_VERSION"
       
       - name: Push branch
         run: |
