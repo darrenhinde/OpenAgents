@@ -31,6 +31,11 @@ expectedViolations:
   - rule: approval-gate
     shouldViolate: false  # Should NOT violate - correct workflow
     severity: error
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should check if file/directory exists before writing
 
 approvalStrategy:
   type: auto-approve

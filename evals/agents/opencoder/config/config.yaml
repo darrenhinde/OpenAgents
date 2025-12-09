@@ -12,15 +12,21 @@ defaults:
 
 # Test discovery paths
 testPaths:
+  - tests/planning
+  - tests/context-loading
+  - tests/implementation
+  - tests/delegation
+  - tests/error-handling
+  - tests/completion
   - tests/developer
-  - tests/business
-  - tests/edge-case
 
 # Agent-specific expectations
 expectations:
-  # Opencoder executes tools directly without text-based approval
-  requiresTextApproval: false
+  # Opencoder NOW requires text-based approval (updated prompt)
+  requiresTextApproval: true
   # Uses tool permission system
   usesToolPermissions: true
   # Starts responses with "DIGGING IN..."
   responsePrefix: "DIGGING IN..."
+  # Should load context before code implementation
+  requiresContextLoading: true

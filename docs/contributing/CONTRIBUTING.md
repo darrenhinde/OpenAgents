@@ -2,6 +2,13 @@
 
 Thank you for your interest in contributing! This guide will help you add new components to the registry and understand the repository structure.
 
+## 📚 Documentation
+
+- **[Development Guide](DEVELOPMENT.md)** - Complete guide for developing on this repo (agents, commands, tools, testing)
+- **[Agent Creation System](../../.opencode/command/openagents/new-agents/README.md)** - ⭐ NEW: Research-backed agent creation with templates
+- **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines
+- **[Adding Evaluators](ADDING_EVALUATOR.md)** - How to add new test evaluators
+
 ## Repository Structure
 
 ```
@@ -187,15 +194,21 @@ OpenCode uses a model-specific prompt library to support different AI models whi
 ├── agent/              # Active prompts (always default in PRs)
 │   ├── openagent.md
 │   └── opencoder.md
-└── prompts/            # Prompt library (variants and experiments)
+└── prompts/            # Prompt library (model-specific variants)
     ├── openagent/
-    │   ├── default.md      # Stable version (enforced in PRs)
-    │   ├── sonnet-4.md     # Experimental variants
+    │   ├── gpt.md          # GPT-4 optimized
+    │   ├── gemini.md       # Gemini optimized
+    │   ├── grok.md         # Grok optimized
+    │   ├── llama.md        # Llama/OSS optimized
     │   ├── TEMPLATE.md     # Template for new variants
     │   ├── README.md       # Capabilities table
-    │   └── results/        # Test results
+    │   └── results/        # Test results (all variants)
     └── opencoder/
         └── ...
+
+**Architecture:**
+- Agent files (`.opencode/agent/*.md`) = Canonical defaults
+- Prompt variants (`.opencode/prompts/<agent>/<model>.md`) = Model-specific optimizations
 ```
 
 ### For Contributors
@@ -270,19 +283,20 @@ When a variant proves superior:
    cat .opencode/prompts/openagent/results/variant-results.json
    ```
 
-2. **Update default:**
+2. **Update agent file (canonical default):**
    ```bash
-   cp .opencode/prompts/openagent/variant.md .opencode/prompts/openagent/default.md
-   cp .opencode/prompts/openagent/default.md .opencode/agent/openagent.md
+   cp .opencode/prompts/openagent/variant.md .opencode/agent/openagent.md
    ```
 
 3. **Update capabilities table** in README
 
 4. **Commit with clear message:**
    ```bash
-   git add .opencode/prompts/openagent/default.md .opencode/agent/openagent.md
-   git commit -m "Promote variant to default: improved X by Y%"
+   git add .opencode/agent/openagent.md
+   git commit -m "feat(openagent): promote variant to default - improved X by Y%"
    ```
+
+**Note:** In the new architecture, agent files are the canonical defaults. There are no `default.md` files in the prompts directory.
 
 ## Pull Request Guidelines
 
@@ -369,11 +383,60 @@ You don't need to manually edit `registry.json`!
 - Use meaningful variable names
 - Include help text
 
+## Quick Reference
+
+### Creating a New Agent
+
+```bash
+# Use the automated system (recommended)
+/create-agent my-agent-name
+
+# Or manually follow the development guide
+# See: docs/contributing/DEVELOPMENT.md#creating-new-agents
+```
+
+### Running Tests
+
+```bash
+cd evals/framework
+npm test -- --agent=my-agent
+```
+
+### Validating Before PR
+
+```bash
+# Validate structure
+./scripts/registry/validate-component.sh
+
+# Ensure using defaults
+./scripts/prompts/validate-pr.sh
+
+# Run tests
+cd evals/framework && npm test
+```
+
+### Common Commands
+
+```bash
+# List available components
+./install.sh --list
+
+# Validate registry
+make validate-registry
+
+# Update registry
+make update-registry
+
+# Test a prompt variant
+./scripts/prompts/test-prompt.sh openagent my-variant
+```
+
 ## Questions?
 
 - **Issues**: Open an issue for bugs or feature requests
 - **Discussions**: Use GitHub Discussions for questions
 - **Security**: Email security issues privately
+- **Development Help**: See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed guides
 
 ## License
 

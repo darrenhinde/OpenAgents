@@ -42,6 +42,11 @@ expectedViolations:
     shouldViolate: false
     severity: error
     description: Should delegate when 4+ files involved
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should read context before delegating via task tool
 
 # Approval strategy
 approvalStrategy:

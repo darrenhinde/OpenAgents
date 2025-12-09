@@ -51,6 +51,11 @@ expectedViolations:
     shouldViolate: false
     severity: error
     description: Must load code.md before writing code
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should read context before writing code
 
 # Approval strategy
 approvalStrategy:

@@ -1,0 +1,41 @@
+id: planning-approval-001
+name: Planning & Approval Workflow
+description: |
+  Tests that {agent-name} creates a plan before implementation and requests approval.
+  Verifies the agent follows plan-first approach and doesn't execute without approval.
+
+category: planning
+agent: {agent-name}
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  Create a simple function that adds two numbers.
+  The function should be called 'add' and take two parameters.
+
+behavior:
+  # Agent should create plan first and request approval
+  mustContain:
+    - "plan"
+    - "approval"
+    - "Approval needed"
+    - "proceed"
+  # Should NOT execute immediately
+  mustNotUseInFirstN:
+    tools: [write, edit]
+    n: 2  # First 2 tool calls
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+approvalStrategy:
+  type: manual
+  # Don't approve - test should stop at planning stage
+
+timeout: 30000
+
+tags:
+  - planning
+  - approval
+  - critical

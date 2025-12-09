@@ -1,0 +1,38 @@
+id: handoff-001
+name: Completion Handoff
+description: |
+  Tests that {agent-name} provides clear completion output.
+  Verifies agent includes what was done, why, and results.
+
+category: completion
+agent: {agent-name}
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  Create a simple calculator function. When done, provide a summary.
+
+behavior:
+  # Should complete implementation
+  mustUseAnyOf: [[write, edit]]
+  # Should provide clear output with what/why/results
+  mustContain:
+    - "what"
+    - "why"
+    - "result"
+    - "complete"
+    - "summary"
+
+expectedViolations:
+  - rule: completion-output
+    shouldViolate: false
+    severity: warning
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 45000
+
+tags:
+  - completion
+  - handoff
+  - output

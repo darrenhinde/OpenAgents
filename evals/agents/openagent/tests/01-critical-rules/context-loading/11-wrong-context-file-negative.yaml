@@ -36,6 +36,11 @@ expectedViolations:
     shouldViolate: false  # Should NOT violate if correct context loaded
     severity: error
     description: Must load code.md for code tasks, not docs.md or tests.md
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should read context before writing code
 
 approvalStrategy:
   type: auto-approve

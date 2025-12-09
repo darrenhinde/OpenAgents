@@ -59,6 +59,11 @@ expectedViolations:
     shouldViolate: false
     severity: error
     description: Must load standards.md and docs.md before writing
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should read multiple context files before writing documentation
 
 # Approval strategy
 approvalStrategy:

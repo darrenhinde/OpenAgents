@@ -41,6 +41,11 @@ expectedViolations:
     shouldViolate: false
     severity: error
     description: Must load tests.md before writing tests
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should read context and source code before writing tests
 
 # Approval strategy
 approvalStrategy:

@@ -29,6 +29,11 @@ expectedViolations:
   - rule: tool-usage
     shouldViolate: false         # Should NOT violate - bash is appropriate
     severity: warning
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should check package.json before installing dependencies
 
 # Approval strategy
 approvalStrategy:

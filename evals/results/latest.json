@@ -1,51 +1,31 @@
 {
   "meta": {
-    "timestamp": "2025-11-29T06:55:58.141Z",
-    "agent": "openagent",
+    "timestamp": "2025-12-09T00:07:10.119Z",
+    "agent": "opencoder",
     "model": "opencode/grok-code-fast",
     "framework_version": "0.1.0",
-    "git_commit": "79110ed"
+    "git_commit": "fd1821c"
   },
   "summary": {
-    "total": 2,
-    "passed": 0,
-    "failed": 2,
-    "duration_ms": 43350,
-    "pass_rate": 0
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "duration_ms": 10952,
+    "pass_rate": 1
   },
   "by_category": {
     "developer": {
-      "passed": 0,
-      "total": 2
+      "passed": 1,
+      "total": 1
     }
   },
   "tests": [
     {
-      "id": "execution-balance-positive-001",
+      "id": "planning-approval-workflow",
       "category": "developer",
-      "passed": false,
-      "duration_ms": 22285,
-      "events": 40,
-      "approvals": 0,
-      "violations": {
-        "total": 1,
-        "errors": 1,
-        "warnings": 0,
-        "details": [
-          {
-            "type": "missing-required-tool",
-            "severity": "error",
-            "message": "Required tool 'write' was not used"
-          }
-        ]
-      }
-    },
-    {
-      "id": "execution-balance-negative-001",
-      "category": "developer",
-      "passed": false,
-      "duration_ms": 21065,
-      "events": 78,
+      "passed": true,
+      "duration_ms": 10952,
+      "events": 13,
       "approvals": 0,
       "violations": {
         "total": 0,

@@ -36,6 +36,11 @@ expectedViolations:
     shouldViolate: false         # Should NOT violate - "just do it" skips approval
     severity: error
     description: just do it phrase should skip approval requirement
+  
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+    description: Should read package.json before installing dependencies
 
 # Approval strategy - auto-approve so the command actually runs
 approvalStrategy:

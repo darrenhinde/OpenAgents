@@ -1,0 +1,38 @@
+id: compaction-001
+name: Compaction for Long Sessions
+description: |
+  Tests that {agent-name} can handle long-horizon tasks with compaction.
+  Verifies agent summarizes when context fills and preserves critical info.
+
+category: long-horizon
+agent: {agent-name}
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  Implement a multi-step feature across several files.
+  Keep notes of architectural decisions and progress.
+
+behavior:
+  # Should handle multiple steps
+  minToolCalls: 5
+  # Should maintain notes/progress and summarize
+  mustContain:
+    - "progress"
+    - "decision"
+    - "summary"
+    - "completed"
+
+expectedViolations:
+  - rule: compaction
+    shouldViolate: false
+    severity: warning
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 90000
+
+tags:
+  - long-horizon
+  - compaction
+  - notes
