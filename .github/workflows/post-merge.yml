@@ -111,16 +111,11 @@ jobs:
           
           # Update CHANGELOG.md
           DATE=$(date +%Y-%m-%d)
-          COMMIT_MSG=$(git log -1 --pretty=%B)
+          # Get only the first line (title) of commit message to avoid multiline issues
+          COMMIT_TITLE=$(git log -1 --pretty=%s)
           
-          # Create changelog entry
-          cat > /tmp/changelog_entry.md << EOF
-          ## [$NEW_VERSION] - $DATE
-          
-          ### Changes
-          - $COMMIT_MSG
-          
-          EOF
+          # Create changelog entry (use printf to avoid heredoc issues)
+          printf "## [%s] - %s\n\n### Changes\n- %s\n\n" "$NEW_VERSION" "$DATE" "$COMMIT_TITLE" > /tmp/changelog_entry.md
           
           # Prepend to CHANGELOG.md (after the header)
           if [ -f CHANGELOG.md ]; then
