@@ -1,7 +1,19 @@
 ---
-description: "Test authoring and TDD agent"
+# Basic Info
+id: tester
+name: Tester
+description: Test authoring and TDD agent
+category: subagents/code
+type: subagent
+version: 1.0.0
+author: darrenhinde
+
+# Agent Configuration
 mode: subagent
+model: anthropic/claude-sonnet-4-5
 temperature: 0.1
+
+# Tools
 tools:
   read: true
   grep: true
@@ -9,6 +21,8 @@ tools:
   edit: true
   write: true
   bash: true
+
+# Permissions
 permissions:
   bash:
     "rm -rf *": "ask"
@@ -17,6 +31,18 @@ permissions:
     "**/*.env*": "deny"
     "**/*.key": "deny"
     "**/*.secret": "deny"
+
+# Dependencies
+dependencies:
+  context:
+    - development/testing-patterns
+  tools: []
+
+# Tags
+tags:
+  - testing
+  - tdd
+  - quality
 ---
 
 # Write Test Agent

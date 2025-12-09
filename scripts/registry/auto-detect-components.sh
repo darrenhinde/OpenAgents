@@ -331,29 +331,48 @@ remove_component_from_registry() {
 
 extract_metadata_from_file() {
     local file=$1
+    local rel_path=$2
     local id=""
     local name=""
     local description=""
+    local category=""
+    local type=""
     
-    # Try to extract from frontmatter (YAML)
+    # Try to extract from frontmatter (YAML) - enhanced for new format
     if grep -q "^---$" "$file" 2>/dev/null; then
-        # Extract description from frontmatter
-        description=$(sed -n '/^---$/,/^---$/p' "$file" | grep "^description:" | sed 's/description: *"\?\(.*\)"\?/\1/' | head -1)
+        id=$(extract_frontmatter_field "$file" "id")
+        name=$(extract_frontmatter_field "$file" "name")
+        description=$(extract_frontmatter_field "$file" "description")
+        category=$(extract_frontmatter_field "$file" "category")
+        type=$(extract_frontmatter_field "$file" "type")
     fi
     
-    # If no description in frontmatter, try to get from first heading or paragraph
+    # Generate defaults if not found in frontmatter
+    if [ -z "$id" ]; then
+        local filename=$(basename "$file" .md)
+        id=$(echo "$filename" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+    fi
+    
+    if [ -z "$name" ]; then
+        local filename=$(basename "$file" .md)
+        name=$(echo "$filename" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+    fi
+    
     if [ -z "$description" ]; then
         description=$(grep -m 1 "^# " "$file" | sed 's/^# //' || echo "")
     fi
     
-    # Generate ID from filename
-    local filename=$(basename "$file" .md)
-    id=$(echo "$filename" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+    # Detect category from path if not in frontmatter
+    if [ -z "$category" ]; then
+        category=$(detect_component_category "$rel_path")
+    fi
     
-    # Generate name from filename (capitalize words)
-    name=$(echo "$filename" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+    # Detect type from path if not in frontmatter
+    if [ -z "$type" ]; then
+        type=$(detect_component_type "$rel_path")
+    fi
     
-    echo "${id}|${name}|${description}"
+    echo "${id}|${name}|${description}|${category}|${type}"
 }
 
 detect_component_type() {
@@ -373,6 +392,55 @@ detect_component_type() {
         echo "context"
     else
         echo "unknown"
+    fi
+}
+
+detect_component_category() {
+    local path=$1
+    
+    if [[ "$path" == *"/agent/core/"* ]]; then
+        echo "core"
+    elif [[ "$path" == *"/agent/development/"* ]]; then
+        echo "development"
+    elif [[ "$path" == *"/agent/content/"* ]]; then
+        echo "content"
+    elif [[ "$path" == *"/agent/product/"* ]]; then
+        echo "product"
+    elif [[ "$path" == *"/agent/data/"* ]]; then
+        echo "data"
+    elif [[ "$path" == *"/agent/learning/"* ]]; then
+        echo "learning"
+    elif [[ "$path" == *"/agent/subagents/code/"* ]]; then
+        echo "subagents/code"
+    elif [[ "$path" == *"/agent/subagents/core/"* ]]; then
+        echo "subagents/core"
+    elif [[ "$path" == *"/agent/subagents/system-builder/"* ]]; then
+        echo "subagents/system-builder"
+    elif [[ "$path" == *"/agent/subagents/utils/"* ]]; then
+        echo "subagents/utils"
+    elif [[ "$path" == *"/context/core/"* ]]; then
+        echo "core"
+    elif [[ "$path" == *"/context/development/"* ]]; then
+        echo "development"
+    elif [[ "$path" == *"/context/content/"* ]]; then
+        echo "content"
+    elif [[ "$path" == *"/context/product/"* ]]; then
+        echo "product"
+    elif [[ "$path" == *"/context/data/"* ]]; then
+        echo "data"
+    elif [[ "$path" == *"/context/learning/"* ]]; then
+        echo "learning"
+    else
+        echo "standard"
+    fi
+}
+
+extract_frontmatter_field() {
+    local file=$1
+    local field=$2
+    
+    if grep -q "^---$" "$file" 2>/dev/null; then
+        sed -n '/^---$/,/^---$/p' "$file" | grep "^${field}:" | sed "s/${field}: *\"\?\(.*\)\"\?/\1/" | head -1
     fi
 }
 
@@ -417,17 +485,15 @@ scan_for_new_components() {
             
             # Check if this path is in registry
             if ! echo "$registry_paths" | grep -q "^${rel_path}$"; then
-                # Extract metadata
-                local metadata=$(extract_metadata_from_file "$file")
-                IFS='|' read -r id name description <<< "$metadata"
-                
-                # Detect component type
-                local comp_type=$(detect_component_type "$rel_path")
+                # Extract metadata (enhanced for new format)
+                local metadata=$(extract_metadata_from_file "$file" "$rel_path")
+                IFS='|' read -r id name description category comp_type <<< "$metadata"
                 
                 if [ "$comp_type" != "unknown" ]; then
-                    NEW_COMPONENTS+=("${comp_type}|${id}|${name}|${description}|${rel_path}")
+                    NEW_COMPONENTS+=("${comp_type}|${id}|${name}|${description}|${category}|${rel_path}")
                     print_warning "New ${comp_type}: ${name} (${id})"
                     echo "  Path: ${rel_path}"
+                    echo "  Category: ${category}"
                     [ -n "$description" ] && echo "  Description: ${description}"
                     echo ""
                 fi
@@ -441,11 +507,17 @@ add_component_to_registry() {
     local id=$2
     local name=$3
     local description=$4
-    local path=$5
+    local category=$5
+    local path=$6
     
     # Default description if empty
     if [ -z "$description" ]; then
         description="Component: ${name}"
+    fi
+    
+    # Default category if empty
+    if [ -z "$category" ]; then
+        category="standard"
     fi
     
     # Escape quotes and special characters in description
@@ -461,20 +533,21 @@ add_component_to_registry() {
        --arg type "$comp_type" \
        --arg path "$path" \
        --arg desc "$description" \
+       --arg cat "$category" \
        ".components.${registry_key} += [{
          \"id\": \$id,
          \"name\": \$name,
          \"type\": \$type,
          \"path\": \$path,
          \"description\": \$desc,
+         \"category\": \$cat,
          \"tags\": [],
-         \"dependencies\": [],
-         \"category\": \"standard\"
+         \"dependencies\": []
        }]" "$REGISTRY_FILE" > "$temp_file"
     
     if [ $? -eq 0 ]; then
         mv "$temp_file" "$REGISTRY_FILE"
-        print_success "Added ${comp_type}: ${name}"
+        print_success "Added ${comp_type}: ${name} (category: ${category})"
     else
         print_error "Failed to add ${comp_type}: ${name}"
         rm -f "$temp_file"
@@ -602,8 +675,8 @@ main() {
             
             local added=0
             for entry in "${NEW_COMPONENTS[@]}"; do
-                IFS='|' read -r comp_type id name description path <<< "$entry"
-                if add_component_to_registry "$comp_type" "$id" "$name" "$description" "$path"; then
+                IFS='|' read -r comp_type id name description category path <<< "$entry"
+                if add_component_to_registry "$comp_type" "$id" "$name" "$description" "$category" "$path"; then
                     added=$((added + 1))
                 fi
             done
