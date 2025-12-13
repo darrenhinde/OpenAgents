@@ -463,6 +463,20 @@
     ],
     "plugins": [
       {
+        "id": "telegram-bot",
+        "name": "Telegram Bot Library",
+        "type": "plugin",
+        "path": ".opencode/plugin/lib/telegram-bot.ts",
+        "description": "Simple Telegram Bot wrapper for sending notifications",
+        "tags": [
+          "telegram",
+          "bot",
+          "library"
+        ],
+        "dependencies": [],
+        "category": "specialized"
+      },
+      {
         "id": "telegram-notify",
         "name": "Telegram Notifications",
         "type": "plugin",
@@ -474,7 +488,8 @@
           "integration"
         ],
         "dependencies": [
-          "tool:env"
+          "tool:env",
+          "plugin:telegram-bot"
         ],
         "category": "specialized"
       },
@@ -790,6 +805,7 @@
         "tool:env",
         "tool:gemini",
         "plugin:notify",
+        "plugin:telegram-bot",
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
@@ -822,6 +838,7 @@
         "tool:env",
         "tool:gemini",
         "plugin:notify",
+        "plugin:telegram-bot",
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
@@ -871,6 +888,7 @@
         "tool:env",
         "tool:gemini",
         "plugin:notify",
+        "plugin:telegram-bot",
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
