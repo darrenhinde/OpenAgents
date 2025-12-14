@@ -1,5 +1,16 @@
 name: Validate Registry on PR
 
+# This workflow validates the registry.json and prompt library structure on all PRs.
+# 
+# For bot-created PRs (like automated version bumps), the workflow won't trigger automatically
+# due to GitHub's security restrictions. In those cases, you can manually trigger this workflow:
+#
+# 1. Go to Actions > Validate Registry on PR > Run workflow
+# 2. Enter the PR number (e.g., 57)
+# 3. Click "Run workflow"
+#
+# This will run the validation checks and report the status to the PR.
+
 on:
   pull_request:
     branches:
@@ -9,6 +20,10 @@ on:
     # so it must run on ALL PRs to prevent blocking merges
   workflow_dispatch:
     inputs:
+      pr_number:
+        description: 'PR number to validate (for manual runs on bot-created PRs)'
+        required: false
+        type: number
       skip_validation:
         description: 'Skip validation checks (maintainer override)'
         required: false
@@ -24,21 +39,39 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Get PR details (for manual runs)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != ''
+        id: get_pr
+        run: |
+          PR_DATA=$(gh pr view ${{ github.event.inputs.pr_number }} --json headRefName,headRepository,headRepositoryOwner)
+          echo "head_ref=$(echo $PR_DATA | jq -r '.headRefName')" >> $GITHUB_OUTPUT
+          echo "head_repo=$(echo $PR_DATA | jq -r '.headRepositoryOwner.login + "/" + .headRepository.name')" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          # For forks: fetch from fork repo, for internal: use head_ref
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          # For manual runs: use PR details from get_pr step
+          # For PR events: use event data
+          repository: ${{ github.event_name == 'workflow_dispatch' && steps.get_pr.outputs.head_repo || github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && steps.get_pr.outputs.head_ref || github.event.pull_request.head.ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Detect fork PR
         id: fork_check
         run: |
-          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+          # For manual runs, use the fetched PR data
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            HEAD_REPO="${{ steps.get_pr.outputs.head_repo }}"
+          else
+            HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
+          fi
+          
+          if [ "$HEAD_REPO" != "${{ github.repository }}" ]; then
             echo "is_fork=true" >> $GITHUB_OUTPUT
-            echo "🔀 Fork PR detected from: ${{ github.event.pull_request.head.repo.full_name }}"
+            echo "🔀 Fork PR detected from: $HEAD_REPO"
           else
             echo "is_fork=false" >> $GITHUB_OUTPUT
             echo "📝 Internal PR detected"
@@ -155,7 +188,10 @@ jobs:
           if ! git diff --quiet registry.json; then
             git add registry.json
             git commit -m "chore: auto-update registry with new components [skip ci]"
-            git push origin ${{ github.event.pull_request.head.ref }}
+            
+            # For manual runs, use the fetched branch name
+            BRANCH_NAME="${{ github.event_name == 'workflow_dispatch' && steps.get_pr.outputs.head_ref || github.event.pull_request.head.ref }}"
+            git push origin "$BRANCH_NAME"
             
             echo "## 🚀 Registry Updated" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
