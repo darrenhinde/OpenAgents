@@ -28,10 +28,18 @@ import {
   ContextLoadingCheck,
   TaskType
 } from '../types/index.js';
+import type { BehaviorExpectation } from '../sdk/test-case-schema.js';
 
 export class ContextLoadingEvaluator extends BaseEvaluator {
   name = 'context-loading';
   description = 'Verifies context files are loaded before task execution';
+
+  private behaviorConfig?: BehaviorExpectation;
+
+  constructor(behaviorConfig?: BehaviorExpectation) {
+    super();
+    this.behaviorConfig = behaviorConfig;
+  }
 
   // Context file patterns
   private contextPatterns = [
@@ -239,17 +247,52 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
     const userMessages = this.getUserMessages(timeline);
     const firstUserMessage = userMessages[0]?.data?.text || userMessages[0]?.data?.content || '';
     
-    // Classify task type
-    const taskType = this.classifyTaskType(firstUserMessage, executionTools);
-    
     // Get all read tool calls
     const readTools = this.getReadTools(timeline);
     
     // Find context file reads
     const contextReads = this.findContextReads(readTools);
 
-    // Validate correct context file for task type
-    const contextValidation = this.validateContextFileForTask(contextReads, taskType);
+    // Check if test case specifies explicit expected context files (takes precedence)
+    let contextValidation: {
+      passed: boolean;
+      expected: string[];
+      actual: string[];
+      matchedFile?: string;
+    };
+    let taskType: TaskType;
+
+    if (this.behaviorConfig?.expectedContextFiles && this.behaviorConfig.expectedContextFiles.length > 0) {
+      // EXPLICIT MODE: Use files specified in YAML test
+      const expectedFiles = this.behaviorConfig.expectedContextFiles;
+      const actualFiles = contextReads.map(r => r.filePath);
+      
+      // Check if any loaded file matches expected patterns
+      let matchedFile: string | undefined;
+      for (const actualFile of actualFiles) {
+        for (const expectedPattern of expectedFiles) {
+          if (actualFile.includes(expectedPattern) || actualFile.endsWith(expectedPattern)) {
+            matchedFile = actualFile;
+            break;
+          }
+        }
+        if (matchedFile) break;
+      }
+      
+      contextValidation = {
+        passed: !!matchedFile,
+        expected: expectedFiles,
+        actual: actualFiles,
+        matchedFile
+      };
+      
+      // Set task type to 'unknown' since we're using explicit files
+      taskType = 'unknown';
+    } else {
+      // AUTO-DETECT MODE: Infer from user message (original behavior)
+      taskType = this.classifyTaskType(firstUserMessage, executionTools);
+      contextValidation = this.validateContextFileForTask(contextReads, taskType);
+    }
 
     // For multi-turn sessions, check if ANY context was loaded at ANY point
     // This is more lenient for complex conversations where context might be loaded
@@ -296,7 +339,13 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
     };
 
     if (hasAnyContextLoaded) {
+      // Show detection mode
+      const detectionMode = this.behaviorConfig?.expectedContextFiles && this.behaviorConfig.expectedContextFiles.length > 0
+        ? 'Explicit (from YAML test)'
+        : 'Auto-detect (from user message)';
+      
       check.evidence.push(
+        `Detection mode: ${detectionMode}`,
         `Task type: ${taskType}`,
         `Expected context: ${contextValidation.expected.length > 0 ? contextValidation.expected.join(' or ') : 'none'}`,
         ``,
@@ -306,7 +355,7 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
       );
       
       if (contextValidation.passed) {
-        check.evidence.push(`✓ Correct context file loaded for task type '${taskType}'`);
+        check.evidence.push(`✓ Correct context file loaded${taskType !== 'unknown' ? ` for task type '${taskType}'` : ''}`);
       } else if (taskType !== 'bash-only' && contextValidation.expected.length > 0) {
         check.evidence.push(`✗ Wrong context file - expected: ${contextValidation.expected.join(' or ')}`);
       }

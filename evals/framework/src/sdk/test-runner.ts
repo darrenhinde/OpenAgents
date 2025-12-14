@@ -495,6 +495,14 @@ If you see this prompt during a test run, something went wrong with the test set
       this.logger.log('Adding behavior evaluator for test expectations...');
       const behaviorEvaluator = new BehaviorEvaluator(testCase.behavior);
       this.evaluatorRunner.register(behaviorEvaluator);
+      
+      // If behavior specifies expectedContextFiles, replace context-loading evaluator with configured one
+      if (testCase.behavior.expectedContextFiles && testCase.behavior.expectedContextFiles.length > 0) {
+        this.logger.log(`Using explicit context files from test: ${testCase.behavior.expectedContextFiles.join(', ')}`);
+        this.evaluatorRunner.unregister('context-loading');
+        const contextEvaluator = new ContextLoadingEvaluator(testCase.behavior);
+        this.evaluatorRunner.register(contextEvaluator);
+      }
     }
     
     try {
@@ -509,6 +517,12 @@ If you see this prompt during a test run, something went wrong with the test set
       // Clean up behavior evaluator after use
       if (testCase.behavior) {
         this.evaluatorRunner.unregister('behavior');
+        
+        // Restore default context-loading evaluator if we replaced it
+        if (testCase.behavior.expectedContextFiles && testCase.behavior.expectedContextFiles.length > 0) {
+          this.evaluatorRunner.unregister('context-loading');
+          this.evaluatorRunner.register(new ContextLoadingEvaluator());
+        }
       }
 
       return evaluation;

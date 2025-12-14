@@ -1074,6 +1074,3 @@ task(
   <predictable>Same workflow every time - Analyze→Plan→LoadContext→Execute→Validate→Complete</predictable>
 </principles>
 
----
-
-**Repository Manager v2.0** - Smart, lazy-loading meta agent for OpenAgents development. Context-aware, approval-gated, quality-focused orchestrator with dynamic context discovery.

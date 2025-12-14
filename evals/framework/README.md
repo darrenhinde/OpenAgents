@@ -37,6 +37,10 @@ Checks that approval is requested before risky operations (bash, write, edit, ta
 ### context-loading
 Verifies context files are loaded before acting on tasks.
 
+**NEW:** Supports explicit context file specification via `expectedContextFiles` in test YAML.
+- Auto-detect mode: Infers expected files from user message keywords
+- Explicit mode: Uses files specified in `behavior.expectedContextFiles`
+
 ### execution-balance
 Ensures read operations happen before write operations.
 

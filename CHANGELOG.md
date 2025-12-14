@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Explicit Context File Validation**: New `expectedContextFiles` field in test YAML files allows explicit specification of which context files the agent must read
+  - Overrides auto-detection when specified
+  - Uses flexible pattern matching (`includes()` or `endsWith()`)
+  - Supports partial paths (e.g., `standards/code.md`) or full paths
+  - See `evals/agents/shared/tests/EXPLICIT_CONTEXT_FILES.md` for detailed guide
+  - Example test: `evals/agents/shared/tests/golden/02-context-loading-explicit.yaml`
+
+### Changed
+- **Context Loading Evaluator**: Now accepts optional `BehaviorExpectation` config to support explicit file validation
+  - Shows detection mode in evidence: "Explicit (from YAML test)" or "Auto-detect (from user message)"
+  - Backward compatible - existing tests work unchanged
+
+### Documentation
+- Added `evals/agents/shared/tests/EXPLICIT_CONTEXT_FILES.md` - Complete feature guide
+- Added `evals/PATTERN_MATCHING_GUIDE.md` - Pattern matching reference
+- Updated `evals/CREATING_TESTS.md` - Added `expectedContextFiles` documentation
+- Updated `evals/README.md` - Added new feature section
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

@@ -1,0 +1,50 @@
+id: example-context-pattern-matching
+name: "Example: Context Pattern Matching"
+description: |
+  Demonstrates how pattern matching works for expectedContextFiles.
+  
+  This test uses THREE different patterns that all match the same file:
+  1. Just filename: "code.md"
+  2. Partial path: "standards/code.md"
+  3. Full path: ".opencode/context/core/standards/code.md"
+  
+  All three will match if the agent reads:
+  .opencode/context/core/standards/code.md
+  
+  The evaluator uses:
+  - actualFile.includes(expectedPattern) OR
+  - actualFile.endsWith(expectedPattern)
+  
+  So any of these patterns will work!
+category: developer
+
+prompts:
+  - text: |
+      What are the coding standards for this project?
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseAnyOf:
+    - [read]
+    - [glob, read]
+  requiresContext: true
+  
+  # All three patterns match the same file!
+  expectedContextFiles:
+    - code.md                                           # endsWith match
+    - standards/code.md                                 # includes match
+    - .opencode/context/core/standards/code.md          # includes match (full path)
+
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - example
+  - context-loading
+  - pattern-matching

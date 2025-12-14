@@ -42,8 +42,23 @@ npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml"
 See **[CREATING_TESTS.md](CREATING_TESTS.md)** for:
 - Test templates (copy and modify)
 - Behavior options (mustUseTools, requiresApproval, etc.)
+- **NEW:** `expectedContextFiles` - Explicitly specify which context files to validate
 - Expected violations
 - Examples
+
+### New Feature: Explicit Context File Validation
+
+You can now explicitly specify which context files the agent must read:
+
+```yaml
+behavior:
+  requiresContext: true
+  expectedContextFiles:
+    - .opencode/context/core/standards/code.md
+    - standards/code.md
+```
+
+See **[agents/shared/tests/EXPLICIT_CONTEXT_FILES.md](agents/shared/tests/EXPLICIT_CONTEXT_FILES.md)** for detailed guide.
 
 Quick example:
 ```yaml
@@ -74,7 +89,7 @@ timeout: 60000
 | Evaluator | What It Checks |
 |-----------|----------------|
 | **approval-gate** | Approval requested before risky operations |
-| **context-loading** | Context files loaded before acting |
+| **context-loading** | Context files loaded before acting (supports explicit file specification) |
 | **execution-balance** | Read operations before write operations |
 | **tool-usage** | Dedicated tools used instead of bash |
 | **behavior** | Expected tools used, forbidden tools avoided |

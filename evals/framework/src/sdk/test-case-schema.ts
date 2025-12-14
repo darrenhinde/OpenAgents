@@ -62,6 +62,18 @@ export const BehaviorExpectationSchema = z.object({
   requiresContext: z.boolean().optional(),
 
   /**
+   * Specific context files that must be loaded (optional - overrides auto-detection)
+   * When specified, the evaluator will check if the agent read one of these exact files.
+   * Supports partial path matching (e.g., "code.md" matches ".opencode/context/core/standards/code.md")
+   * 
+   * Example:
+   *   expectedContextFiles: [".opencode/context/core/standards/code.md", "standards/code.md"]
+   * 
+   * If not specified, the evaluator will auto-detect expected files based on the user message.
+   */
+  expectedContextFiles: z.array(z.string()).optional(),
+
+  /**
    * Agent should delegate to specialized subagent
    */
   shouldDelegate: z.boolean().optional(),

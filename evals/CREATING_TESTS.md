@@ -105,6 +105,33 @@ behavior:
   requiresContext: true
 ```
 
+### expectedContextFiles (NEW)
+Explicitly specify which context files the agent must read. This overrides auto-detection.
+
+**Use this when:**
+- Testing custom context files
+- Enforcing critical file requirements (compliance, security)
+- You need precise control over which file is validated
+
+**Pattern matching:** Uses substring matching (`includes()` or `endsWith()`)
+- `code.md` - Matches any path ending with "code.md"
+- `standards/code.md` - Matches any path containing "standards/code.md"
+- `.opencode/context/core/standards/code.md` - Matches full relative path
+
+```yaml
+behavior:
+  requiresContext: true
+  expectedContextFiles:
+    - .opencode/context/core/standards/code.md  # Full path
+    - standards/code.md                         # Partial path
+    - code.md                                   # Just filename
+```
+
+**Without `expectedContextFiles`:** Auto-detects expected files from user message keywords.
+**With `expectedContextFiles`:** Uses explicit files (takes precedence).
+
+See [EXPLICIT_CONTEXT_FILES.md](agents/shared/tests/EXPLICIT_CONTEXT_FILES.md) for detailed guide.
+
 ## Expected Violations
 
 Use `expectedViolations` to specify which rules should or shouldn't be violated:
@@ -187,7 +214,7 @@ expectedViolations:
 timeout: 90000
 ```
 
-### Context-Aware Task
+### Context-Aware Task (Auto-Detect)
 ```yaml
 id: coding-standards
 name: "Load Coding Standards"
@@ -205,6 +232,39 @@ behavior:
     - [read]
     - [glob, read]
   requiresContext: true
+
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+```
+
+### Context-Aware Task (Explicit File)
+```yaml
+id: coding-standards-explicit
+name: "Load Specific Coding Standards File"
+description: Agent must read the exact context file specified.
+category: developer
+
+prompts:
+  - text: What are the coding standards? Check the project docs.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseAnyOf:
+    - [read]
+    - [glob, read]
+  requiresContext: true
+  
+  # NEW: Explicitly specify which file(s) to check
+  expectedContextFiles:
+    - .opencode/context/core/standards/code.md
+    - standards/code.md
+    - code.md
 
 expectedViolations:
   - rule: context-loading
