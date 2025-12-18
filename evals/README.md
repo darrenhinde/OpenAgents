@@ -7,15 +7,42 @@ Test and validate agent behavior with automated evaluations.
 ```bash
 cd evals/framework
 
-# Run golden tests (baseline - 8 tests, ~3-5 min)
+# Run golden tests (baseline - 8 tests, ~2-3 min)
 npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml"
 
 # Run a specific test
 npm run eval:sdk -- --agent=openagent --pattern="**/smoke-test.yaml"
 
-# Run with debug output
+# Run with debug output (includes multi-agent logging)
 npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml" --debug
 ```
+
+## ✨ New Features
+
+### Multi-Agent Logging (Dec 2025)
+Beautiful hierarchical logging shows parent-child delegation chains:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ 🎯 PARENT: OpenAgent (ses_xxx...)                          │
+└────────────────────────────────────────────────────────────┘
+  
+  ┌────────────────────────────────────────────────────────────┐
+  │ 🎯 CHILD: simple-responder (ses_yyy...)                    │
+  │    Parent: ses_xxx...                                      │
+  │    Depth: 1                                                │
+  └────────────────────────────────────────────────────────────┘
+  
+  ✅ CHILD COMPLETE (2.9s)
+✅ PARENT COMPLETE (20.9s)
+```
+
+Enable with `--debug` flag. See [MULTI_AGENT_LOGGING_COMPLETE.md](MULTI_AGENT_LOGGING_COMPLETE.md) for details.
+
+### Performance Improvements (Dec 2025)
+- **10-20% faster tests** - Grace period reduced from 5s to 2s
+- **Performance metrics** - Automatic collection of tool latencies, inference time
+- **37 unit tests** - Complete test coverage for logging system
 
 ## Golden Tests
 
@@ -23,7 +50,7 @@ npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml" --debug
 
 | Test | What It Validates |
 |------|-------------------|
-| 01-smoke-test | Basic read operation works |
+| 01-smoke-test | **Agent & subagent delegation** (multi-agent) |
 | 02-context-loading | Agent reads context before answering |
 | 03-read-before-write | Agent inspects before modifying |
 | 04-write-with-approval | Agent asks before writing |

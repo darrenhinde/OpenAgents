@@ -1263,5 +1263,20 @@
   "metadata": {
     "lastUpdated": "2025-12-14",
     "schemaVersion": "1.0.0"
+  },
+  "subagents": {
+    "test": {
+      "simple-responder": {
+        "id": "simple-responder",
+        "name": "Simple Responder",
+        "description": "Test agent that responds with AWESOME TESTING",
+        "category": "test",
+        "type": "utility",
+        "version": "1.0.0",
+        "path": ".opencode/agent/subagents/test/simple-responder.md",
+        "mode": "subagent",
+        "status": "stable"
+      }
+    }
   }
 }

@@ -1,16 +1,16 @@
 {
   "meta": {
-    "timestamp": "2025-12-14T23:11:51.536Z",
-    "agent": "unknown",
-    "model": "opencode/big-pickle",
+    "timestamp": "2025-12-18T00:26:11.563Z",
+    "agent": "core/openagent",
+    "model": "opencode/grok-code-fast",
     "framework_version": "0.1.0",
-    "git_commit": "328eb38"
+    "git_commit": "4f778c8"
   },
   "summary": {
     "total": 1,
     "passed": 1,
     "failed": 0,
-    "duration_ms": 34917,
+    "duration_ms": 28002,
     "pass_rate": 1
   },
   "by_category": {
@@ -21,16 +21,23 @@
   },
   "tests": [
     {
-      "id": "golden-02-context-loading-explicit",
+      "id": "golden-02-delegation-test",
       "category": "developer",
       "passed": true,
-      "duration_ms": 34917,
-      "events": 63,
+      "duration_ms": 28002,
+      "events": 62,
       "approvals": 0,
       "violations": {
-        "total": 0,
+        "total": 1,
         "errors": 0,
-        "warnings": 0
+        "warnings": 1,
+        "details": [
+          {
+            "type": "insufficient-read",
+            "severity": "warning",
+            "message": "Read/execution ratio < 1 (0.67)"
+          }
+        ]
       }
     }
   ]

@@ -1,22 +1,21 @@
-id: golden-01-smoke-test
-name: "Golden 01: Smoke Test - Agent & Subagent Delegation"
+id: golden-02-delegation-test
+name: "Golden 02: Delegation Test - Parent & Child Agent"
 description: |
-  Bare minimum smoke test validating core agent functionality.
+  Tests multi-agent delegation workflow.
   
-  This is the simplest possible test - if this fails, something
-  is fundamentally broken with the agent or test infrastructure.
-  
-  Validates:
-  - Agent can receive and understand a prompt
+  This test validates:
   - Agent can delegate to a subagent using task tool
-  - Subagent responds correctly
+  - Subagent receives context and responds correctly
   - Multi-agent logging captures both sessions
+  - Parent-child communication works
   
-  This replaces the basic read test as our smoke test because:
-  - Delegation is the core feature of the agent system
-  - Tests both parent and child agent functionality
+  Expected completion time: 25-35 seconds (includes LLM inference for both agents)
+  
+  This is more complex than the minimal smoke test because:
+  - Tests delegation (core feature of agent system)
+  - Runs TWO agents (parent + child)
+  - Tests context passing
   - Validates multi-agent logging system
-  - More representative of real-world usage
 category: developer
 
 prompts:
@@ -35,6 +34,8 @@ behavior:
   minToolCalls: 1
   maxToolCalls: 10
   requiresApproval: false  # This is a simple test, no approval ceremony needed
+  expectedAgent: "openagent"  # Validate correct agent is loaded
+  expectedModel: "opencode/grok-code"  # Validate correct model is used
   expectedResponse:
     contains:
       - "AWESOME TESTING"
@@ -58,7 +59,7 @@ timeout: 90000
 
 tags:
   - golden
-  - smoke-test
   - delegation
   - subagent
   - multi-agent
+  - parent-child

@@ -19,7 +19,7 @@ echo -e "${BLUE}🌐 URL: http://localhost:$PORT${NC}"
 echo ""
 
 # Navigate to results directory
-cd "$(dirname "$0")/../evals/results" || exit 1
+cd "$(dirname "$0")/../../evals/results" || exit 1
 
 # Check if results exist
 if [ ! -f "latest.json" ]; then

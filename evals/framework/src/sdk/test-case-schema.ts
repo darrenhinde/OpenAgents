@@ -92,6 +92,27 @@ export const BehaviorExpectationSchema = z.object({
    * Agent must use dedicated tools instead of bash
    */
   mustUseDedicatedTools: z.boolean().optional(),
+
+  /**
+   * Expected agent name (for validation)
+   * Example: "openagent", "opencoder", "coder-agent"
+   */
+  expectedAgent: z.string().optional(),
+
+  /**
+   * Expected model (for validation)
+   * Example: "opencode/grok-code", "anthropic/claude-3-5-sonnet-20241022"
+   */
+  expectedModel: z.string().optional(),
+
+  /**
+   * Expected response content (partial matching)
+   */
+  expectedResponse: z.object({
+    contains: z.array(z.string()).optional(),
+    notContains: z.array(z.string()).optional(),
+    description: z.string().optional(),
+  }).optional(),
 });
 
 export type BehaviorExpectation = z.infer<typeof BehaviorExpectationSchema>;

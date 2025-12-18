@@ -54,6 +54,23 @@ export class DelegationEvaluator extends BaseEvaluator {
     // Get delegation tool calls (task tool)
     const delegationCalls = this.getToolCallsByName(timeline, 'task');
     const didDelegate = delegationCalls.length > 0;
+    
+    // Add evidence for each task tool call
+    if (didDelegate) {
+      delegationCalls.forEach((call, index) => {
+        const input = call.data?.input || {};
+        evidence.push(this.createEvidence(
+          'task-tool-call',
+          `Task tool call #${index + 1}: ${input.description || 'No description'}`,
+          {
+            subagent_type: input.subagent_type,
+            description: input.description,
+            prompt: input.prompt,
+            timestamp: call.timestamp
+          }
+        ));
+      });
+    }
 
     // Determine if delegation was required (multiple criteria)
     const shouldDelegate = 

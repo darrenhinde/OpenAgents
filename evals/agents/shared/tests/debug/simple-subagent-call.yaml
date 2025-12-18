@@ -1,0 +1,49 @@
+id: debug-simple-subagent-call
+name: "Debug: Simple Subagent Call"
+description: |
+  Minimal test to validate subagent delegation tracking.
+  
+  Tests:
+  1. Parent agent (openagent) delegates to simple-responder
+  2. Simple-responder returns "AWESOME TESTING"
+  3. Eval framework captures both sessions
+  
+  This is a diagnostic test to understand:
+  - How long delegation takes
+  - What logs are generated
+  - Whether child sessions are tracked
+  - Where bottlenecks exist
+category: developer
+
+prompts:
+  - text: |
+      Call the simple-responder subagent and ask it to respond. Use the task tool to delegate.
+  
+  - text: |
+      Yes, proceed with the delegation.
+    delayMs: 2000
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [task]
+  minToolCalls: 2
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+  - rule: delegation
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - debug
+  - subagent
+  - delegation
+  - simple
+  - multi-turn

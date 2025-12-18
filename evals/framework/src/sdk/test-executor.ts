@@ -89,6 +89,24 @@ export class TestExecutor {
       this.logger.log(`\n${'='.repeat(60)}`);
       this.logger.log(`Running test: ${testCase.id} - ${testCase.name}`);
       this.logger.log(`${'='.repeat(60)}`);
+      
+      // Show agent/model configuration prominently
+      const modelToUse = testCase.model || this.config.defaultModel;
+      const agentDisplayMap: Record<string, string> = {
+        'openagent': 'OpenAgent',
+        'core/openagent': 'OpenAgent',
+        'opencoder': 'OpenCoder',
+        'core/opencoder': 'OpenCoder',
+        'system-builder': 'System Builder',
+        'meta/system-builder': 'System Builder',
+      };
+      const agentToUse = agentDisplayMap[testCase.agent || 'openagent'] || testCase.agent || 'OpenAgent';
+      
+      this.logger.log(`┌${'─'.repeat(58)}┐`);
+      this.logger.log(`│ 🤖 Agent: ${agentToUse.padEnd(46)} │`);
+      this.logger.log(`│ 🧠 Model: ${modelToUse.padEnd(46)} │`);
+      this.logger.log(`└${'─'.repeat(58)}┘`);
+      
       this.logger.log(`Approval strategy: ${approvalStrategy.describe()}`);
 
       // Setup event handler
@@ -149,8 +167,8 @@ export class TestExecutor {
       // Note: Agent is already configured via eval-runner.md, no need to inject context
       await this.sendPrompts(testCase, sessionId, errors);
 
-      // Give time for final events to arrive
-      await this.sleep(3000);
+      // Give time for final events to arrive (reduced from 3s to 1.5s)
+      await this.sleep(1500);
 
       // Stop event handler and cleanup
       this.eventHandler.stopListening();
@@ -215,8 +233,7 @@ export class TestExecutor {
     
     const agentToUse = agentDisplayMap[testCase.agent || 'openagent'] || 'OpenAgent';
     
-    this.logger.log(`Agent: ${agentToUse}`);
-    this.logger.log(`Model: ${modelToUse}`);
+    // Agent/Model already logged in execute() method - no need to duplicate
     
     // Check if multi-message test
     if (testCase.prompts && testCase.prompts.length > 0) {
@@ -389,7 +406,7 @@ export class TestExecutor {
    * This prevents race conditions where prompts are sent before the event stream is ready
    */
   private async waitForEventStreamConnection(): Promise<void> {
-    const timeoutMs = 5000;
+    const timeoutMs = 2000; // Reduced from 5000ms - connection is usually immediate
     let eventReceived = false;
 
     const connectionPromise = new Promise<void>((resolve, reject) => {
@@ -443,8 +460,8 @@ export class TestExecutor {
     
     // Grace period after text completion with no tools - wait for tools to potentially start
     // This is shorter because if the agent is going to use tools, it usually starts quickly
-    // Reduced from 5s to 2s based on test analysis - most tools start within 1-2s
-    const noToolsGracePeriod = 2000; // 2 seconds (optimized from 5s)
+    // Reduced from 5s → 2s → 1s based on test analysis - most tools start within 500ms-1s
+    const noToolsGracePeriod = 1000; // 1 second (optimized from 2s)
     
     while (Date.now() - startTime < timeoutMs) {
       try {
