@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.5.1] - 2025-12-18
+
+### Changes
+- ci(workflows): add automatic release creation and smart commit analysis (#61)
+
 ## [0.5.0] - 2025-12-18
 
 ### Changes
