@@ -91,7 +91,7 @@
       },
       {
         "id": "devops-specialist",
-        "name": "Devops Specialist",
+        "name": "DevOps Specialist",
         "type": "agent",
         "path": ".opencode/agent/development/devops-specialist.md",
         "description": "Expert in CI/CD, infrastructure as code, and deployment automation",
@@ -161,7 +161,7 @@
       },
       {
         "id": "repo-manager",
-        "name": "Repo Manager",
+        "name": "Repository Manager",
         "type": "agent",
         "path": ".opencode/agent/meta/repo-manager.md",
         "description": "Meta agent for managing OpenAgents repository development with context-aware planning, task breakdown, and automatic documentation",
