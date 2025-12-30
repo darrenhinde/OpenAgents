@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+## [0.5.2] - 2025-12-30
+
+### Changes
+- fix(registry): add missing agents to installation profiles - v0.5.1 (#64) (#67)
+
 ## [0.5.0] - 2025-12-18
 
 ### Changes
