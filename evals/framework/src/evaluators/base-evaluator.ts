@@ -130,8 +130,10 @@ export abstract class BaseEvaluator implements IEvaluator {
       /is\s+it\s+ok\s+to/i,
       /is\s+it\s+okay\s+to/i,
       /permission\s+to/i,
-      /approve/i,
-      /confirm/i
+      /approv/i,           // Matches "approve", "approval", "approved", etc.
+      /confirm/i,
+      /proceed/i,          // Common approval request language
+      /before\s+proceeding/i,  // "Approval needed before proceeding"
     ];
 
     return approvalPatterns.some(pattern => pattern.test(text));

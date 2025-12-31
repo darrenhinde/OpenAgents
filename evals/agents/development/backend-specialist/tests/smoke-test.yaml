@@ -1,0 +1,40 @@
+id: smoke-test
+name: "Smoke Test: Backend Specialist"
+description: |
+  Basic smoke test for backend specialist agent.
+  Tests conversational path - agent should respond without approval.
+  
+  Expected workflow:
+  1. Agent receives conversational prompt
+  2. Agent responds directly (no approval needed)
+  3. No tool calls required (pure conversation)
+
+category: developer
+agent: development/backend-specialist
+model: anthropic/claude-sonnet-4-5
+
+prompt: "Hello, can you introduce yourself and explain your expertise in backend development?"
+
+# Expected behavior - conversational path
+behavior:
+  requiresApproval: false       # NO approval needed for conversational
+  minToolCalls: 0               # No tools needed for introduction
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should NOT ask for approval (conversational path)
+
+# Approval strategy (safety fallback, shouldn't be triggered)
+approvalStrategy:
+  type: auto-approve
+
+timeout: 30000
+
+tags:
+  - smoke-test
+  - conversational
+  - development
+  - backend

@@ -1,0 +1,37 @@
+id: code-reviewer-smoke-test
+name: "Reviewer: Smoke Test - Basic Operation"
+description: |
+  Basic sanity check that the Reviewer subagent can respond to a simple request.
+  
+  This validates the subagent is properly configured and can execute basic operations.
+  
+  Validates:
+  - Subagent can receive and understand a prompt
+  - Subagent can use basic tools
+  - Subagent responds appropriately
+category: developer
+
+prompts:
+  - text: |
+      Review the file evals/test_tmp/README.md and tell me if you see any issues.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - smoke-test
+  - subagent
+  - code-reviewer
+  - safe
+

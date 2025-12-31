@@ -1,0 +1,60 @@
+id: openrouter-context-loading-exec
+name: "OpenRouter Variant: Context Loading Execution Test"
+description: |
+  EXECUTION TEST - Validates agent actually loads context files before writing code.
+  
+  Expected workflow:
+  1. User requests code to be written
+  2. Agent proposes plan (approval gate)
+  3. User approves
+  4. Agent loads .opencode/context/core/standards/code.md (using read tool)
+  5. Agent writes the file
+  
+  This test validates:
+  - Agent uses read tool to load context file
+  - Context file path matches .opencode/context/core/standards/code.md
+  - Context is loaded BEFORE write tool is used
+
+category: developer
+agent: openagent
+model: x-ai/grok-beta
+
+prompts:
+  - text: |
+      Create a simple utility function in evals/test_tmp/openrouter-utils.js 
+      that exports a function called greet(name) which returns "Hello, {name}!".
+      Keep it simple - just the function.
+  
+  - text: |
+      Yes, proceed with the plan.
+    delayMs: 3000
+
+behavior:
+  mustUseTools:
+    - read      # Must load context
+    - write     # Must write file
+  requiresApproval: true
+  minToolCalls: 2
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should request approval before writing
+  
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+    description: Must load .opencode/context/core/standards/code.md before writing code
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 90000
+
+tags:
+  - execution
+  - openrouter
+  - context-loading
+  - code-standards
+  - tool-validation

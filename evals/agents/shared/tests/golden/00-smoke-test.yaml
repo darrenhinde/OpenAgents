@@ -1,0 +1,59 @@
+id: golden-00-smoke-test
+name: "Golden 00: Minimal Smoke Test - Basic Response"
+description: |
+  Absolute bare minimum smoke test - if this fails, something is fundamentally broken.
+  
+  This is the simplest possible test:
+  - Single prompt
+  - Single response
+  - No tool calls required
+  - No delegation
+  - No file operations
+  
+  Expected completion time: 8-12 seconds (mostly LLM inference)
+  
+  This test validates:
+  - Agent can receive a prompt
+  - Agent can generate a response
+  - Test infrastructure works
+  
+category: developer
+
+prompts:
+  - text: |
+      Hello! Please respond with exactly: "Test infrastructure is working correctly."
+      
+      Do not use any tools. Just respond with that exact text.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustNotUseTools: [bash, write, edit, task, read, glob, grep, list]
+  minToolCalls: 0
+  maxToolCalls: 0
+  requiresApproval: false
+  expectedAgent: "openagent"
+  expectedModel: "opencode/grok-code"
+  expectedResponse:
+    contains:
+      - "Test infrastructure is working correctly"
+    description: "Agent should respond with exact confirmation text"
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: "No approval needed for simple response"
+  - rule: tool-usage
+    shouldViolate: false
+    severity: error
+    description: "Should not use any tools"
+
+timeout: 30000  # 30 seconds should be plenty for a simple response
+
+tags:
+  - golden
+  - smoke-test
+  - minimal
+  - fast

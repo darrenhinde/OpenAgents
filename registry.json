@@ -1,5 +1,6 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "schema_version": "2.0.0",
   "repository": "https://github.com/darrenhinde/OpenAgents",
   "categories": {
     "essential": "Minimal components for basic functionality",
@@ -14,7 +15,11 @@
         "id": "opencoder",
         "name": "OpenCoder",
         "type": "agent",
-        "path": ".opencode/agent/opencoder.md",
+        "path": ".opencode/agent/core/opencoder.md",
+        "legacy_path": ".opencode/agent/opencoder.md",
+        "aliases": [
+          "opencoder"
+        ],
         "description": "Specialized development agent for complex coding, architecture, and multi-file refactoring",
         "tags": [
           "development",
@@ -36,7 +41,11 @@
         "id": "openagent",
         "name": "OpenAgent",
         "type": "agent",
-        "path": ".opencode/agent/openagent.md",
+        "path": ".opencode/agent/core/openagent.md",
+        "legacy_path": ".opencode/agent/openagent.md",
+        "aliases": [
+          "openagent"
+        ],
         "description": "Universal agent for answering queries, executing tasks, and coordinating workflows across any domain",
         "tags": [
           "universal",
@@ -53,7 +62,7 @@
         "id": "system-builder",
         "name": "System Builder",
         "type": "agent",
-        "path": ".opencode/agent/system-builder.md",
+        "path": ".opencode/agent/meta/system-builder.md",
         "description": "Generates complete context-aware AI systems from user requirements",
         "tags": [
           "system-generation",
@@ -74,11 +83,91 @@
         "id": "codebase-agent",
         "name": "Codebase Agent",
         "type": "agent",
-        "path": ".opencode/agent/codebase-agent.md",
-        "description": "description: \\\"Multi-language implementation agent for modular and functional development\\\"",
+        "path": ".opencode/agent/development/codebase-agent.md",
+        "description": "Multi-language implementation agent for modular and functional development",
         "tags": [],
         "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "devops-specialist",
+        "name": "Devops Specialist",
+        "type": "agent",
+        "path": ".opencode/agent/development/devops-specialist.md",
+        "description": "Expert in CI/CD, infrastructure as code, and deployment automation",
+        "tags": [],
+        "dependencies": [],
+        "category": "development"
+      },
+      {
+        "id": "frontend-specialist",
+        "name": "Frontend Specialist",
+        "type": "agent",
+        "path": ".opencode/agent/development/frontend-specialist.md",
+        "description": "Expert in React, Vue, and modern CSS architecture",
+        "tags": [],
+        "dependencies": [],
+        "category": "development"
+      },
+      {
+        "id": "backend-specialist",
+        "name": "Backend Specialist",
+        "type": "agent",
+        "path": ".opencode/agent/development/backend-specialist.md",
+        "description": "Expert in API design, database architecture, and server-side development",
+        "tags": [],
+        "dependencies": [],
+        "category": "development"
+      },
+      {
+        "id": "technical-writer",
+        "name": "Technical Writer",
+        "type": "agent",
+        "path": ".opencode/agent/content/technical-writer.md",
+        "description": "Expert in documentation, API docs, and technical communication",
+        "tags": [],
+        "dependencies": [],
+        "category": "content"
+      },
+      {
+        "id": "copywriter",
+        "name": "Copywriter",
+        "type": "agent",
+        "path": ".opencode/agent/content/copywriter.md",
+        "description": "Expert in persuasive writing, marketing copy, and brand messaging",
+        "tags": [],
+        "dependencies": [],
+        "category": "content"
+      },
+      {
+        "id": "data-analyst",
+        "name": "Data Analyst",
+        "type": "agent",
+        "path": ".opencode/agent/data/data-analyst.md",
+        "description": "Expert in data analysis, visualization, and statistical insights",
+        "tags": [],
+        "dependencies": [],
+        "category": "data"
+      },
+      {
+        "id": "eval-runner",
+        "name": "Eval Runner",
+        "type": "agent",
+        "path": ".opencode/agent/eval-runner.md",
+        "description": "Test harness for evaluation framework - DO NOT USE DIRECTLY",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "repo-manager",
+        "name": "Repo Manager",
+        "type": "agent",
+        "path": ".opencode/agent/meta/repo-manager.md",
+        "description": "Meta agent for managing OpenAgents repository development with context-aware planning, task breakdown, and automatic documentation",
+        "tags": [],
+        "dependencies": [],
+        "category": "meta"
       }
     ],
     "subagents": [
@@ -265,6 +354,16 @@
         ],
         "dependencies": [],
         "category": "meta"
+      },
+      {
+        "id": "context-retriever",
+        "name": "Context Retriever",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/core/context-retriever.md",
+        "description": "Generic context search and retrieval specialist for finding relevant context files, standards, and guides in any repository",
+        "tags": [],
+        "dependencies": [],
+        "category": "core"
       }
     ],
     "commands": [
@@ -399,11 +498,21 @@
         "category": "standard"
       },
       {
+        "id": "test-new-command",
+        "name": "Test New Command",
+        "type": "command",
+        "path": ".opencode/command/test-new-command.md",
+        "description": "Test command to verify auto-detection and registry updates work correctly\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
         "id": "commit-openagents",
         "name": "Commit Openagents",
         "type": "command",
         "path": ".opencode/command/commit-openagents.md",
-<<<<<<< HEAD
+        "description": "Smart commit command for opencode-agents repository with automatic validation and conventional commits",
         "description": "description: Smart commit command for opencode-agents repository with automatic validation and conventional commits",
         "tags": [],
         "dependencies": [],
@@ -414,20 +523,27 @@
         "name": "Prompt Optimizer",
         "type": "command",
         "path": ".opencode/command/prompt-engineering/prompt-optimizer.md",
-        "description": "description: \\\"Advanced prompt optimizer: Research patterns + token efficiency + semantic preservation. Achieves 30-50% token reduction with 100% meaning preserved.\\\"",
+        "description": "Advanced prompt optimizer: Research patterns + token efficiency + semantic preservation. Achieves 30-50% token reduction with 100% meaning preserved.\\\"",
         "tags": [],
         "dependencies": [],
         "category": "standard"
       },
       {
-        "id": "test-new-command",
-        "name": "Test New Command",
+        "id": "create-tests",
+        "name": "Create Tests",
         "type": "command",
-        "path": ".opencode/command/test-new-command.md",
-        "description": "description: \\\"Test command to verify auto-detection and registry updates work correctly\\\"",
-=======
-        "description": "Smart commit command for opencode-agents repository with automatic validation and conventional commits",
->>>>>>> dd007a06ec4c80f5e9750cfed88b697e8df36bc8
+        "path": ".opencode/command/openagents/new-agents/create-tests.md",
+        "description": "description: \\\"Generate comprehensive test suites for OpenCode agents with 8 essential test types\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "create-agent",
+        "name": "Create Agent",
+        "type": "command",
+        "path": ".opencode/command/openagents/new-agents/create-agent.md",
+        "description": "description: \\\"Create new OpenCode agents following research-backed best practices (Anthropic 2025)\\\"",
         "tags": [],
         "dependencies": [],
         "category": "standard"
@@ -467,6 +583,20 @@
     ],
     "plugins": [
       {
+        "id": "telegram-bot",
+        "name": "Telegram Bot Library",
+        "type": "plugin",
+        "path": ".opencode/plugin/lib/telegram-bot.ts",
+        "description": "Simple Telegram Bot wrapper for sending notifications",
+        "tags": [
+          "telegram",
+          "bot",
+          "library"
+        ],
+        "dependencies": [],
+        "category": "specialized"
+      },
+      {
         "id": "telegram-notify",
         "name": "Telegram Notifications",
         "type": "plugin",
@@ -478,7 +608,8 @@
           "integration"
         ],
         "dependencies": [
-          "tool:env"
+          "tool:env",
+          "plugin:telegram-bot"
         ],
         "category": "specialized"
       },
@@ -674,29 +805,256 @@
         "tags": [],
         "dependencies": [],
         "category": "standard"
-<<<<<<< HEAD
-      },
-      {
-        "id": "subagent-template",
-        "name": "Subagent Template",
-        "type": "context",
-        "path": ".opencode/context/system-builder-templates/subagent-template.md",
-        "description": "description: \\\"{specific_task_description}\\\"",
-        "tags": [],
-        "dependencies": [],
-        "category": "standard"
       },
       {
         "id": "orchestrator-template",
         "name": "Orchestrator Template",
         "type": "context",
         "path": ".opencode/context/system-builder-templates/orchestrator-template.md",
-        "description": "description: \\\"{domain} orchestrator for {primary_purpose}\\\"",
+        "description": "{domain} orchestrator for {primary_purpose}\\\"",
         "tags": [],
         "dependencies": [],
         "category": "standard"
-=======
->>>>>>> dd007a06ec4c80f5e9750cfed88b697e8df36bc8
+      },
+      {
+        "id": "subagent-template",
+        "name": "Subagent Template",
+        "type": "context",
+        "path": ".opencode/context/system-builder-templates/subagent-template.md",
+        "description": "{specific_task_description}\\\"",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "clean-code",
+        "name": "Clean Code",
+        "type": "context",
+        "path": ".opencode/context/development/clean-code.md",
+        "description": "Clean Code Principles",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "react-patterns",
+        "name": "React Patterns",
+        "type": "context",
+        "path": ".opencode/context/development/react-patterns.md",
+        "description": "React Patterns & Best Practices",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "api-design",
+        "name": "Api Design",
+        "type": "context",
+        "path": ".opencode/context/development/api-design.md",
+        "description": "API Design Patterns",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "copywriting-frameworks",
+        "name": "Copywriting Frameworks",
+        "type": "context",
+        "path": ".opencode/context/content/copywriting-frameworks.md",
+        "description": "Copywriting Frameworks",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "tone-voice",
+        "name": "Tone Voice",
+        "type": "context",
+        "path": ".opencode/context/content/tone-voice.md",
+        "description": "Tone & Voice Guidelines",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-iteration",
+        "name": "Design Iteration",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/design-iteration.md",
+        "description": "Design Iteration Workflow",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-assets",
+        "name": "Design Assets",
+        "type": "context",
+        "path": ".opencode/context/development/design-assets.md",
+        "description": "Design Assets",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "ui-styling-standards",
+        "name": "Ui Styling Standards",
+        "type": "context",
+        "path": ".opencode/context/development/ui-styling-standards.md",
+        "description": "UI Styling Standards",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "animation-patterns",
+        "name": "Animation Patterns",
+        "type": "context",
+        "path": ".opencode/context/development/animation-patterns.md",
+        "description": "Animation Patterns",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-systems",
+        "name": "Design Systems",
+        "type": "context",
+        "path": ".opencode/context/development/design-systems.md",
+        "description": "Design Systems",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "quick-start",
+        "name": "Quick Start",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/quick-start.md",
+        "description": "OpenAgents Repository - Quick Start",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "commands",
+        "name": "Commands",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/lookup/commands.md",
+        "description": "Lookup: Command Reference",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "file-locations",
+        "name": "File Locations",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/lookup/file-locations.md",
+        "description": "Lookup: File Locations",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "adding-agent",
+        "name": "Adding Agent",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/adding-agent.md",
+        "description": "Brief description of what this agent does",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "creating-release",
+        "name": "Creating Release",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/creating-release.md",
+        "description": "Guide: Creating a Release",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "testing-agent",
+        "name": "Testing Agent",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/testing-agent.md",
+        "description": "Verify agent requests approval before execution",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "debugging",
+        "name": "Debugging",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/debugging.md",
+        "description": "Guide: Debugging Common Issues",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "updating-registry",
+        "name": "Updating Registry",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/guides/updating-registry.md",
+        "description": "Guide: Updating Registry",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "context-bundle-example",
+        "name": "Context Bundle Example",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/examples/context-bundle-example.md",
+        "description": "Context Bundle Example: Create Data Analyst Agent",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "evals",
+        "name": "Evals",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/core-concepts/evals.md",
+        "description": "Verify agent responds correctly",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "agents",
+        "name": "Agents",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/core-concepts/agents.md",
+        "description": "Brief description of what this agent does",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "categories",
+        "name": "Categories",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/core-concepts/categories.md",
+        "description": "Core Concept: Category System",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "registry",
+        "name": "Registry",
+        "type": "context",
+        "path": ".opencode/context/openagents-repo/core-concepts/registry.md",
+        "description": "Core Concept: Registry System",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "config": [
@@ -753,6 +1111,10 @@
       "components": [
         "agent:openagent",
         "agent:opencoder",
+        "agent:frontend-specialist",
+        "agent:backend-specialist",
+        "agent:devops-specialist",
+        "agent:codebase-agent",
         "subagent:task-manager",
         "subagent:documentation",
         "subagent:coder-agent",
@@ -788,6 +1150,9 @@
       "description": "Business process automation, content creation, and visual workflows. Includes image generation, notifications, and documentation tools.",
       "components": [
         "agent:openagent",
+        "agent:copywriter",
+        "agent:technical-writer",
+        "agent:data-analyst",
         "subagent:task-manager",
         "subagent:documentation",
         "subagent:image-specialist",
@@ -797,6 +1162,7 @@
         "tool:env",
         "tool:gemini",
         "plugin:notify",
+        "plugin:telegram-bot",
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
@@ -810,6 +1176,14 @@
       "components": [
         "agent:openagent",
         "agent:opencoder",
+        "agent:eval-runner",
+        "agent:frontend-specialist",
+        "agent:backend-specialist",
+        "agent:devops-specialist",
+        "agent:codebase-agent",
+        "agent:copywriter",
+        "agent:technical-writer",
+        "agent:data-analyst",
         "subagent:task-manager",
         "subagent:documentation",
         "subagent:coder-agent",
@@ -829,6 +1203,7 @@
         "tool:env",
         "tool:gemini",
         "plugin:notify",
+        "plugin:telegram-bot",
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
@@ -853,6 +1228,15 @@
         "agent:openagent",
         "agent:opencoder",
         "agent:system-builder",
+        "agent:repo-manager",
+        "agent:eval-runner",
+        "agent:frontend-specialist",
+        "agent:backend-specialist",
+        "agent:devops-specialist",
+        "agent:codebase-agent",
+        "agent:copywriter",
+        "agent:technical-writer",
+        "agent:data-analyst",
         "subagent:task-manager",
         "subagent:documentation",
         "subagent:coder-agent",
@@ -861,6 +1245,7 @@
         "subagent:build-agent",
         "subagent:codebase-pattern-analyst",
         "subagent:image-specialist",
+        "subagent:context-retriever",
         "subagent:domain-analyzer",
         "subagent:agent-generator",
         "subagent:context-organizer",
@@ -878,6 +1263,7 @@
         "tool:env",
         "tool:gemini",
         "plugin:notify",
+        "plugin:telegram-bot",
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
@@ -901,7 +1287,22 @@
     }
   },
   "metadata": {
-    "lastUpdated": "2025-11-27",
+    "lastUpdated": "2025-12-31",
     "schemaVersion": "1.0.0"
+  },
+  "subagents": {
+    "test": {
+      "simple-responder": {
+        "id": "simple-responder",
+        "name": "Simple Responder",
+        "description": "Test agent that responds with AWESOME TESTING",
+        "category": "test",
+        "type": "utility",
+        "version": "1.0.0",
+        "path": ".opencode/agent/subagents/test/simple-responder.md",
+        "mode": "subagent",
+        "status": "stable"
+      }
+    }
   }
 }

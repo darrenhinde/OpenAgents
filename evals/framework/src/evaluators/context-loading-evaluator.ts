@@ -28,10 +28,18 @@ import {
   ContextLoadingCheck,
   TaskType
 } from '../types/index.js';
+import type { BehaviorExpectation } from '../sdk/test-case-schema.js';
 
 export class ContextLoadingEvaluator extends BaseEvaluator {
   name = 'context-loading';
   description = 'Verifies context files are loaded before task execution';
+
+  private behaviorConfig?: BehaviorExpectation;
+
+  constructor(behaviorConfig?: BehaviorExpectation) {
+    super();
+    this.behaviorConfig = behaviorConfig;
+  }
 
   // Context file patterns
   private contextPatterns = [
@@ -296,6 +304,11 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
     };
 
     if (hasAnyContextLoaded) {
+      // Show detection mode
+      const detectionMode = this.behaviorConfig?.expectedContextFiles && this.behaviorConfig.expectedContextFiles.length > 0
+        ? 'Explicit (from YAML test)'
+        : 'Auto-detect (from user message)';
+      
       check.evidence.push(
         `Task type: ${taskType}`,
         `Expected context: ${contextValidation.expected.length > 0 ? contextValidation.expected.join(' or ') : 'none'}`,

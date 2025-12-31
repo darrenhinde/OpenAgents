@@ -1,7 +1,18 @@
 ---
+id: domain-analyzer
+name: Domain Analyzer
 description: "Analyzes user domains to identify core concepts, recommended agents, and context structure"
+category: subagents/system-builder
+type: subagent
+version: 1.0.0
+author: opencode
 mode: subagent
 temperature: 0.1
+
+# Tags
+tags:
+  - analysis
+  - domain
 ---
 
 # Domain Analyzer

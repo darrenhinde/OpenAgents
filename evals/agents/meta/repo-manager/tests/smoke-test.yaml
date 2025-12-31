@@ -1,0 +1,56 @@
+name: "Smoke Test - Basic Functionality"
+description: "Verify repo-manager can handle basic requests and load context"
+test_cases:
+  - id: "smoke-001"
+    name: "Context Loading - Quick Start"
+    prompt: "What are the common commands for this repository?"
+    expected_behavior:
+      - "Loads .opencode/context/openagents-repo/quick-start.md"
+      - "Provides command reference"
+      - "No execution required (informational)"
+    evaluators:
+      - type: "context_loading"
+        config:
+          required_files:
+            - ".opencode/context/openagents-repo/quick-start.md"
+      - type: "response_quality"
+        config:
+          min_length: 100
+          should_contain:
+            - "command"
+            - "script"
+  
+  - id: "smoke-002"
+    name: "Approval Gate - Simple Task"
+    prompt: "Create a simple test file at test.txt with 'hello world'"
+    expected_behavior:
+      - "Presents plan before execution"
+      - "Requests approval"
+      - "Does not execute without approval"
+    evaluators:
+      - type: "approval_gate"
+        config:
+          should_request_approval: true
+          approval_keywords:
+            - "approval"
+            - "proceed"
+            - "confirm"
+  
+  - id: "smoke-003"
+    name: "Context Awareness - Agent Task"
+    prompt: "I want to understand how agents work in this repository"
+    expected_behavior:
+      - "Loads openagents-repo/core-concepts/agents.md"
+      - "Provides clear explanation"
+      - "References repo structure"
+    evaluators:
+      - type: "context_loading"
+        config:
+          required_files:
+            - ".opencode/context/openagents-repo/core-concepts/agents.md"
+      - type: "response_quality"
+        config:
+          should_contain:
+            - "agent"
+            - "category"
+            - "frontmatter"

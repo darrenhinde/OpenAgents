@@ -1,0 +1,40 @@
+# Template: Write With Approval
+# Use this for tests that create/modify files
+# Requires multi-turn: agent proposes, user approves, agent executes
+
+id: my-write-test
+name: "My Write Test"
+description: |
+  Describe what this test validates.
+category: developer
+
+prompts:
+  - text: |
+      Create a file at evals/test_tmp/my-file.txt with the content "hello world".
+  - text: |
+      Yes, proceed.
+    delayMs: 2000
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - write
+  minToolCalls: 1
+  requiresApproval: true
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+  # Write without prior read triggers execution-balance
+  - rule: execution-balance
+    shouldViolate: true
+    severity: warning
+
+timeout: 90000
+
+tags:
+  - write-operation
+  - approval-required

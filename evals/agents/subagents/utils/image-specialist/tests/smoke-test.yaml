@@ -1,0 +1,37 @@
+id: utils-image-specialist-smoke-test
+name: "Image Specialist: Smoke Test - Basic Operation"
+description: |
+  Basic sanity check that the Image Specialist subagent can respond to a simple request.
+  
+  This validates the subagent is properly configured and can execute basic operations.
+  
+  Validates:
+  - Subagent can receive and understand a prompt
+  - Subagent can use basic tools
+  - Subagent responds appropriately
+category: developer
+
+prompts:
+  - text: |
+      Describe what image analysis capabilities you have.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - smoke-test
+  - subagent
+  - utils-image-specialist
+  - safe
+

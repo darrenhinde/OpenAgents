@@ -1,0 +1,50 @@
+id: golden-07-tool-selection
+name: "Golden 07: Tool Selection - Agent Uses Dedicated Tools"
+description: |
+  Tests that the agent uses dedicated tools instead of bash antipatterns.
+  
+  A quality agent should:
+  1. Use 'read' tool instead of 'cat' via bash
+  2. Use 'glob' tool instead of 'find' via bash
+  3. Use 'grep' tool instead of 'grep' via bash
+  4. Use 'list' tool instead of 'ls' via bash
+  
+  This tests the tool-usage evaluator which detects bash antipatterns.
+  
+  Validates:
+  - Agent uses specialized read tool
+  - Agent avoids bash for file reading
+  - tool-usage evaluator works correctly
+category: developer
+
+prompts:
+  - text: |
+      Show me the contents of the file evals/test_tmp/README.md
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read
+  mustNotUseTools:
+    - bash
+  minToolCalls: 1
+  maxToolCalls: 3
+
+expectedViolations:
+  - rule: tool-usage
+    shouldViolate: false
+    severity: warning
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - golden
+  - tool-usage
+  - dedicated-tools
+  - read-only
+  - safe

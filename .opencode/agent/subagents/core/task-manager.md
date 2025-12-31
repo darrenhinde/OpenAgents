@@ -1,5 +1,11 @@
 ---
+id: task-manager
+name: Task Manager
 description: "Context-aware task breakdown specialist transforming complex features into atomic, verifiable subtasks with dependency tracking"
+category: subagents/core
+type: subagent
+version: 1.0.0
+author: opencode
 mode: subagent
 temperature: 0.1
 tools:
@@ -19,6 +25,12 @@ permissions:
     "**/*.secret": "deny"
     "node_modules/**": "deny"
     ".git/**": "deny"
+
+# Tags
+tags:
+  - planning
+  - tasks
+  - breakdown
 ---
 
 <context>

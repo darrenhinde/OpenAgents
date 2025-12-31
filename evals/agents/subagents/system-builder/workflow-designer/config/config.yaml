@@ -1,0 +1,13 @@
+# Workflow Designer - Workflow definition design Test Configuration
+# Subagent path format
+
+agent: subagents/system-builder/workflow-designer
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - standalone
+  - delegation
+

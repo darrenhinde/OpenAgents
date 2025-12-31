@@ -1,0 +1,40 @@
+# Template: Read Then Write
+# Use this for tests that read first, then write
+# Tests the execution-balance pattern (inspect before modify)
+
+id: my-read-write-test
+name: "My Read Then Write Test"
+description: |
+  Describe what this test validates.
+category: developer
+
+prompts:
+  - text: |
+      First read evals/test_tmp/README.md to understand the directory, then create a file at evals/test_tmp/my-output.txt with a summary.
+  - text: |
+      Yes, proceed with the plan.
+    delayMs: 2000
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read
+    - write
+  minToolCalls: 2
+  requiresApproval: true
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+
+timeout: 90000
+
+tags:
+  - read-before-write
+  - execution-balance

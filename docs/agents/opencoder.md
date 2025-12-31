@@ -389,7 +389,7 @@ OpenCoder adapts to your language:
 
 ## Configuration
 
-OpenCoder is configured in `.opencode/agent/opencoder.md`. Default settings:
+OpenCoder is configured in `.opencode/agent/core/opencoder.md`. Default settings:
 
 ```yaml
 temperature: 0.1  # Deterministic, precise

@@ -425,8 +425,12 @@ A: Yes! Use the installer's list feature to see all components:
 ```
 Or cherry-pick individual files with curl:
 ```bash
-curl -o ~/.opencode/agent/opencoder.md \
-  https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/.opencode/agent/opencoder.md
+# Create category directory first
+mkdir -p ~/.opencode/agent/core
+
+# Download specific agent
+curl -o ~/.opencode/agent/core/opencoder.md \
+  https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/.opencode/agent/core/opencoder.md
 ```
 
 ---
@@ -512,11 +516,22 @@ Read [Agent System Blueprint](docs/features/agent-system-blueprint.md) to learn:
 ### Project Structure
 ```
 .opencode/
-├── agent/              # AI agents
-│   ├── openagent.md
-│   ├── opencoder.md
-│   ├── system-builder.md
-│   └── subagents/      # Specialized helpers
+├── agent/              # AI agents (category-based)
+│   ├── core/                    # Core system agents
+│   │   ├── openagent.md        # Universal orchestrator
+│   │   └── opencoder.md        # Development specialist
+│   ├── meta/                    # Meta-level agents
+│   │   └── system-builder.md   # System architect
+│   ├── development/            # Development specialists
+│   │   ├── frontend-specialist.md
+│   │   ├── backend-specialist.md
+│   │   └── devops-specialist.md
+│   ├── content/               # Content creation
+│   │   ├── copywriter.md
+│   │   └── technical-writer.md
+│   ├── data/                  # Data & analysis
+│   │   └── data-analyst.md
+│   └── subagents/             # Specialized helpers
 ├── command/            # Slash commands
 │   ├── commit.md
 │   └── optimize.md

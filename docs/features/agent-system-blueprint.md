@@ -465,9 +465,11 @@ The system improves naturally as you:
 ```
 .opencode/
 ├── agent/              # AI agents
-│   ├── openagent.md
-│   ├── opencoder.md
-│   ├── system-builder.md
+│   ├── core/
+│   │   ├── openagent.md
+│   │   └── opencoder.md
+│   ├── meta/
+│   │   └── system-builder.md
 │   └── subagents/      # Specialized helpers
 │       ├── reviewer.md
 │       ├── tester.md

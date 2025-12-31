@@ -1,5 +1,11 @@
 ---
+id: documentation
+name: Documentation
 description: "Documentation authoring agent"
+category: subagents/core
+type: subagent
+version: 1.0.0
+author: opencode
 mode: subagent
 temperature: 0.2
 tools:
@@ -18,6 +24,11 @@ permissions:
     "**/*.env*": "deny"
     "**/*.key": "deny"
     "**/*.secret": "deny"
+
+# Tags
+tags:
+  - documentation
+  - docs
 ---
 
 # Documentation Agent

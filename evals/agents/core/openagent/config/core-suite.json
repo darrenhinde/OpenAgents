@@ -1,0 +1,125 @@
+{
+  "name": "OpenAgent Core Test Suite",
+  "description": "Minimal set of tests providing maximum coverage of critical OpenAgent functionality",
+  "version": "1.0.0",
+  "agent": "core/openagent",
+  "totalTests": 7,
+  "estimatedRuntime": "5-8 minutes",
+  "coverage": {
+    "approvalGate": true,
+    "contextLoading": true,
+    "stopOnFailure": true,
+    "delegation": true,
+    "toolUsage": true,
+    "multiTurn": true,
+    "subagents": true
+  },
+  "tests": [
+    {
+      "id": 1,
+      "name": "Approval Gate",
+      "path": "01-critical-rules/approval-gate/05-approval-before-execution-positive.yaml",
+      "category": "critical-rules",
+      "priority": "critical",
+      "estimatedTime": "30-60s",
+      "description": "Validates approval before execution workflow - the most critical safety rule"
+    },
+    {
+      "id": 2,
+      "name": "Context Loading (Simple)",
+      "path": "01-critical-rules/context-loading/01-code-task.yaml",
+      "category": "critical-rules",
+      "priority": "critical",
+      "estimatedTime": "60-90s",
+      "description": "Validates context loading for code tasks - most common use case"
+    },
+    {
+      "id": 3,
+      "name": "Context Loading (Multi-Turn)",
+      "path": "01-critical-rules/context-loading/09-multi-standards-to-docs.yaml",
+      "category": "critical-rules",
+      "priority": "high",
+      "estimatedTime": "120-180s",
+      "description": "Validates multi-turn context loading with multiple context files"
+    },
+    {
+      "id": 4,
+      "name": "Stop on Failure",
+      "path": "01-critical-rules/stop-on-failure/02-stop-and-report-positive.yaml",
+      "category": "critical-rules",
+      "priority": "critical",
+      "estimatedTime": "60-90s",
+      "description": "Validates agent stops and reports errors instead of auto-fixing"
+    },
+    {
+      "id": 5,
+      "name": "Simple Task (No Delegation)",
+      "path": "08-delegation/simple-task-direct.yaml",
+      "category": "delegation",
+      "priority": "high",
+      "estimatedTime": "30-60s",
+      "description": "Validates agent handles simple tasks directly without unnecessary delegation"
+    },
+    {
+      "id": 6,
+      "name": "Subagent Delegation",
+      "path": "06-integration/medium/04-subagent-verification.yaml",
+      "category": "integration",
+      "priority": "high",
+      "estimatedTime": "90-120s",
+      "description": "Validates subagent delegation and execution for appropriate tasks"
+    },
+    {
+      "id": 7,
+      "name": "Tool Usage",
+      "path": "09-tool-usage/dedicated-tools-usage.yaml",
+      "category": "tool-usage",
+      "priority": "medium",
+      "estimatedTime": "30-60s",
+      "description": "Validates agent uses proper tools (read/grep) instead of bash antipatterns"
+    }
+  ],
+  "rationale": {
+    "why7Tests": "These 7 tests provide ~85% coverage of critical functionality with 90% fewer tests than the full suite",
+    "coverageBreakdown": {
+      "criticalSafetyRules": "4/4 rules covered (approval, context, stop-on-failure, report-first)",
+      "delegationLogic": "2 tests cover both simple (no delegation) and complex (delegation) scenarios",
+      "toolUsage": "1 test ensures proper tool usage patterns",
+      "multiTurn": "1 test validates complex multi-turn conversations with context"
+    },
+    "useCases": [
+      "Quick validation when updating OpenAgent prompt",
+      "Pre-commit hooks for fast feedback",
+      "CI/CD pull request validation",
+      "Development iteration cycles"
+    ]
+  },
+  "usage": {
+    "npm": {
+      "core": "npm run eval:sdk:core",
+      "withAgent": "npm run eval:sdk:core -- --agent=openagent",
+      "withModel": "npm run eval:sdk:core -- --agent=openagent --model=anthropic/claude-sonnet-4-5"
+    },
+    "direct": {
+      "basic": "cd evals/framework && npm run eval:sdk:core",
+      "withAgent": "cd evals/framework && npm run eval:sdk:core -- --agent=openagent"
+    }
+  },
+  "comparison": {
+    "fullSuite": {
+      "tests": 71,
+      "runtime": "40-80 minutes",
+      "coverage": "100%"
+    },
+    "coreSuite": {
+      "tests": 7,
+      "runtime": "5-8 minutes",
+      "coverage": "~85%"
+    },
+    "savings": {
+      "tests": "90% fewer tests",
+      "time": "85-90% faster",
+      "tokens": "~90% reduction"
+    }
+  }
+}

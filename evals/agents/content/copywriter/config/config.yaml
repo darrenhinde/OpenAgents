@@ -1,0 +1,11 @@
+# Copywriter Test Configuration
+# Category-based path format
+
+agent: content/copywriter
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - copywriting-capabilities

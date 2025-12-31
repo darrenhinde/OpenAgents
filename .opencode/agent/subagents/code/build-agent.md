@@ -1,5 +1,11 @@
 ---
+id: build-agent
+name: Build Agent
 description: "Type check and build validation agent"
+category: subagents/code
+type: subagent
+version: 1.0.0
+author: opencode
 mode: subagent
 temperature: 0.1
 tools:
@@ -20,6 +26,12 @@ permissions:
     "*": "deny"
   edit:
     "**/*": "deny"
+
+# Tags
+tags:
+  - build
+  - validation
+  - type-check
 ---
 
 # Build Agent

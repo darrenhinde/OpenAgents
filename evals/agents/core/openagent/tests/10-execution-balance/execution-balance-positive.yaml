@@ -1,0 +1,40 @@
+id: execution-balance-positive-001
+name: Execution Balance - Read before execution
+description: |
+  Tests the execution-balance evaluator.
+  
+  The execution-balance evaluator checks that agents read/inspect
+  before executing write operations. This prevents blind writes.
+  
+  This test asks the agent to read a file - a simple read-only operation
+  that should pass the execution-balance check (reads are always OK).
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      List the contents of the evals/test_tmp/ directory and read the README.md file in it.
+
+behavior:
+  # Read-only operations - should pass execution balance
+  mustUseAnyOf:
+    - [list]
+    - [read]
+    - [glob]
+  minToolCalls: 1
+
+expectedViolations:
+  # Read-only session - no execution balance issues
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 60000
+
+tags:
+  - execution-balance
+  - read-only
+  - positive-test

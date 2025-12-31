@@ -1,6 +1,11 @@
 ---
-
+id: reviewer
+name: Reviewer
 description: "Code review, security, and quality assurance agent"
+category: subagents/code
+type: subagent
+version: 1.0.0
+author: opencode
 mode: subagent
 temperature: 0.1
 tools:
@@ -15,6 +20,12 @@ permissions:
     "*": "deny"
   edit:
     "**/*": "deny"
+
+# Tags
+tags:
+  - review
+  - quality
+  - security
 ---
 
 # Review Agent

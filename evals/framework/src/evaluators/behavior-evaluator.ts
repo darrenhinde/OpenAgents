@@ -72,8 +72,25 @@ export class BehaviorEvaluator extends BaseEvaluator {
       toolCalls.forEach((tc, i) => {
         const tool = tc.data?.tool || 'unknown';
         const input = tc.data?.state?.input || tc.data?.input || {};
-        const inputStr = JSON.stringify(input).substring(0, 100);
-        console.log(`  ${i + 1}. ${tool}: ${inputStr}${inputStr.length >= 100 ? '...' : ''}`);
+        
+        // Show more details for task tool (delegation)
+        if (tool === 'task') {
+          console.log(`  ${i + 1}. ${tool}:`);
+          if (input.subagent_type) {
+            console.log(`     → Subagent: ${input.subagent_type}`);
+          }
+          if (input.description) {
+            console.log(`     → Description: ${input.description}`);
+          }
+          if (input.prompt) {
+            const promptPreview = input.prompt.substring(0, 150);
+            console.log(`     → Prompt: "${promptPreview}${input.prompt.length > 150 ? '...' : ''}"`);
+          }
+        } else {
+          // Regular tool - show compact format
+          const inputStr = JSON.stringify(input).substring(0, 100);
+          console.log(`  ${i + 1}. ${tool}: ${inputStr}${inputStr.length >= 100 ? '...' : ''}`);
+        }
       });
     }
 
@@ -463,7 +480,37 @@ export class BehaviorEvaluator extends BaseEvaluator {
     // Print summary
     console.log(`\nBehavior Validation Summary:`);
     console.log(`  Checks Passed: ${checks.filter(c => c.passed).length}/${checks.length}`);
-    console.log(`  Violations: ${violations.length}`);
+    
+    // Show which checks passed/failed with reasons
+    if (checks.length > 0) {
+      console.log(`\nCheck Details:`);
+      checks.forEach((check, i) => {
+        const icon = check.passed ? '✓' : '✗';
+        const status = check.passed ? 'PASS' : 'FAIL';
+        console.log(`  ${icon} ${check.name}: ${status}`);
+        
+        // Show reason/evidence
+        if (check.evidence && check.evidence.length > 0) {
+          check.evidence.forEach(ev => {
+            if (ev.description) {
+              console.log(`     → ${ev.description}`);
+            }
+            // Show key data points
+            if (ev.data) {
+              if (ev.data.expected !== undefined && ev.data.actual !== undefined) {
+                console.log(`     → Expected: ${JSON.stringify(ev.data.expected)}, Got: ${JSON.stringify(ev.data.actual)}`);
+              } else if (ev.data.toolsUsed !== undefined) {
+                console.log(`     → Tools used: ${ev.data.toolsUsed.length > 0 ? ev.data.toolsUsed.join(', ') : 'none'}`);
+              } else if (ev.data.count !== undefined) {
+                console.log(`     → Count: ${ev.data.count}`);
+              }
+            }
+          });
+        }
+      });
+    }
+    
+    console.log(`\n  Violations: ${violations.length}`);
     if (violations.length > 0) {
       console.log(`\nViolations Detected:`);
       violations.forEach((v, i) => {

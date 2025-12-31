@@ -1,0 +1,38 @@
+id: incremental-001
+name: Incremental Implementation
+description: |
+  Tests that {agent-name} implements features step-by-step with validation.
+  Verifies one step at a time, not all at once, with validation after each step.
+
+category: implementation
+agent: {agent-name}
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  Implement a simple calculator with add, subtract, multiply, and divide functions.
+  Make sure to test each function after implementing it.
+
+behavior:
+  # Should implement incrementally
+  minToolCalls: 4  # Multiple steps
+  # Should validate after each step
+  mustUseAnyOf: [[bash]]  # For running tests/validation
+  # Should NOT implement everything at once
+  mustNotContain:
+    - "all at once"
+    - "complete implementation"
+
+expectedViolations:
+  - rule: incremental-execution
+    shouldViolate: false
+    severity: error
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 60000
+
+tags:
+  - implementation
+  - incremental
+  - validation

@@ -224,3 +224,87 @@ export const getLegacySessionPartPath = (
 ): string => {
   return path.join(getLegacyProjectSessionPath(projectPath, sessionStoragePath), 'part');
 };
+
+/**
+ * Resolve agent path to support both old and new formats
+ * 
+ * Supports:
+ * - Old format: "openagent" → ".opencode/agent/openagent.md"
+ * - New format: "core/openagent" → ".opencode/agent/core/openagent.md"
+ * - Subagents: "subagents/code/tester" → ".opencode/agent/subagents/code/tester.md"
+ * 
+ * @param agent - Agent identifier (e.g., "openagent" or "core/openagent")
+ * @param projectPath - Project root path (defaults to git root)
+ * @returns Absolute path to agent file
+ */
+export const resolveAgentPath = (agent: string, projectPath?: string): string => {
+  const root = projectPath || findGitRoot(process.cwd());
+  const agentDir = path.join(root, '.opencode', 'agent');
+  
+  // If agent contains a slash, it's a category-based path
+  if (agent.includes('/')) {
+    return path.join(agentDir, `${agent}.md`);
+  }
+  
+  // Old format - flat structure
+  return path.join(agentDir, `${agent}.md`);
+};
+
+/**
+ * Normalize agent identifier to category-based format
+ * 
+ * Maps old agent names to new category-based paths:
+ * - "openagent" → "core/openagent"
+ * - "opencoder" → "core/opencoder"
+ * - "system-builder" → "meta/system-builder"
+ * 
+ * Already category-based paths are returned as-is:
+ * - "core/openagent" → "core/openagent"
+ * - "development/frontend-specialist" → "development/frontend-specialist"
+ * 
+ * @param agent - Agent identifier
+ * @returns Normalized agent identifier
+ */
+export const normalizeAgentId = (agent: string): string => {
+  // Already category-based
+  if (agent.includes('/')) {
+    return agent;
+  }
+  
+  // Map old core agents to new paths
+  const coreAgents: Record<string, string> = {
+    'openagent': 'core/openagent',
+    'opencoder': 'core/opencoder',
+    'system-builder': 'meta/system-builder',
+  };
+  
+  return coreAgents[agent] || agent;
+};
+
+/**
+ * Extract category from agent identifier
+ * 
+ * Examples:
+ * - "core/openagent" → "core"
+ * - "development/frontend-specialist" → "development"
+ * - "subagents/code/tester" → "subagents/code"
+ * - "openagent" → undefined (flat structure)
+ * 
+ * @param agent - Agent identifier
+ * @returns Category path or undefined
+ */
+export const extractAgentCategory = (agent: string): string | undefined => {
+  if (!agent.includes('/')) {
+    return undefined;
+  }
+  
+  const parts = agent.split('/');
+  
+  // For subagents, include both levels (e.g., "subagents/code")
+  if (parts[0] === 'subagents' && parts.length >= 2) {
+    return `${parts[0]}/${parts[1]}`;
+  }
+  
+  // For regular categories, just the first part
+  return parts[0];
+};

@@ -1,0 +1,47 @@
+id: edge-04-invalid-path-handling
+name: "Edge Case 04: Invalid Path Handling"
+description: |
+  Tests that the agent handles invalid file paths gracefully.
+  
+  The agent should:
+  1. Attempt to read the file
+  2. Receive an error (file doesn't exist)
+  3. Report the error clearly
+  4. NOT crash or produce confusing output
+  
+  Validates:
+  - Error handling for missing files
+  - Agent reports errors clearly
+  - stop-on-failure evaluator works correctly
+
+category: edge-case
+
+prompts:
+  - text: |
+      Read the file at /nonexistent/path/that/does/not/exist.txt and tell me what's in it.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read
+  minToolCalls: 1
+  maxToolCalls: 3
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+  # Agent should handle the error gracefully
+  - rule: stop-on-failure
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - edge-case
+  - error-handling
+  - invalid-input
+  - safe

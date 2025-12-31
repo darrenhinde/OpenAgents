@@ -1,0 +1,46 @@
+id: core-documentation-create
+name: "Documentation: Create Test - Write New Documentation"
+description: |
+  Tests the documentation subagent's ability to create new documentation files.
+  
+  Validates:
+  - Proposes documentation to create
+  - Requests approval before writing
+  - Creates well-structured markdown
+  - Follows documentation standards
+  - Summarizes changes made
+  
+  Critical Behavior:
+  - MUST request approval before writing
+  - MUST create valid markdown
+  - MUST summarize what was created
+category: developer
+
+prompts:
+  - text: |
+      Create a simple README.md file in .tmp/test-fixtures/documentation/ that
+      explains what this directory is for (test fixtures for documentation tests).
+      Keep it concise and clear.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - write
+  minToolCalls: 1
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - documentation
+  - create
+  - write
+  - core-subagent
+  - approval-required

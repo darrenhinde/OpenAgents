@@ -1,5 +1,11 @@
 ---
+id: coder-agent
+name: Coder Agent
 description: "Executes coding subtasks in sequence, ensuring completion as specified"
+category: subagents/code
+type: subagent
+version: 1.0.0
+author: opencode
 mode: subagent
 temperature: 0
 tools:
@@ -19,6 +25,11 @@ permissions:
     "**/*.secret": "deny"
     "node_modules/**": "deny"
     ".git/**": "deny"
+
+# Tags
+tags:
+  - coding
+  - implementation
 ---
 
 # Coder Agent (@coder-agent)

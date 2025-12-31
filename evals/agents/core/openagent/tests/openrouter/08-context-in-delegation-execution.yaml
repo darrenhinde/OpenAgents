@@ -1,0 +1,63 @@
+id: openrouter-context-delegation-exec
+name: "OpenRouter Variant: Context Reference in Delegation Execution Test"
+description: |
+  EXECUTION TEST - Validates agent passes context references when delegating.
+  
+  Expected workflow:
+  1. User requests simple code implementation (triggers Rule 2)
+  2. Agent analyzes task (1-3 files = simple, focused)
+  3. Agent proposes plan mentioning delegation to coder-agent
+  4. User approves
+  5. Agent invokes subagents/code/coder-agent with context reference
+  6. Prompt includes "@.opencode/context/core/standards/code.md"
+  
+  This test validates:
+  - Agent uses task tool to invoke coder-agent
+  - Subagent path is subagents/code/coder-agent
+  - Prompt includes context file reference
+  - Context reference uses @ symbol convention
+
+category: developer
+agent: openagent
+model: x-ai/grok-beta
+
+prompts:
+  - text: |
+      Create a utility function in evals/test_tmp/formatter.js that formats dates.
+      Just a single file with one function.
+  
+  - text: |
+      Yes, proceed with the plan.
+    delayMs: 3000
+
+behavior:
+  mustUseTools:
+    - task      # Should delegate to coder-agent for simple implementation
+  shouldDelegate: true
+  requiresApproval: true
+  minToolCalls: 1
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should request approval before delegating
+  
+  - rule: delegation
+    shouldViolate: false
+    severity: error
+    description: Simple focused task should trigger Rule 2 and delegate to coder-agent
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 90000
+
+tags:
+  - execution
+  - openrouter
+  - delegation
+  - coder-agent
+  - rule-2
+  - context-inheritance
+  - tool-validation

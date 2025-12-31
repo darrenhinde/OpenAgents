@@ -1,0 +1,14 @@
+# OpenCoder (Core Development Agent) Test Configuration
+# Category-based path format
+
+agent: core/opencoder
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - context-loading
+  - planning
+  - implementation
+  - delegation

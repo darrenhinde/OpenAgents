@@ -1,0 +1,48 @@
+id: golden-02-context-loading
+name: "Golden 02: Context Loading - Agent Reads Relevant Context"
+description: |
+  Tests that the agent loads relevant context files before answering
+  questions about project standards or conventions.
+  
+  A quality agent should:
+  1. Recognize the question relates to project standards
+  2. Look for context files (.opencode/context/, docs/, etc.)
+  3. Read relevant context before answering
+  
+  Validates:
+  - Agent recognizes need for context
+  - Agent searches for/reads context files
+  - context-loading evaluator works correctly
+category: developer
+
+prompts:
+  - text: |
+      What are the coding standards for this project? Check the project documentation to find out.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  # Agent should read docs or context files
+  mustUseAnyOf:
+    - [read]
+    - [glob, read]
+    - [list, read]
+  minToolCalls: 1
+  requiresContext: true
+
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - golden
+  - context-loading
+  - read-only
+  - safe

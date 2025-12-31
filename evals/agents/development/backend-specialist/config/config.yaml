@@ -1,0 +1,11 @@
+# Backend Specialist Test Configuration
+# Category-based path format
+
+agent: development/backend-specialist
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - backend-capabilities

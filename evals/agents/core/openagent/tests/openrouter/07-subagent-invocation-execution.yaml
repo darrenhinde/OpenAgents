@@ -1,0 +1,67 @@
+id: openrouter-subagent-invocation-exec
+name: "OpenRouter Variant: Subagent Invocation Execution Test"
+description: |
+  EXECUTION TEST - Validates agent actually invokes subagent for complex tasks.
+  
+  Expected workflow:
+  1. User requests complex multi-file feature (triggers Rule 1)
+  2. Agent analyzes task (4+ files = complex)
+  3. Agent proposes plan mentioning delegation to task-manager
+  4. User approves
+  5. Agent invokes subagents/core/task-manager using task tool
+  
+  This test validates:
+  - Agent uses task tool to invoke subagent
+  - Subagent path is subagents/core/task-manager
+  - Agent delegates WITHOUT user explicitly mentioning subagents
+  - Delegation happens automatically based on Rule 1
+
+category: developer
+agent: openagent
+model: x-ai/grok-beta
+
+prompts:
+  - text: |
+      I need to build a user authentication system with:
+      - Login component (src/components/Login.tsx)
+      - Auth API (src/api/auth.ts)
+      - User model (src/models/User.ts)
+      - Auth tests (tests/auth.test.ts)
+      - Config file (config/auth.json)
+      
+      This is 5 files total. Please help me build this.
+  
+  - text: |
+      Yes, proceed with the plan.
+    delayMs: 3000
+
+behavior:
+  mustUseTools:
+    - task      # Must delegate to subagent
+  shouldDelegate: true
+  requiresApproval: true
+  minToolCalls: 1
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should request approval before delegating
+  
+  - rule: delegation
+    shouldViolate: false
+    severity: error
+    description: Complex task (5 files) should trigger Rule 1 and delegate to task-manager
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 90000
+
+tags:
+  - execution
+  - openrouter
+  - delegation
+  - task-manager
+  - rule-1
+  - tool-validation

@@ -1,0 +1,65 @@
+id: golden-02-delegation-test
+name: "Golden 02: Delegation Test - Parent & Child Agent"
+description: |
+  Tests multi-agent delegation workflow.
+  
+  This test validates:
+  - Agent can delegate to a subagent using task tool
+  - Subagent receives context and responds correctly
+  - Multi-agent logging captures both sessions
+  - Parent-child communication works
+  
+  Expected completion time: 25-35 seconds (includes LLM inference for both agents)
+  
+  This is more complex than the minimal smoke test because:
+  - Tests delegation (core feature of agent system)
+  - Runs TWO agents (parent + child)
+  - Tests context passing
+  - Validates multi-agent logging system
+category: developer
+
+prompts:
+  - text: |
+      Call the simple-responder subagent and ask it to respond. Use the task tool to delegate.
+  
+  - text: |
+      Yes, proceed with the delegation.
+    delayMs: 2000
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [task]
+  minToolCalls: 1
+  maxToolCalls: 10
+  requiresApproval: false  # This is a simple test, no approval ceremony needed
+  expectedAgent: "openagent"  # Validate correct agent is loaded
+  expectedModel: "opencode/grok-code"  # Validate correct model is used
+  expectedResponse:
+    contains:
+      - "AWESOME TESTING"
+    description: "Subagent should respond with 'AWESOME TESTING'"
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: "Should request approval before delegation"
+  - rule: context-loading
+    shouldViolate: false
+    severity: warning
+    description: "Should load delegation context"
+  - rule: delegation
+    shouldViolate: false
+    severity: error
+    description: "Should successfully delegate to subagent using task tool"
+
+timeout: 90000
+
+tags:
+  - golden
+  - delegation
+  - subagent
+  - multi-agent
+  - parent-child

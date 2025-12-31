@@ -1,7 +1,18 @@
 ---
+id: workflow-designer
+name: Workflow Designer
 description: "Designs complete workflow definitions with context dependencies and success criteria"
+category: subagents/system-builder
+type: subagent
+version: 1.0.0
+author: opencode
 mode: subagent
 temperature: 0.1
+
+# Tags
+tags:
+  - workflow
+  - design
 ---
 
 # Workflow Designer

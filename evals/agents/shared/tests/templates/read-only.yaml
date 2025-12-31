@@ -1,0 +1,33 @@
+# Template: Read-Only Test
+# Use this for tests that only read files (no writes, no bash)
+# Safe, fast, no approval needed
+
+id: my-read-test
+name: "My Read Test"
+description: |
+  Describe what this test validates.
+category: developer
+
+prompts:
+  - text: |
+      Read the file path/to/file.md and summarize it.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read
+  minToolCalls: 1
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - read-only
+  - safe

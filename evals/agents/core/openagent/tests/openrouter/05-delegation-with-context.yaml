@@ -1,0 +1,46 @@
+id: openrouter-delegation-with-context
+name: "OpenRouter Variant: Delegation with Context References"
+description: |
+  Tests OpenRouter variant's ability to include context references when delegating.
+  
+  This is a conversational test to validate:
+  1. Agent knows to pass context file references to subagents
+  2. Agent uses proper invocation syntax with context files
+  3. Agent explains the context inheritance pattern
+  
+  OpenRouter-specific validation:
+  - Agent should reference delegation_criteria section
+  - Agent should show example invocation with context file
+  - Agent should explain "Load @.opencode/context/..." pattern
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  If I ask you to delegate a coding task to the coder-agent subagent, 
+  how would you invoke it? Show me the exact syntax you would use, 
+  including any context files that should be loaded.
+
+behavior:
+  requiresApproval: false       # Conversational - no execution
+  minToolCalls: 0               # No tools needed for explanation
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should NOT ask for approval (conversational path)
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 30000
+
+tags:
+  - delegation
+  - context
+  - openrouter
+  - conversational
+  - invocation-syntax
+  - context-inheritance

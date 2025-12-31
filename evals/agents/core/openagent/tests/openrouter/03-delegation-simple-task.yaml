@@ -1,0 +1,48 @@
+id: openrouter-rule-matching
+name: "OpenRouter Variant: Rule Matching Logic"
+description: |
+  Tests OpenRouter variant's ability to match tasks against delegation rules.
+  
+  This is a conversational test (no execution) to validate:
+  1. Agent can analyze task complexity
+  2. Agent checks against all 5 delegation rules
+  3. Agent explains which rule matches (or doesn't match)
+  
+  OpenRouter-specific validation:
+  - Agent should reference AUTOMATIC DELEGATION RULES section
+  - Agent should check each rule systematically
+  - Agent should explain the decision process
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  I need to create a single utility function in src/utils/format.ts that formats dates.
+  
+  Can you explain:
+  1. Would you delegate this task or execute it directly?
+  2. Which delegation rules did you check?
+  3. Why did you make this decision?
+
+behavior:
+  requiresApproval: false       # Conversational - no execution
+  minToolCalls: 0               # No tools needed for explanation
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should NOT ask for approval (conversational path)
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 30000
+
+tags:
+  - delegation
+  - openrouter
+  - conversational
+  - rule-matching
+  - decision-logic

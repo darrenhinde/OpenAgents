@@ -1,0 +1,11 @@
+# System Builder (Meta Agent) Test Configuration
+# Category-based path format
+
+agent: meta/system-builder
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - system-generation

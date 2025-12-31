@@ -203,7 +203,7 @@ npm run test:openagent:developer -- --debug
 npm run dashboard:open
 
 # 3. Iterate on agent prompts
-# Edit .opencode/agent/openagent.md
+# Edit .opencode/agent/core/openagent.md
 
 # 4. Re-run tests
 npm run test:openagent:developer

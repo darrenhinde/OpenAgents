@@ -62,6 +62,18 @@ export const BehaviorExpectationSchema = z.object({
   requiresContext: z.boolean().optional(),
 
   /**
+   * Specific context files that must be loaded (optional - overrides auto-detection)
+   * When specified, the evaluator will check if the agent read one of these exact files.
+   * Supports partial path matching (e.g., "code.md" matches ".opencode/context/core/standards/code.md")
+   * 
+   * Example:
+   *   expectedContextFiles: [".opencode/context/core/standards/code.md", "standards/code.md"]
+   * 
+   * If not specified, the evaluator will auto-detect expected files based on the user message.
+   */
+  expectedContextFiles: z.array(z.string()).optional(),
+
+  /**
    * Agent should delegate to specialized subagent
    */
   shouldDelegate: z.boolean().optional(),
@@ -80,6 +92,27 @@ export const BehaviorExpectationSchema = z.object({
    * Agent must use dedicated tools instead of bash
    */
   mustUseDedicatedTools: z.boolean().optional(),
+
+  /**
+   * Expected agent name (for validation)
+   * Example: "openagent", "opencoder", "coder-agent"
+   */
+  expectedAgent: z.string().optional(),
+
+  /**
+   * Expected model (for validation)
+   * Example: "opencode/grok-code", "anthropic/claude-3-5-sonnet-20241022"
+   */
+  expectedModel: z.string().optional(),
+
+  /**
+   * Expected response content (partial matching)
+   */
+  expectedResponse: z.object({
+    contains: z.array(z.string()).optional(),
+    notContains: z.array(z.string()).optional(),
+    description: z.string().optional(),
+  }).optional(),
 });
 
 export type BehaviorExpectation = z.infer<typeof BehaviorExpectationSchema>;
@@ -97,6 +130,7 @@ export const ExpectedViolationSchema = z.object({
     'confirm-cleanup',
     'cleanup-confirmation',
     'report-first',
+    'execution-balance',
   ]),
   /**
    * Should this rule be violated?

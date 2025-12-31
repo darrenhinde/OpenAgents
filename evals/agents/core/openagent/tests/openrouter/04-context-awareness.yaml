@@ -1,0 +1,44 @@
+id: openrouter-context-awareness
+name: "OpenRouter Variant: Context File Awareness"
+description: |
+  Tests OpenRouter variant's awareness of required context files.
+  
+  This is a conversational test to validate:
+  1. Agent knows which context files are required for different tasks
+  2. Agent understands the @ symbol convention
+  3. Agent can explain when to load context files
+  
+  OpenRouter-specific validation:
+  - Agent should reference the critical_context_requirement section
+  - Agent should mention specific context file paths
+  - Agent should explain the consequence of skipping context
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  I'm about to write some new code. What context files should I load first, and why?
+  Also, what does the @ symbol mean in context file references?
+
+behavior:
+  requiresApproval: false       # Conversational - no execution
+  minToolCalls: 0               # No tools needed for explanation
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should NOT ask for approval (conversational path)
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 30000
+
+tags:
+  - context
+  - openrouter
+  - conversational
+  - context-awareness
+  - standards

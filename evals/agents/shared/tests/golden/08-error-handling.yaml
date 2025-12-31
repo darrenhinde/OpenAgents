@@ -1,0 +1,45 @@
+id: golden-08-error-handling
+name: "Golden 08: Error Handling - Agent Handles Missing Files Gracefully"
+description: |
+  Tests that the agent handles errors gracefully when files don't exist.
+  
+  A quality agent should:
+  1. Attempt to read the requested file
+  2. Receive an error (file not found)
+  3. Report the error clearly to the user
+  4. Not crash or behave unexpectedly
+  
+  This is a read-only test that checks error handling behavior.
+  
+  Validates:
+  - Agent attempts the read operation
+  - Agent handles the error gracefully
+  - Agent communicates the issue to the user
+category: developer
+
+prompts:
+  - text: |
+      Read the file evals/test_tmp/this-file-does-not-exist-12345.txt and show me its contents.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read
+  minToolCalls: 1
+  maxToolCalls: 3
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - golden
+  - error-handling
+  - missing-file
+  - read-only
+  - safe

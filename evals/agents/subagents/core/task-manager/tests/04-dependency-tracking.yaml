@@ -1,0 +1,48 @@
+id: core-task-manager-dependency-tracking
+name: "Task Manager: Dependency Tracking - Map Task Dependencies"
+description: |
+  Tests the task-manager's ability to identify and map task dependencies.
+  
+  Validates:
+  - Identifies task dependencies
+  - Maps dependency relationships
+  - Includes dependencies in plan
+  - Uses proper dependency format (seq -> seq)
+  
+  Critical Behavior:
+  - MUST identify which tasks depend on others
+  - MUST map dependencies clearly
+  - MUST use format: {seq} depends on {seq}
+category: developer
+
+prompts:
+  - text: |
+      Break down a feature "api-integration" with these tasks:
+      1. Design API client interface
+      2. Implement HTTP client
+      3. Add authentication layer (depends on HTTP client)
+      4. Create API service methods (depends on auth layer)
+      5. Add error handling (depends on API service)
+      
+      Show me the task plan with clear dependency mapping.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 0
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 120000
+
+tags:
+  - task-manager
+  - dependencies
+  - planning
+  - core-subagent
+  - read-only

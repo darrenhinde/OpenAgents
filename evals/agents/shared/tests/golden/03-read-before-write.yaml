@@ -1,0 +1,54 @@
+id: golden-03-read-before-write
+name: "Golden 03: Read Before Write - Inspect Then Modify"
+description: |
+  Tests that the agent reads/inspects before writing.
+  
+  A quality agent should:
+  1. First inspect the target directory/file
+  2. Understand what exists
+  3. Then propose and execute the write
+  
+  This tests the execution-balance evaluator which ensures
+  agents don't blindly write without understanding context.
+  
+  Validates:
+  - Agent reads before writing
+  - execution-balance evaluator works correctly
+  - Proper approval flow for writes
+category: developer
+
+prompts:
+  - text: |
+      Look at the evals/test_tmp/ directory, then create a file called evals/test_tmp/golden-test-03.txt with the text "read before write test passed".
+  - text: |
+      Yes, proceed with the plan.
+    delayMs: 2000
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - write
+  mustUseAnyOf:
+    - [list]
+    - [read]
+    - [glob]
+  minToolCalls: 2
+  requiresApproval: true
+
+expectedViolations:
+  - rule: execution-balance
+    shouldViolate: false
+    severity: warning
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - golden
+  - execution-balance
+  - read-before-write
+  - safe

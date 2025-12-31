@@ -1,0 +1,54 @@
+id: core-task-manager-task-breakdown
+name: "Task Manager: Task Breakdown - Create Subtask Structure"
+description: |
+  Tests the task-manager's ability to break down a feature into atomic,
+  implementation-ready subtasks.
+  
+  Validates:
+  - Creates feature slug (kebab-case)
+  - Generates 2-digit task sequences
+  - Defines clear objectives per task
+  - Specifies deliverables
+  - Includes test requirements
+  - Defines acceptance criteria
+  - Requests approval before file creation
+  
+  Critical Behavior:
+  - MUST create structured task plan
+  - MUST use proper naming conventions
+  - MUST request approval before creating files
+  - MUST include exit criteria
+category: developer
+
+prompts:
+  - text: |
+      Break down a simple feature "add-dark-mode" into subtasks. The feature should:
+      1. Add a theme toggle component
+      2. Implement theme state management
+      3. Apply dark mode styles
+      
+      Create the task breakdown plan but DO NOT create files yet - just show me
+      the plan and wait for approval.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustNotUseTools:
+    - write
+  minToolCalls: 0
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 120000
+
+tags:
+  - task-manager
+  - breakdown
+  - planning
+  - core-subagent
+  - approval-required

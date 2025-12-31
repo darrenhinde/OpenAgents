@@ -1,0 +1,49 @@
+id: openrouter-delegation-awareness
+name: "OpenRouter Variant: Delegation Awareness"
+description: |
+  Tests OpenRouter variant's awareness of delegation rules and subagents.
+  
+  This is a conversational test (no execution) to validate:
+  1. Agent knows about the 6 available subagents
+  2. Agent understands the 5 automatic delegation rules
+  3. Agent can explain when to delegate vs execute directly
+  
+  OpenRouter-specific validation:
+  - Agent should reference the Quick Reference table
+  - Agent should mention specific delegation rules
+  - Agent should explain the delegation-first approach
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompt: |
+  I'm planning to build a full-stack authentication system with frontend components, 
+  backend APIs, database models, tests, and configuration files (5+ files total).
+  
+  Can you explain:
+  1. Which subagent would you use for this task?
+  2. Which delegation rule would trigger?
+  3. Why would you delegate instead of executing directly?
+
+behavior:
+  requiresApproval: false       # Conversational - no execution
+  minToolCalls: 0               # No tools needed for explanation
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should NOT ask for approval (conversational path)
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 30000
+
+tags:
+  - delegation
+  - openrouter
+  - conversational
+  - subagent-awareness
+  - rule-explanation

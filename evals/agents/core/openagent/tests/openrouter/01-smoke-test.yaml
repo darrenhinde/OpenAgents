@@ -1,0 +1,44 @@
+id: openrouter-smoke-test
+name: "OpenRouter Variant: Smoke Test"
+description: |
+  Basic smoke test for OpenRouter variant of OpenAgent.
+  Tests conversational path - agent should respond without approval.
+  
+  Expected workflow:
+  1. Agent receives conversational prompt
+  2. Agent responds directly (no approval needed)
+  3. Agent should mention available subagents in response
+  
+  OpenRouter-specific validation:
+  - Agent should be aware of 6 subagents
+  - Agent should understand delegation-first approach
+
+category: developer
+agent: openagent
+model: anthropic/claude-sonnet-4-5
+
+prompt: "Hello, can you introduce yourself and explain what subagents you have access to?"
+
+# Expected behavior - conversational path
+behavior:
+  requiresApproval: false       # NO approval needed for conversational
+  minToolCalls: 0               # No tools needed for introduction
+
+# Expected violations
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: Should NOT ask for approval (conversational path)
+
+# Approval strategy (safety fallback, shouldn't be triggered)
+approvalStrategy:
+  type: auto-approve
+
+timeout: 30000
+
+tags:
+  - smoke-test
+  - conversational
+  - openrouter
+  - subagent-awareness

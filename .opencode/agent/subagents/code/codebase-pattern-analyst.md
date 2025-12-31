@@ -1,5 +1,14 @@
 ---
+# Basic Info
+id: codebase-pattern-analyst
+name: Codebase Pattern Analyst
 description: "Codebase pattern analysis agent for finding similar implementations"
+category: subagents/code
+type: subagent
+version: 1.0.0
+author: opencode
+
+# Agent Configuration
 mode: subagent
 temperature: 0.1
 tools:
@@ -14,6 +23,18 @@ permissions:
     "*": "deny"
   edit:
     "**/*": "deny"
+
+# Dependencies
+dependencies:
+  context: []
+  tools: []
+
+# Tags
+tags:
+  - analysis
+  - patterns
+  - codebase
+  - subagent
 ---
 
 # Codebase Pattern Analyst Agent

@@ -1,0 +1,65 @@
+name: "Context Loading Test"
+description: "Verify repo-manager loads appropriate context for different task types"
+test_cases:
+  - id: "context-001"
+    name: "Agent Creation - Context Loading"
+    prompt: "I want to create a new agent. What context should I load?"
+    expected_behavior:
+      - "Loads quick-start.md"
+      - "Loads core-concepts/agents.md"
+      - "Mentions guides/adding-agent.md"
+      - "Lists required context files"
+    evaluators:
+      - type: "context_loading"
+        config:
+          required_files:
+            - ".opencode/context/openagents-repo/quick-start.md"
+            - ".opencode/context/openagents-repo/core-concepts/agents.md"
+      - type: "response_quality"
+        config:
+          should_contain:
+            - "context"
+            - "standards"
+            - "guides/adding-agent"
+  
+  - id: "context-002"
+    name: "Eval Testing - Context Loading"
+    prompt: "How do I test an agent in this repository?"
+    expected_behavior:
+      - "Loads quick-start.md"
+      - "Loads core-concepts/evals.md"
+      - "Mentions guides/testing-agent.md"
+      - "Provides testing workflow"
+    evaluators:
+      - type: "context_loading"
+        config:
+          required_files:
+            - ".opencode/context/openagents-repo/quick-start.md"
+            - ".opencode/context/openagents-repo/core-concepts/evals.md"
+      - type: "response_quality"
+        config:
+          should_contain:
+            - "eval"
+            - "test"
+            - "npm run"
+  
+  - id: "context-003"
+    name: "Registry Management - Context Loading"
+    prompt: "How do I update the registry?"
+    expected_behavior:
+      - "Loads quick-start.md"
+      - "Loads core-concepts/registry.md"
+      - "Mentions guides/updating-registry.md"
+      - "Provides registry workflow"
+    evaluators:
+      - type: "context_loading"
+        config:
+          required_files:
+            - ".opencode/context/openagents-repo/quick-start.md"
+            - ".opencode/context/openagents-repo/core-concepts/registry.md"
+      - type: "response_quality"
+        config:
+          should_contain:
+            - "registry"
+            - "validate"
+            - "auto-detect"

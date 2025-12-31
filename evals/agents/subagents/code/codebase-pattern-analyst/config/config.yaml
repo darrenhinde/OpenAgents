@@ -1,0 +1,13 @@
+# Codebase Pattern Analyst - Finding similar implementations Test Configuration
+# Subagent path format
+
+agent: subagents/code/codebase-pattern-analyst
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - standalone
+  - delegation
+

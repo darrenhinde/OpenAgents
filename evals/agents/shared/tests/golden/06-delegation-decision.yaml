@@ -1,0 +1,47 @@
+id: golden-06-task-breakdown
+name: "Golden 06: Task Breakdown - Agent Structures Complex Work"
+description: |
+  Tests that the agent can break down a complex task into steps.
+  
+  A quality agent should:
+  1. Recognize this requires multiple steps
+  2. Read relevant context/standards first
+  3. Propose a structured plan
+  
+  This test asks the agent to read project standards before
+  implementing something - a common pattern for quality work.
+  
+  Validates:
+  - Agent reads context before proposing implementation
+  - Agent structures its approach
+  - context-loading evaluator works correctly
+category: developer
+
+prompts:
+  - text: |
+      Read the coding standards for this project from .opencode/context/core/standards/code.md and summarize the key points.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read
+  minToolCalls: 1
+  requiresContext: true
+
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - golden
+  - task-breakdown
+  - context-awareness
+  - safe

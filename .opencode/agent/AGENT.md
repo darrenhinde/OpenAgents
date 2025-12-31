@@ -1,1 +1,0 @@
-.opencode/agent/openagent.md

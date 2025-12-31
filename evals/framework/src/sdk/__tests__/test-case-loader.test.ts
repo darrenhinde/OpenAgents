@@ -14,24 +14,24 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Path to test files - correct path to agents/openagent/tests
-const testFilesDir = join(__dirname, '../../../../agents/openagent/tests');
+// Path to test files - using new category-based structure
+const testFilesDir = join(__dirname, '../../../../agents/core/openagent/tests');
 
 describe('TestCaseLoader', () => {
   describe('loadTestCase', () => {
     it('should load a valid test case from YAML', async () => {
-      const testCase = await loadTestCase(join(testFilesDir, 'developer/simple-bash-test.yaml'));
+      const testCase = await loadTestCase(join(testFilesDir, 'smoke-test.yaml'));
       
-      expect(testCase.id).toBe('simple-bash-test');
+      expect(testCase.id).toBe('smoke-test-001');
       expect(testCase.name).toBeDefined();
       expect(testCase.description).toBeDefined();
       expect(testCase.category).toBe('developer');
-      expect(testCase.prompt).toBeDefined();
+      expect(testCase.prompt || testCase.prompts).toBeDefined();
       expect(testCase.approvalStrategy).toBeDefined();
     });
 
     it('should validate required fields', async () => {
-      const testCase = await loadTestCase(join(testFilesDir, 'developer/ctx-code-001.yaml'));
+      const testCase = await loadTestCase(join(testFilesDir, '01-critical-rules/approval-gate/05-approval-before-execution-positive.yaml'));
       
       // Required fields
       expect(testCase.id).toBeDefined();
@@ -45,17 +45,15 @@ describe('TestCaseLoader', () => {
     });
 
     it('should parse behavior expectations', async () => {
-      const testCase = await loadTestCase(join(testFilesDir, 'developer/ctx-code-001.yaml'));
+      const testCase = await loadTestCase(join(testFilesDir, '01-critical-rules/approval-gate/05-approval-before-execution-positive.yaml'));
       
       expect(testCase.behavior).toBeDefined();
-      expect(testCase.behavior?.mustUseTools).toContain('read');
       expect(testCase.behavior?.mustUseTools).toContain('write');
       expect(testCase.behavior?.requiresApproval).toBe(true);
-      expect(testCase.behavior?.requiresContext).toBe(true);
     });
 
     it('should parse expected violations', async () => {
-      const testCase = await loadTestCase(join(testFilesDir, 'developer/ctx-code-001.yaml'));
+      const testCase = await loadTestCase(join(testFilesDir, '01-critical-rules/approval-gate/05-approval-before-execution-positive.yaml'));
       
       expect(testCase.expectedViolations).toBeDefined();
       expect(testCase.expectedViolations?.length).toBeGreaterThan(0);
@@ -66,13 +64,13 @@ describe('TestCaseLoader', () => {
     });
 
     it('should parse approval strategy', async () => {
-      const testCase = await loadTestCase(join(testFilesDir, 'developer/simple-bash-test.yaml'));
+      const testCase = await loadTestCase(join(testFilesDir, 'smoke-test.yaml'));
       
       expect(testCase.approvalStrategy.type).toBe('auto-approve');
     });
 
     it('should parse optional fields', async () => {
-      const testCase = await loadTestCase(join(testFilesDir, 'developer/ctx-code-001.yaml'));
+      const testCase = await loadTestCase(join(testFilesDir, '01-critical-rules/approval-gate/05-approval-before-execution-positive.yaml'));
       
       expect(testCase.timeout).toBeDefined();
       expect(testCase.tags).toBeDefined();

@@ -1,0 +1,45 @@
+id: golden-05-multi-turn-context
+name: "Golden 05: Multi-Turn Context - Agent Remembers Conversation"
+description: |
+  Tests that the agent maintains context across multiple turns.
+  
+  A quality agent should:
+  1. Remember information from earlier in the conversation
+  2. Use that context to inform later responses
+  3. Not ask for information already provided
+  
+  This test provides information in turn 1, then asks about it in turn 2.
+  
+  Validates:
+  - Agent maintains conversation context
+  - Agent can reference earlier information
+  - Multi-turn conversations work correctly
+category: developer
+
+prompts:
+  - text: |
+      I'm working on a feature called "user-authentication". Remember this name.
+  - text: |
+      What feature am I working on? Just tell me the name.
+    delayMs: 2000
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  # This is conversational - may not use tools
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - golden
+  - multi-turn
+  - context-retention
+  - conversational
+  - safe

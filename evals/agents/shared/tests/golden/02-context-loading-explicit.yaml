@@ -1,0 +1,61 @@
+id: golden-02-context-loading-explicit
+name: "Golden 02 (Explicit): Context Loading - Specific File Required"
+description: |
+  Tests that the agent loads a SPECIFIC context file before answering.
+  
+  This test uses the NEW explicit mode where you specify exactly which
+  file(s) the agent must read. This is useful for:
+  - Testing custom context files not in the standard mapping
+  - Ensuring critical files are read for compliance/security
+  - Validating file-specific requirements
+  
+  Unlike the auto-detect version, this test EXPLICITLY requires:
+  - .opencode/context/core/standards/code.md
+  
+  The evaluator will ONLY pass if the agent reads this exact file
+  (or a file containing this path).
+  
+  Validates:
+  - Agent reads the EXACT file specified in expectedContextFiles
+  - Detection mode shows "Explicit (from YAML test)"
+  - Wrong file causes violation even if it's a context file
+category: developer
+
+prompts:
+  - text: |
+      What are the coding standards for this project? Check the project documentation to find out.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  # Agent should read docs or context files
+  mustUseAnyOf:
+    - [read]
+    - [glob, read]
+    - [list, read]
+  minToolCalls: 1
+  requiresContext: true
+  
+  # NEW: Explicit context file requirement (takes precedence over auto-detection)
+  expectedContextFiles:
+    - .opencode/context/core/standards/code.md
+    - standards/code.md
+    - code.md
+
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: false
+    severity: error
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - golden
+  - context-loading
+  - explicit-mode
+  - read-only
+  - safe

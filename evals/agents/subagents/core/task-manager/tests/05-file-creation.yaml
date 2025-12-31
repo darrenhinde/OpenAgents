@@ -1,0 +1,54 @@
+id: core-task-manager-file-creation
+name: "Task Manager: File Creation - Create Task Files"
+description: |
+  Tests the task-manager's ability to create the task directory structure
+  and individual task files.
+  
+  Validates:
+  - Creates directory: .tmp/test-fixtures/task-manager/subtasks/{feature}/
+  - Creates objective.md (feature index)
+  - Creates task files: {seq}-{task-description}.md
+  - Uses correct templates
+  - Includes all required sections
+  - Summarizes what was created
+  
+  Critical Behavior:
+  - MUST request approval before creating files
+  - MUST create proper directory structure
+  - MUST use correct file naming
+  - MUST include all template sections
+category: developer
+
+prompts:
+  - text: |
+      Create subtask files for a simple feature "user-profile" in
+      .tmp/test-fixtures/task-manager/subtasks/user-profile/ with these tasks:
+      
+      1. Create profile data model
+      2. Build profile UI component
+      3. Add profile update API
+      
+      Create the full task structure with objective.md and individual task files.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - write
+  minToolCalls: 2
+  maxToolCalls: 15
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 120000
+
+tags:
+  - task-manager
+  - file-creation
+  - write
+  - core-subagent
+  - approval-required

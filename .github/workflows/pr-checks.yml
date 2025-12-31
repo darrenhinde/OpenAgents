@@ -1,0 +1,323 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, dev]
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  pr-title-check:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    outputs:
+      title-valid: ${{ steps.validate.outputs.valid }}
+    
+    steps:
+      - name: Check PR title format
+        id: validate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prTitle = context.payload.pull_request.title;
+            
+            // Conventional commit patterns
+            const patterns = {
+              feat: /^feat(\(.+\))?!?:\s.+/,
+              fix: /^fix(\(.+\))?!?:\s.+/,
+              docs: /^docs(\(.+\))?:\s.+/,
+              style: /^style(\(.+\))?:\s.+/,
+              refactor: /^refactor(\(.+\))?:\s.+/,
+              perf: /^perf(\(.+\))?:\s.+/,
+              test: /^test(\(.+\))?:\s.+/,
+              chore: /^chore(\(.+\))?:\s.+/,
+              ci: /^ci(\(.+\))?:\s.+/,
+              build: /^build(\(.+\))?:\s.+/,
+              revert: /^revert(\(.+\))?:\s.+/,
+              alpha: /^\[alpha\]\s.+/,
+              beta: /^\[beta\]\s.+/,
+              rc: /^\[rc\]\s.+/
+            };
+            
+            // Check if title matches any pattern
+            const matchedType = Object.entries(patterns).find(([type, pattern]) => 
+              pattern.test(prTitle)
+            );
+            
+            if (!matchedType) {
+              const validExamples = [
+                '✅ feat(evals): add new evaluator',
+                '✅ fix(agents): correct delegation logic',
+                '✅ docs(readme): update installation guide',
+                '✅ test(evals): add execution-balance tests',
+                '✅ chore(deps): update dependencies',
+                '✅ feat!: breaking API change',
+                '✅ [alpha] experimental feature'
+              ];
+              
+              const message = `
+              ## ❌ Invalid PR Title Format
+              
+              **Current title:** \`${prTitle}\`
+              
+              ### Required Format
+              PR titles must follow [Conventional Commits](https://www.conventionalcommits.org/) format:
+              
+              \`\`\`
+              <type>(<scope>): <description>
+              \`\`\`
+              
+              ### Valid Types
+              - **feat** - New feature (triggers minor version bump: 0.3.0 → 0.4.0)
+              - **fix** - Bug fix (triggers patch version bump: 0.3.0 → 0.3.1)
+              - **docs** - Documentation changes (triggers patch bump)
+              - **test** - Test additions/changes (triggers patch bump)
+              - **refactor** - Code refactoring (triggers patch bump)
+              - **chore** - Maintenance tasks (triggers patch bump)
+              - **ci** - CI/CD changes (triggers patch bump)
+              - **perf** - Performance improvements (triggers patch bump)
+              - **style** - Code style changes (triggers patch bump)
+              - **build** - Build system changes (triggers patch bump)
+              - **revert** - Revert previous commit (triggers patch bump)
+              
+              ### Breaking Changes
+              - **feat!:** or **fix!:** - Breaking change (triggers major version bump: 0.3.0 → 1.0.0)
+              - **BREAKING CHANGE:** in description
+              
+              ### Pre-release Tags
+              - **[alpha]** - Alpha release (0.3.0 → 0.3.1-alpha.1)
+              - **[beta]** - Beta release (0.3.0 → 0.3.1-beta.1)
+              - **[rc]** - Release candidate (0.3.0 → 0.3.1-rc.1)
+              
+              ### Valid Examples
+              ${validExamples.map(ex => `- ${ex}`).join('\n')}
+              
+              ### Why This Matters
+              - ✅ Enables automatic semantic versioning
+              - ✅ Generates meaningful changelogs
+              - ✅ Makes commit history searchable
+              - ✅ Clarifies the impact of changes
+              
+              ### How to Fix
+              Edit your PR title to match the format above.
+              `;
+              
+              core.setFailed(message);
+              
+              // Also post as a comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: message
+              });
+            } else {
+              const [type] = matchedType;
+              let versionBump = 'patch (0.3.0 → 0.3.1)';
+              
+              if (type === 'feat' && prTitle.includes('!')) {
+                versionBump = 'major (0.3.0 → 1.0.0) - BREAKING CHANGE';
+              } else if (type === 'feat') {
+                versionBump = 'minor (0.3.0 → 0.4.0)';
+              } else if (type === 'fix' && prTitle.includes('!')) {
+                versionBump = 'major (0.3.0 → 1.0.0) - BREAKING CHANGE';
+              } else if (type === 'alpha') {
+                versionBump = 'alpha (0.3.0 → 0.3.1-alpha.1)';
+              } else if (type === 'beta') {
+                versionBump = 'beta (0.3.0 → 0.3.1-beta.1)';
+              } else if (type === 'rc') {
+                versionBump = 'rc (0.3.0 → 0.3.1-rc.1)';
+              }
+              
+              const message = `
+              ## ✅ PR Title Valid
+              
+              **Title:** \`${prTitle}\`
+              **Type:** \`${type}\`
+              **Version bump:** ${versionBump}
+              
+              When this PR is merged using **"Squash and Merge"**, the version will be automatically bumped.
+              `;
+              
+              core.info(message);
+              
+              // Set output for summary
+              core.summary
+                .addHeading('✅ PR Title Validation Passed', 2)
+                .addRaw(`**Title:** \`${prTitle}\``)
+                .addBreak()
+                .addRaw(`**Type:** \`${type}\``)
+                .addBreak()
+                .addRaw(`**Version bump:** ${versionBump}`)
+                .write();
+              
+              // Set output for dependent jobs
+              core.setOutput('valid', 'true');
+            }
+
+  check-changes:
+    name: Detect Changed Files
+    runs-on: ubuntu-latest
+    needs: pr-title-check
+    if: needs.pr-title-check.outputs.title-valid == 'true'
+    outputs:
+      has-evals: ${{ steps.filter.outputs.evals }}
+      has-docs: ${{ steps.filter.outputs.docs }}
+      has-workflows: ${{ steps.filter.outputs.workflows }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check changed files
+        id: filter
+        run: |
+          # Get list of changed files
+          git fetch origin ${{ github.base_ref }}
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Check for evals changes
+          if echo "$CHANGED_FILES" | grep -q "^evals/"; then
+            echo "has-evals=true" >> $GITHUB_OUTPUT
+            echo "✅ Evals changes detected"
+          else
+            echo "has-evals=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No evals changes"
+          fi
+          
+          # Check for docs changes
+          if echo "$CHANGED_FILES" | grep -q "^docs/"; then
+            echo "has-docs=true" >> $GITHUB_OUTPUT
+            echo "✅ Docs changes detected"
+          else
+            echo "has-docs=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No docs changes"
+          fi
+          
+          # Check for workflow changes
+          if echo "$CHANGED_FILES" | grep -q "^.github/workflows/"; then
+            echo "has-workflows=true" >> $GITHUB_OUTPUT
+            echo "✅ Workflow changes detected"
+          else
+            echo "has-workflows=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No workflow changes"
+          fi
+
+  build-check:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [pr-title-check, check-changes]
+    if: |
+      needs.pr-title-check.outputs.title-valid == 'true' &&
+      needs.check-changes.outputs.has-evals == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'evals/framework/package-lock.json'
+      
+      - name: Install dependencies
+        working-directory: evals/framework
+        run: npm ci
+      
+      - name: Build framework
+        working-directory: evals/framework
+        run: npm run build
+      
+      - name: Validate test suites
+        working-directory: evals/framework
+        run: npm run validate:suites:all
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✅ Build Check Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ TypeScript compilation successful" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Test suite validation passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Full agent tests are not run on PRs to save time and costs." >> $GITHUB_STEP_SUMMARY
+          echo "Maintainers can run \`npm run test:ci\` locally if needed." >> $GITHUB_STEP_SUMMARY
+      
+      - name: Failure summary
+        if: failure()
+        run: |
+          echo "## ❌ Build Check Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Common fixes:**" >> $GITHUB_STEP_SUMMARY
+          echo "- TypeScript errors: Fix type issues in \`evals/framework/src/\`" >> $GITHUB_STEP_SUMMARY
+          echo "- YAML validation: Check test files in \`evals/agents/*/tests/\`" >> $GITHUB_STEP_SUMMARY
+
+  summary:
+    name: PR Checks Summary
+    runs-on: ubuntu-latest
+    needs: [pr-title-check, check-changes, build-check]
+    if: always()
+    
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 📊 PR Checks Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # PR Title Check
+          if [ "${{ needs.pr-title-check.result }}" == "success" ]; then
+            echo "✅ **PR Title:** Valid conventional commit format" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **PR Title:** Invalid format - please fix" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Changed Files Detection
+          if [ "${{ needs.check-changes.result }}" == "success" ]; then
+            echo "✅ **Changed Files:** Detected successfully" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${{ needs.check-changes.outputs.has-evals }}" == "true" ]; then
+              echo "  - 📦 Evals changes detected" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            if [ "${{ needs.check-changes.outputs.has-docs }}" == "true" ]; then
+              echo "  - 📚 Docs changes detected" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            if [ "${{ needs.check-changes.outputs.has-workflows }}" == "true" ]; then
+              echo "  - ⚙️ Workflow changes detected" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⏭️ **Changed Files:** Skipped (title validation failed)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Build Check
+          if [ "${{ needs.build-check.result }}" == "success" ]; then
+            echo "✅ **Build & Validate:** Passed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.build-check.result }}" == "skipped" ]; then
+            echo "⏭️ **Build & Validate:** Skipped (no evals changes)" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.build-check.result }}" == "failure" ]; then
+            echo "❌ **Build & Validate:** Failed - check logs" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall status
+          if [ "${{ needs.pr-title-check.result }}" == "success" ] && \
+             ([ "${{ needs.build-check.result }}" == "success" ] || [ "${{ needs.build-check.result }}" == "skipped" ]); then
+            echo "### ✅ All Required Checks Passed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "This PR is ready for review." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Some Checks Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix the failing checks before merging." >> $GITHUB_STEP_SUMMARY
+          fi

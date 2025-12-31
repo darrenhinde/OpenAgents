@@ -1,6 +1,6 @@
 {
   "name": "@opencode-agents/eval-framework",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Evaluation framework for OpenCode agents",
   "main": "dist/index.js",
@@ -16,8 +16,11 @@
     "eval": "node dist/cli.js",
     "report": "node dist/cli.js report",
     "eval:sdk": "tsx src/sdk/run-sdk-tests.ts",
+    "eval:sdk:core": "tsx src/sdk/run-sdk-tests.ts --core",
     "eval:sdk:debug": "tsx src/sdk/run-sdk-tests.ts --debug",
-    "eval:sdk:interactive": "tsx src/sdk/run-sdk-tests.ts --interactive"
+    "eval:sdk:interactive": "tsx src/sdk/run-sdk-tests.ts --interactive",
+    "validate:suites": "tsx src/sdk/validate-suites-cli.ts",
+    "validate:suites:all": "tsx src/sdk/validate-suites-cli.ts --all"
   },
   "keywords": [
     "opencode",
@@ -42,6 +45,6 @@
     "eslint": "^8.54.0",
     "tsx": "^4.20.6",
     "typescript": "^5.3.0",
-    "vitest": "^1.0.0"
+    "vitest": "^1.6.1"
   }
 }

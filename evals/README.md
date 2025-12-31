@@ -1,354 +1,244 @@
-# OpenCode Agent Evaluation Framework
+# Agent Evaluation Framework
 
-Comprehensive SDK-based evaluation framework for testing OpenCode agents with real execution, event streaming, and automated violation detection.
+Test and validate agent behavior with automated evaluations.
 
----
-
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 cd evals/framework
-npm install
-npm run build
 
-# Run all tests (free model by default)
-npm run eval:sdk
+# Run golden tests (baseline - 8 tests, ~2-3 min)
+npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml"
 
-# Run specific agent
-npm run eval:sdk -- --agent=openagent
-npm run eval:sdk -- --agent=opencoder
+# Run a specific test
+npm run eval:sdk -- --agent=openagent --pattern="**/smoke-test.yaml"
 
-# View results dashboard
-cd ../results && ./serve.sh
+# Run with debug output (includes multi-agent logging)
+npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml" --debug
 ```
 
-**📖 New to the framework?** Start with [GETTING_STARTED.md](GETTING_STARTED.md)
+## ✨ New Features
 
----
-
-## 📊 Current Status
-
-### Test Coverage
-
-| Agent | Tests | Pass Rate | Status |
-|-------|-------|-----------|--------|
-| **OpenAgent** | 22 tests | 100% | ✅ Production Ready |
-| **Opencoder** | 4 tests | 100% | ✅ Production Ready |
-
-### Recent Achievements (Nov 26, 2025)
-
-✅ **Context Loading Tests** - 5 comprehensive tests (3 simple, 2 complex multi-turn)  
-✅ **Smart Timeout System** - Activity monitoring with absolute max timeout  
-✅ **Fixed Context Evaluator** - Properly detects context files in multi-turn sessions  
-✅ **Batch Test Runner** - Run tests in controlled batches to avoid API limits  
-✅ **Results Dashboard** - Interactive web dashboard with filtering and charts
-
----
-
-## 📁 Directory Structure
+### Multi-Agent Logging (Dec 2025)
+Beautiful hierarchical logging shows parent-child delegation chains:
 
 ```
-evals/
-├── framework/                    # Core evaluation framework
-│   ├── src/
-│   │   ├── sdk/                 # SDK-based test runner
-│   │   ├── collector/           # Session data collection
-│   │   ├── evaluators/          # Rule violation detection
-│   │   └── types/               # TypeScript types
-│   ├── docs/                    # Framework documentation
-│   ├── scripts/utils/run-tests-batch.sh       # Batch test runner
-│   └── README.md                # Framework docs
-│
-├── agents/                      # Agent-specific test suites
-│   ├── openagent/               # OpenAgent tests
-│   │   ├── tests/
-│   │   │   ├── context-loading/ # Context loading tests (NEW)
-│   │   │   ├── developer/       # Developer workflow tests
-│   │   │   ├── business/        # Business analysis tests
-│   │   │   └── edge-case/       # Edge case tests
-│   │   ├── CONTEXT_LOADING_COVERAGE.md
-│   │   ├── IMPLEMENTATION_SUMMARY.md
-│   │   └── README.md
-│   │
-│   ├── opencoder/               # Opencoder tests
-│   │   ├── tests/developer/
-│   │   └── README.md
-│   │
-│   └── shared/                  # Shared test utilities
-│
-├── results/                     # Test results & dashboard
-│   ├── history/                 # Historical results (60-day retention)
-│   ├── index.html               # Interactive dashboard
-│   ├── serve.sh                 # One-command server
-│   ├── latest.json              # Latest test results
-│   └── README.md
-│
-├── test_tmp/                    # Temporary test files (auto-cleaned)
-│
-├── GETTING_STARTED.md           # Quick start guide (START HERE)
-├── HOW_TESTS_WORK.md            # Detailed test execution guide
-├── ARCHITECTURE.md              # System architecture review
-└── README.md                    # This file
+┌────────────────────────────────────────────────────────────┐
+│ 🎯 PARENT: OpenAgent (ses_xxx...)                          │
+└────────────────────────────────────────────────────────────┘
+  
+  ┌────────────────────────────────────────────────────────────┐
+  │ 🎯 CHILD: simple-responder (ses_yyy...)                    │
+  │    Parent: ses_xxx...                                      │
+  │    Depth: 1                                                │
+  └────────────────────────────────────────────────────────────┘
+  
+  ✅ CHILD COMPLETE (2.9s)
+✅ PARENT COMPLETE (20.9s)
 ```
 
----
+Enable with `--debug` flag. See [MULTI_AGENT_LOGGING_COMPLETE.md](MULTI_AGENT_LOGGING_COMPLETE.md) for details.
 
-## 🎯 Key Features
+### Performance Improvements (Dec 2025)
+- **10-20% faster tests** - Grace period reduced from 5s to 2s
+- **Performance metrics** - Automatic collection of tool latencies, inference time
+- **37 unit tests** - Complete test coverage for logging system
 
-### ✅ SDK-Based Execution
-- Uses official `@opencode-ai/sdk` for real agent interaction
-- Real-time event streaming (10+ events per test)
-- Actual session recording to disk
+## Golden Tests
 
-### ✅ Cost-Aware Testing
-- **FREE by default** - Uses `opencode/grok-code-fast` (OpenCode Zen)
-- Override per-test or via CLI: `--model=provider/model`
-- No accidental API costs during development
+8 curated tests that validate core agent behaviors:
 
-### ✅ Smart Timeout System (NEW)
-- Activity monitoring - extends timeout while agent is working
-- Base timeout: 300s (5 min) of inactivity
-- Absolute max: 600s (10 min) hard limit
-- Prevents false timeouts on complex multi-turn tests
-
-### ✅ Context Loading Validation (NEW)
-- 5 comprehensive tests covering simple and complex scenarios
-- Verifies context files loaded before execution
-- Multi-turn conversation support
-- Proper file path extraction from SDK events
-
-### ✅ Rule-Based Validation
-- 4 evaluators check compliance with agent rules
-- Tests behavior (tool usage, approvals) not style
-- Model-agnostic test design
-
-### ✅ Results Tracking & Visualization
-- Type-safe JSON result generation
-- Interactive web dashboard with filtering
-- Pass rate trend charts
-- CSV export functionality
-- 60-day retention policy
-
----
-
-## 📚 Documentation
-
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| **[GETTING_STARTED.md](GETTING_STARTED.md)** | Quick start guide | New users |
-| **[HOW_TESTS_WORK.md](HOW_TESTS_WORK.md)** | Test execution details | Test authors |
-| **[ARCHITECTURE.md](ARCHITECTURE.md)** | System architecture | Developers |
-| **[framework/SDK_EVAL_README.md](framework/SDK_EVAL_README.md)** | Complete SDK guide | All users |
-| **[framework/docs/test-design-guide.md](framework/docs/test-design-guide.md)** | Test design philosophy | Test authors |
-| **[agents/openagent/CONTEXT_LOADING_COVERAGE.md](agents/openagent/CONTEXT_LOADING_COVERAGE.md)** | Context loading tests | OpenAgent users |
-| **[agents/openagent/IMPLEMENTATION_SUMMARY.md](agents/openagent/IMPLEMENTATION_SUMMARY.md)** | Recent implementation | Developers |
-
----
-
-## 🔧 Agent Differences
-
-| Feature | OpenAgent | Opencoder |
-|---------|-----------|-----------|
-| **Approval** | Text-based + tool permissions | Tool permissions only |
-| **Workflow** | Analyze→Approve→Execute→Validate | Direct execution |
-| **Context** | Mandatory before execution | On-demand |
-| **Test Style** | Multi-turn (approval flow) | Single prompt |
-| **Timeout** | 300s (smart timeout) | 60s (standard) |
-
----
-
-## 🎨 Usage Examples
-
-### Run Tests
+| Test | What It Validates |
+|------|-------------------|
+| 01-smoke-test | **Agent & subagent delegation** (multi-agent) |
+| 02-context-loading | Agent reads context before answering |
+| 03-read-before-write | Agent inspects before modifying |
+| 04-write-with-approval | Agent asks before writing |
+| 05-multi-turn-context | Agent remembers conversation |
+| 06-task-breakdown | Agent reads standards before implementing |
+| 07-tool-selection | Agent uses dedicated tools (not bash) |
+| 08-error-handling | Agent handles errors gracefully |
 
 ```bash
-# All tests with free model
-npm run eval:sdk
-
-# Specific category
-npm run eval:sdk -- --pattern="context-loading/*.yaml"
-
-# Custom model
-npm run eval:sdk -- --model=anthropic/claude-3-5-sonnet-20241022
-
-# Debug single test
-npm run eval:sdk -- --pattern="ctx-simple-coding-standards.yaml" --debug
-
-# Batch execution (avoid API limits)
-./scripts/utils/run-tests-batch.sh openagent 3 10
+# Run all golden tests
+npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml"
 ```
 
-### View Results
+## Creating Custom Tests
 
-```bash
-# Interactive dashboard (one command!)
-cd results && ./serve.sh
+See **[CREATING_TESTS.md](CREATING_TESTS.md)** for:
+- Test templates (copy and modify)
+- Behavior options (mustUseTools, requiresApproval, etc.)
+- **NEW:** `expectedContextFiles` - Explicitly specify which context files to validate
+- Expected violations
+- Examples
 
-# View JSON
-cat results/latest.json
+### New Feature: Explicit Context File Validation
 
-# Historical results
-ls results/history/2025-11/
-```
-
-### Create New Test
+You can now explicitly specify which context files the agent must read:
 
 ```yaml
-# Example: context-loading/my-test.yaml
-id: my-test-001
-name: "My Test"
-description: What this test validates
-
-category: developer
-agent: openagent
-model: anthropic/claude-sonnet-4-5
-
-prompt: "Your test prompt here"
-
 behavior:
-  mustUseTools: [read]
   requiresContext: true
-  minToolCalls: 1
+  expectedContextFiles:
+    - .opencode/context/core/standards/code.md
+    - standards/code.md
+```
 
-expectedViolations:
-  - rule: context-loading
-    shouldViolate: false
-    severity: error
+See **[agents/shared/tests/EXPLICIT_CONTEXT_FILES.md](agents/shared/tests/EXPLICIT_CONTEXT_FILES.md)** for detailed guide.
+
+Quick example:
+```yaml
+id: my-test
+name: "My Test"
+description: What this tests.
+category: developer
+
+prompts:
+  - text: Read evals/test_tmp/README.md and summarize it.
 
 approvalStrategy:
   type: auto-approve
 
-timeout: 60000
-
-tags:
-  - context-loading
-```
-
-See [GETTING_STARTED.md](GETTING_STARTED.md) for more examples.
-
----
-
-## 🏗️ Framework Components
-
-### SDK Test Runner
-- **ServerManager** - Start/stop opencode server
-- **ClientManager** - Session and prompt management
-- **EventStreamHandler** - Real-time event capture
-- **TestRunner** - Test orchestration with evaluators
-- **ApprovalStrategies** - Auto-approve, deny, smart rules
-
-### Evaluators
-- **ApprovalGateEvaluator** - Checks approval before tool execution
-- **ContextLoadingEvaluator** - Verifies context files loaded first (FIXED)
-- **DelegationEvaluator** - Validates delegation for 4+ files
-- **ToolUsageEvaluator** - Checks bash vs specialized tools
-- **BehaviorEvaluator** - Validates test-specific behavior expectations
-
-### Results System
-- **ResultSaver** - Type-safe JSON generation
-- **Dashboard** - Interactive web visualization
-- **Helper Scripts** - Easy deployment (`serve.sh`)
-
----
-
-## 🔬 Test Schema (v2)
-
-```yaml
-# Behavior expectations (what agent should do)
 behavior:
-  mustUseTools: [read, write]      # Required tools
-  mustUseAnyOf: [[bash], [list]]   # Alternative tools
-  requiresApproval: true            # Must ask for approval
-  requiresContext: true             # Must load context
-  minToolCalls: 2                   # Minimum tool calls
+  mustUseTools: [read]
 
-# Expected violations (what rules to check)
 expectedViolations:
   - rule: approval-gate
-    shouldViolate: false            # Should NOT violate
-    severity: error
-  
-  - rule: context-loading
     shouldViolate: false
     severity: error
+
+timeout: 60000
 ```
 
----
+## Evaluators
 
-## 📈 Recent Improvements
+| Evaluator | What It Checks |
+|-----------|----------------|
+| **approval-gate** | Approval requested before risky operations |
+| **context-loading** | Context files loaded before acting (supports explicit file specification) |
+| **execution-balance** | Read operations before write operations |
+| **tool-usage** | Dedicated tools used instead of bash |
+| **behavior** | Expected tools used, forbidden tools avoided |
+| **delegation** | Complex tasks delegated to subagents |
+| **stop-on-failure** | Agent stops on errors instead of auto-fixing |
 
-### November 26, 2025
+## Directory Structure
 
-1. **Context Loading Tests** (5 tests, 100% passing)
-   - 3 simple tests (single prompt, read-only)
-   - 2 complex tests (multi-turn with file creation)
-   - Comprehensive coverage of context loading scenarios
+```
+evals/
+├── README.md                    # This file
+├── CREATING_TESTS.md           # How to create custom tests
+├── framework/                   # Test runner and evaluators
+│   ├── src/
+│   │   ├── sdk/                # Test execution
+│   │   └── evaluators/         # Rule validators
+│   └── README.md               # Technical details
+├── agents/
+│   ├── shared/tests/
+│   │   ├── golden/             # 8 baseline tests
+│   │   └── templates/          # Test templates
+│   └── core/openagent/tests/   # Agent-specific tests
+├── results/                     # Test results
+│   ├── latest.json
+│   └── index.html              # Dashboard
+└── test_tmp/                    # Temp files (auto-cleaned)
+```
 
-2. **Smart Timeout System**
-   - Activity monitoring prevents false timeouts
-   - Base timeout: 300s inactivity
-   - Absolute max: 600s hard limit
-   - Handles complex multi-turn tests gracefully
+## CLI Options
 
-3. **Fixed Context Loading Evaluator**
-   - Corrected file path extraction (`tool.data.state.input.filePath`)
-   - Multi-turn session support
-   - Checks context for ALL executions, not just first
+```bash
+npm run eval:sdk -- [options]
 
-4. **Batch Test Runner**
-   - `run-tests-batch.sh` script
-   - Configurable batch size and delays
-   - Prevents API rate limits
+Options:
+  --agent=NAME           Agent to test (openagent, opencoder, core/openagent)
+  --subagent=NAME        Test a subagent (coder-agent, tester, reviewer, etc.)
+                         Default: Standalone mode (forces mode: primary)
+  --delegate             Test subagent via parent delegation (requires --subagent)
+  --pattern=GLOB         Test file pattern (default: **/*.yaml)
+  --debug                Enable debug output, keep sessions for inspection
+  --verbose              Show full conversation (prompts + responses) after each test
+                         (automatically enables --debug)
+  --model=PROVIDER/MODEL Override model (default: opencode/grok-code-fast)
+  --timeout=MS           Test timeout (default: 60000)
+  --prompt-variant=NAME  Use specific prompt variant (gpt, gemini, grok, llama)
+                         Auto-detects recommended model from prompt metadata
+  --no-evaluators        Skip running evaluators (faster iteration)
+  --core                 Run core test suite only (7 tests, ~5-8 min)
+```
 
-5. **Results Dashboard**
-   - Interactive web UI with filtering
-   - Pass rate trend charts
-   - CSV export
-   - One-command deployment
+### Examples
 
----
+```bash
+# Run golden tests with verbose output (see full conversations)
+npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml" --verbose
 
-## 🎯 Achievements
+# Test subagent standalone (forces mode: primary)
+npm run eval:sdk -- --subagent=coder-agent
 
-✅ Full SDK integration with `@opencode-ai/sdk@1.0.90`  
-✅ Real-time event streaming (12+ events per test)  
-✅ 5 evaluators integrated and working  
-✅ YAML-based test definitions with Zod validation  
-✅ CLI runner with detailed reporting  
-✅ Free model by default (no API costs)  
-✅ Model-agnostic test design  
-✅ Both positive and negative test support  
-✅ Smart timeout with activity monitoring  
-✅ Context loading validation (100% coverage)  
-✅ Results tracking and visualization  
-✅ Batch execution support
+# Test subagent via delegation (uses parent agent)
+npm run eval:sdk -- --subagent=coder-agent --delegate
 
-**Status:** ✅ Production-ready for OpenAgent & Opencoder evaluation
+# Test with a specific model
+npm run eval:sdk -- --agent=openagent --model=anthropic/claude-3-5-sonnet-20241022
 
----
+# Test with a prompt variant (auto-detects model)
+npm run eval:sdk -- --agent=openagent --prompt-variant=llama
 
-## 🤝 Contributing
+# Quick iteration without evaluators
+npm run eval:sdk -- --agent=openagent --pattern="**/01-smoke-test.yaml" --no-evaluators
+```
 
-See [../docs/contributing/CONTRIBUTING.md](../docs/contributing/CONTRIBUTING.md)
+## Quick Commands (Makefile)
 
----
+From the project root, you can use these shortcuts:
 
-## 📄 License
+```bash
+# Full pipeline: build, validate, run golden tests
+make test-evals
 
-MIT
+# Just run golden tests (8 tests, ~3-5 min)
+make test-golden
 
----
+# Quick smoke test (1 test, ~30s)
+make test-smoke
 
-## 🆘 Support
+# Run with verbose output (see full conversations)
+make test-verbose
 
-- **Getting Started**: [GETTING_STARTED.md](GETTING_STARTED.md)
-- **How Tests Work**: [HOW_TESTS_WORK.md](HOW_TESTS_WORK.md)
-- **Architecture**: [ARCHITECTURE.md](ARCHITECTURE.md)
-- **Issues**: Check documentation or create an issue
+# Test specific agent
+make test-agent AGENT=opencoder
 
----
+# Test subagent (standalone mode)
+make test-subagent SUBAGENT=coder-agent
 
-**Last Updated**: 2025-11-26  
-**Framework Version**: 0.1.0  
-**Test Coverage**: 26 tests (22 OpenAgent, 4 Opencoder)  
-**Pass Rate**: 100%
+# Test subagent (delegation mode)
+make test-subagent-delegate SUBAGENT=coder-agent
+
+# Test with specific model
+make test-model MODEL=anthropic/claude-3-5-sonnet-20241022
+
+# Test with prompt variant
+make test-variant VARIANT=llama
+
+# View results
+make view-results    # Open dashboard in browser
+make show-results    # Show summary in terminal
+```
+
+**For detailed subagent testing guide, see [SUBAGENT_TESTING.md](./SUBAGENT_TESTING.md)**
+
+## Results
+
+Results are saved to `evals/results/`:
+- `latest.json` - Most recent run
+- `history/` - Historical results (by month)
+- `index.html` - Dashboard (open in browser)
+
+```bash
+# View dashboard
+make view-results
+# Or manually:
+cd evals/results && python -m http.server 8080
+# Open http://localhost:8080
+```

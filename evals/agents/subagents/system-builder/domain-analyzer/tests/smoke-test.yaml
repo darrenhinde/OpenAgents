@@ -1,0 +1,37 @@
+id: system-builder-domain-analyzer-smoke-test
+name: "Domain Analyzer: Smoke Test - Basic Operation"
+description: |
+  Basic sanity check that the Domain Analyzer subagent can respond to a simple request.
+  
+  This validates the subagent is properly configured and can execute basic operations.
+  
+  Validates:
+  - Subagent can receive and understand a prompt
+  - Subagent can use basic tools
+  - Subagent responds appropriately
+category: developer
+
+prompts:
+  - text: |
+      Analyze the evals domain and identify one core concept.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - smoke-test
+  - subagent
+  - system-builder-domain-analyzer
+  - safe
+

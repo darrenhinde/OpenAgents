@@ -1,0 +1,10 @@
+agent: meta/repo-manager
+description: "Eval tests for Repository Manager meta agent"
+version: 1.0.0
+test_directory: "../tests"
+timeout: 300000  # 5 minutes for complex tasks
+evaluators:
+  - context_loading
+  - approval_gate
+  - validation
+  - documentation_awareness

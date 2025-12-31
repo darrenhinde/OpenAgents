@@ -1,0 +1,47 @@
+id: core-documentation-update
+name: "Documentation: Update Test - Edit Existing Documentation"
+description: |
+  Tests the documentation subagent's ability to update existing documentation.
+  
+  Validates:
+  - Reads existing documentation first
+  - Proposes specific changes
+  - Requests approval before editing
+  - Makes precise edits
+  - Summarizes changes made
+  
+  Critical Behavior:
+  - MUST read file before editing
+  - MUST request approval before changes
+  - MUST use edit tool (not write)
+  - MUST summarize changes
+category: developer
+
+prompts:
+  - text: |
+      Read evals/test_tmp/README.md and add a new section called "## Test Fixtures"
+      that explains this directory can contain test fixtures. Keep it brief.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - read
+    - edit
+  minToolCalls: 2
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 90000
+
+tags:
+  - documentation
+  - update
+  - edit
+  - core-subagent
+  - approval-required

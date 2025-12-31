@@ -1,215 +1,222 @@
-# Evaluation Framework
+# Evaluation Framework (Technical)
 
-## Overview
-
-Reusable framework for evaluating OpenCode agent behavior. Can be used to test any agent against defined standards.
+Core framework for evaluating agent behavior. For user documentation, see [../README.md](../README.md).
 
 ## Architecture
 
 ```
 framework/
 ├── src/
-│   ├── collector/          # Session data collection
-│   │   ├── session-reader.ts
-│   │   ├── message-parser.ts
-│   │   └── timeline-builder.ts
-│   ├── evaluators/         # Evaluation logic
+│   ├── sdk/                 # Test execution
+│   │   ├── test-runner.ts   # Main orchestrator
+│   │   ├── test-executor.ts # Executes individual tests
+│   │   ├── client-manager.ts
+│   │   └── event-stream-handler.ts
+│   ├── evaluators/          # Rule validators
 │   │   ├── base-evaluator.ts
-│   │   ├── approval-gate.ts
-│   │   ├── context-loading.ts
-│   │   ├── delegation.ts
-│   │   ├── tool-usage.ts
-│   │   └── model-selection.ts
-│   ├── runner/            # Test execution
-│   │   ├── test-runner.ts
-│   │   └── session-analyzer.ts
-│   ├── reporters/         # Result reporting
-│   │   ├── console-reporter.ts
-│   │   ├── json-reporter.ts
-│   │   └── markdown-reporter.ts
-│   ├── types/             # TypeScript types
-│   │   └── index.ts
-│   ├── config.ts          # Configuration
-│   └── index.ts           # Main exports
-├── tests/                 # Framework tests
-├── package.json
-├── tsconfig.json
-└── README.md
+│   │   ├── approval-gate-evaluator.ts
+│   │   ├── context-loading-evaluator.ts
+│   │   ├── execution-balance-evaluator.ts
+│   │   ├── tool-usage-evaluator.ts
+│   │   ├── behavior-evaluator.ts
+│   │   ├── delegation-evaluator.ts
+│   │   ├── stop-on-failure-evaluator.ts
+│   │   └── performance-metrics-evaluator.ts  # NEW
+│   ├── logging/             # Multi-agent logging (NEW)
+│   │   ├── types.ts
+│   │   ├── session-tracker.ts
+│   │   ├── logger.ts
+│   │   ├── formatters.ts
+│   │   ├── index.ts
+│   │   └── __tests__/       # 37 unit tests
+│   ├── collector/           # Session data
+│   │   ├── session-reader.ts
+│   │   └── timeline-builder.ts
+│   └── types/
+│       └── index.ts
+└── package.json
 ```
 
-## Installation
+## Evaluators
+
+### approval-gate
+Checks that approval is requested before risky operations (bash, write, edit, task).
+
+### context-loading
+Verifies context files are loaded before acting on tasks.
+
+**NEW:** Supports explicit context file specification via `expectedContextFiles` in test YAML.
+- Auto-detect mode: Infers expected files from user message keywords
+- Explicit mode: Uses files specified in `behavior.expectedContextFiles`
+
+### execution-balance
+Ensures read operations happen before write operations.
+
+### tool-usage
+Validates dedicated tools are used instead of bash antipatterns.
+
+### behavior
+Checks expected tools are used and forbidden tools are avoided.
+
+### delegation
+Validates complex tasks are delegated to subagents.
+
+### stop-on-failure
+Ensures agent stops on errors instead of auto-fixing.
+
+### performance-metrics (NEW)
+Collects performance data for analysis:
+- Total test duration
+- Tool latencies (avg, min, max per tool)
+- LLM inference time estimation
+- Idle time between events
+- Event distribution
+
+Always passes - used for metrics collection only.
+
+## Multi-Agent Logging (NEW)
+
+The framework now includes comprehensive multi-agent logging that tracks delegation hierarchies in real-time.
+
+### Features
+- **Visual hierarchy** - Box characters and indentation show parent-child relationships (debug mode)
+- **Session tracking** - Tracks all sessions (parent, child, grandchild, etc.)
+- **Real-time capture** - Hooks into SDK event stream for live updates
+- **Non-verbose mode** - Shows child agent execution in normal mode without full debug output
+- **Verbose mode** - Full delegation hierarchy with `--debug` flag
+
+### Usage
+```bash
+# Non-verbose mode (default) - shows child agent completion
+npm run eval:sdk -- --agent=openagent --pattern="**/test.yaml"
+
+# Verbose mode (debug) - shows full delegation hierarchy
+npm run eval:sdk -- --agent=openagent --pattern="**/test.yaml" --debug
+```
+
+### Example Output (Non-Verbose Mode)
+```
+Running tests...
+
+   ✓ Child agent completed (OpenAgent, 2.9s)
+
+Running evaluator: approval-gate...
+```
+
+### Example Output (Verbose Mode - Debug)
+```
+┌────────────────────────────────────────────────────────────┐
+│ 🎯 PARENT: OpenAgent (ses_xxx...)                          │
+└────────────────────────────────────────────────────────────┘
+  🔧 TOOL: task
+     ├─ subagent: simple-responder
+     └─ Creating child session...
+
+  ┌────────────────────────────────────────────────────────────┐
+  │ 🎯 CHILD: simple-responder (ses_yyy...)                    │
+  │    Parent: ses_xxx...                                      │
+  │    Depth: 1                                                │
+  └────────────────────────────────────────────────────────────┘
+    🤖 Agent: AWESOME TESTING
+  ✅ CHILD COMPLETE (2.9s)
+
+✅ PARENT COMPLETE (20.9s)
+```
+
+See [src/logging/README.md](src/logging/README.md) for API documentation.
+
+## Adding an Evaluator
+
+1. Create `src/evaluators/my-evaluator.ts`:
+
+```typescript
+import { BaseEvaluator } from './base-evaluator.js';
+import { TimelineEvent, SessionInfo, EvaluationResult } from '../types/index.js';
+
+export class MyEvaluator extends BaseEvaluator {
+  name = 'my-evaluator';
+  description = 'What this evaluator checks';
+
+  async evaluate(timeline: TimelineEvent[], sessionInfo: SessionInfo): Promise<EvaluationResult> {
+    const checks = [];
+    const violations = [];
+    const evidence = [];
+
+    // Your evaluation logic here
+    const toolCalls = this.getToolCalls(timeline);
+    
+    // Example check
+    const passed = toolCalls.length > 0;
+    checks.push({
+      name: 'has-tool-calls',
+      passed,
+      weight: 100,
+      evidence: [this.createEvidence('tool-count', `Found ${toolCalls.length} tool calls`, {})]
+    });
+
+    if (!passed) {
+      violations.push(this.createViolation(
+        'no-tool-calls',
+        'error',
+        'No tool calls found',
+        Date.now(),
+        {}
+      ));
+    }
+
+    return this.buildResult(this.name, checks, violations, evidence, {});
+  }
+}
+```
+
+2. Register in `test-runner.ts`:
+
+```typescript
+import { MyEvaluator } from '../evaluators/my-evaluator.js';
+
+// In setupEvaluators():
+this.evaluatorRunner = new EvaluatorRunner({
+  evaluators: [
+    // ... existing evaluators
+    new MyEvaluator(),
+  ],
+});
+```
+
+3. Add to test schema in `test-case-schema.ts`:
+
+```typescript
+export const ExpectedViolationSchema = z.object({
+  rule: z.enum([
+    // ... existing rules
+    'my-evaluator',
+  ]),
+  // ...
+});
+```
+
+## Development
 
 ```bash
+# Install
 npm install
+
+# Build
+npm run build
+
+# Run tests
+npm test
+
+# Run SDK tests
+npm run eval:sdk -- --agent=openagent --pattern="**/golden/*.yaml"
 ```
 
-## Usage
-
-### Basic Example
+## Key Types
 
 ```typescript
-import { SessionReader, ApprovalGateEvaluator, TimelineBuilder } from '@evals/framework';
-
-// Read session
-const reader = new SessionReader('/path/to/project');
-const sessionInfo = reader.getSessionInfo('ses_xxxxx');
-const messages = reader.getMessages('ses_xxxxx');
-
-// Build timeline
-const builder = new TimelineBuilder(reader);
-const timeline = builder.buildTimeline('ses_xxxxx');
-
-// Evaluate
-const evaluator = new ApprovalGateEvaluator();
-const result = evaluator.evaluate(timeline);
-
-console.log(`Passed: ${result.passed}`);
-console.log(`Score: ${result.score}/100`);
-console.log(`Violations: ${result.violations.length}`);
-```
-
-### Running Test Suite
-
-```typescript
-import { TestRunner } from '@evals/framework';
-
-const runner = new TestRunner({
-  projectPath: process.cwd(),
-  evaluatorsPath: './src/evaluators',
-  resultsPath: '../results'
-});
-
-// Load test cases
-const testCases = runner.loadTestCases('../opencode/openagent/test-cases/approval-gates.yaml');
-
-// Run tests
-const suite = runner.runAll(testCases);
-
-console.log(`Pass Rate: ${suite.summary.passRate}%`);
-```
-
-## Components
-
-### Collector
-
-**SessionReader** - Read OpenCode session files
-```typescript
-const reader = new SessionReader(projectPath);
-const info = reader.getSessionInfo(sessionId);
-const messages = reader.getMessages(sessionId);
-const parts = reader.getParts(sessionId, messageId);
-```
-
-**MessageParser** - Parse message structure
-```typescript
-const parser = new MessageParser();
-const agent = parser.getAgent(message);
-const model = parser.getModel(message);
-const metrics = parser.getMetrics(message);
-```
-
-**TimelineBuilder** - Build event timeline
-```typescript
-const builder = new TimelineBuilder(reader);
-const timeline = builder.buildTimeline(sessionId);
-const toolCalls = builder.filterByType(timeline, 'tool_call');
-```
-
-### Evaluators
-
-All evaluators extend `BaseEvaluator` and implement:
-```typescript
-evaluate(timeline: TimelineEvent[]): EvaluationResult
-```
-
-**ApprovalGateEvaluator** - Check approval before execution
-```typescript
-const evaluator = new ApprovalGateEvaluator();
-const result = evaluator.evaluate(timeline);
-```
-
-**ContextLoadingEvaluator** - Verify context loading
-```typescript
-const evaluator = new ContextLoadingEvaluator();
-const result = evaluator.evaluate(timeline);
-```
-
-**DelegationEvaluator** - Validate delegation decisions
-```typescript
-const evaluator = new DelegationEvaluator();
-const result = evaluator.evaluate(timeline);
-```
-
-**ToolUsageEvaluator** - Check tool selection
-```typescript
-const evaluator = new ToolUsageEvaluator();
-const result = evaluator.evaluate(timeline);
-```
-
-### Runner
-
-**TestRunner** - Execute test suites
-```typescript
-const runner = new TestRunner(config);
-const testCases = runner.loadTestCases(path);
-const suite = runner.runAll(testCases);
-```
-
-**SessionAnalyzer** - Analyze historical sessions
-```typescript
-const analyzer = new SessionAnalyzer(reader);
-const result = analyzer.analyze(sessionId, testCase);
-```
-
-### Reporters
-
-**ConsoleReporter** - Pretty console output
-```typescript
-const reporter = new ConsoleReporter();
-reporter.report(testSuite);
-```
-
-**JSONReporter** - Machine-readable JSON
-```typescript
-const reporter = new JSONReporter();
-reporter.export(testSuite, 'results.json');
-```
-
-**MarkdownReporter** - Documentation format
-```typescript
-const reporter = new MarkdownReporter();
-reporter.generate(testSuite, 'report.md');
-```
-
-## Types
-
-### Core Types
-
-```typescript
-interface SessionInfo {
-  id: string;
-  version: string;
-  title: string;
-  time: { created: number; updated: number };
-}
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  sessionID: string;
-  mode?: string;
-  modelID?: string;
-  providerID?: string;
-  tokens?: TokenUsage;
-  cost?: number;
-  time: { created: number; completed?: number };
-}
-
 interface TimelineEvent {
   timestamp: number;
-  type: 'user_message' | 'assistant_message' | 'tool_call' | 'patch';
-  agent?: string;
-  model?: string;
+  type: 'user_message' | 'assistant_message' | 'tool_call' | 'text';
   data: any;
 }
 
@@ -219,153 +226,42 @@ interface EvaluationResult {
   score: number;
   violations: Violation[];
   evidence: Evidence[];
+  checks: Check[];
 }
 
-interface TestResult {
-  testCaseId: string;
-  sessionId: string;
-  passed: boolean;
-  score: number;
-  evaluationResults: EvaluationResult[];
-  metadata: any;
+interface Violation {
+  type: string;
+  severity: 'error' | 'warning' | 'info';
+  message: string;
+  timestamp: number;
+  evidence?: any;
 }
 ```
 
-## Configuration
+## Base Evaluator Helpers
 
 ```typescript
-// config.ts
-export const config = {
-  projectPath: process.cwd(),
-  sessionStoragePath: '~/.local/share/opencode/',
-  resultsPath: '../results/',
-  passThreshold: 75,
-  evaluators: {
-    'approval-gate': ApprovalGateEvaluator,
-    'context-loading': ContextLoadingEvaluator,
-    'delegation': DelegationEvaluator,
-    'tool-usage': ToolUsageEvaluator,
-  }
-};
+// Get all tool calls
+const toolCalls = this.getToolCalls(timeline);
+
+// Get specific tool calls
+const bashCalls = this.getToolCallsByName(timeline, 'bash');
+
+// Get assistant messages
+const messages = this.getAssistantMessages(timeline);
+
+// Get read tools (read, glob, grep, list)
+const reads = this.getReadTools(timeline);
+
+// Get execution tools (bash, write, edit, task)
+const executions = this.getExecutionTools(timeline);
+
+// Create violation
+this.createViolation(type, severity, message, timestamp, evidence);
+
+// Create evidence
+this.createEvidence(type, description, data, timestamp?);
+
+// Build result
+this.buildResult(name, checks, violations, evidence, metadata);
 ```
-
-## Development
-
-### Setup
-
-```bash
-npm install
-npm run build
-```
-
-### Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run specific test
-npm test -- session-reader
-
-# Watch mode
-npm run test:watch
-```
-
-### Building
-
-```bash
-# Build TypeScript
-npm run build
-
-# Watch mode
-npm run build:watch
-```
-
-### Linting
-
-```bash
-npm run lint
-npm run lint:fix
-```
-
-## Adding New Evaluators
-
-1. Create file in `src/evaluators/`
-2. Extend `BaseEvaluator`
-3. Implement `evaluate()` method
-4. Add tests
-5. Register in config
-6. Export from `index.ts`
-
-**Example:**
-```typescript
-// src/evaluators/my-evaluator.ts
-import { BaseEvaluator } from './base-evaluator';
-import { EvaluationResult, TimelineEvent } from '../types';
-
-export class MyEvaluator extends BaseEvaluator {
-  evaluate(timeline: TimelineEvent[]): EvaluationResult {
-    // Your evaluation logic
-    const checks = [
-      { name: 'check1', passed: true, weight: 50 },
-      { name: 'check2', passed: false, weight: 50 }
-    ];
-    
-    const score = this.calculateScore(checks);
-    const violations = this.findViolations(timeline);
-    
-    return {
-      evaluator: 'my-evaluator',
-      passed: score >= 75,
-      score,
-      violations,
-      evidence: []
-    };
-  }
-}
-```
-
-## API Reference
-
-See [API.md](./API.md) for complete API documentation.
-
-## Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Add tests
-4. Submit pull request
-
-## License
-
-MIT
-
----
-
-## Scripts
-
-Development and debugging scripts are organized in the `scripts/` directory:
-
-```
-scripts/
-├── debug/          # Session and event debugging
-├── test/           # Framework component tests
-├── utils/          # Utility scripts (batch runner, etc.)
-└── README.md       # Script documentation
-```
-
-See [scripts/README.md](scripts/README.md) for detailed usage.
-
-### Quick Examples
-
-```bash
-# Run tests in batches
-./scripts/utils/run-tests-batch.sh openagent 3 10
-
-# Debug a session
-node scripts/debug/inspect-session.mjs
-
-# Test framework component
-npx tsx scripts/test/test-timeline.ts
-```
-

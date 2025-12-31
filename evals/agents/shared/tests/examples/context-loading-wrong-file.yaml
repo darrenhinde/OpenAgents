@@ -1,0 +1,49 @@
+id: example-context-loading-wrong-file
+name: "Example: Context Loading - Wrong File Detection"
+description: |
+  This test demonstrates the explicit context file validation.
+  
+  The test asks about coding standards (expects code.md) but
+  explicitly tells the agent to read docs.md instead.
+  
+  Expected behavior:
+  - Agent reads docs.md (as instructed)
+  - Evaluator detects wrong file was read
+  - Test FAILS with "wrong-context-file" violation
+  
+  This shows that the evaluator validates the SPECIFIC file,
+  not just "any context file".
+  
+  Use this test to verify the evaluator is working correctly.
+category: developer
+
+prompts:
+  - text: |
+      What are the coding standards? 
+      Read the file .opencode/context/core/standards/docs.md and tell me what it says.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [read]
+  requiresContext: true
+  
+  # Expect code.md, but agent will read docs.md (wrong file)
+  expectedContextFiles:
+    - .opencode/context/core/standards/code.md
+    - standards/code.md
+    - code.md
+
+expectedViolations:
+  - rule: context-loading
+    shouldViolate: true  # We EXPECT this to violate (wrong file)
+    severity: error
+
+timeout: 60000
+
+tags:
+  - example
+  - context-loading
+  - negative-test
+  - wrong-file

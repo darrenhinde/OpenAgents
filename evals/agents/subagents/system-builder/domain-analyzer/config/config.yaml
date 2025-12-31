@@ -1,0 +1,13 @@
+# Domain Analyzer - Domain concept analysis Test Configuration
+# Subagent path format
+
+agent: subagents/system-builder/domain-analyzer
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - standalone
+  - delegation
+

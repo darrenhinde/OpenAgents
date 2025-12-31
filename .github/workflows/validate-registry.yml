@@ -1,16 +1,34 @@
 name: Validate Registry on PR
 
+# This workflow validates the registry.json and prompt library structure on all PRs.
+# 
+# For bot-created PRs (like automated version bumps), the workflow won't trigger automatically
+# due to GitHub's security restrictions. In those cases, you can manually trigger this workflow:
+#
+# 1. Go to Actions > Validate Registry on PR > Run workflow
+# 2. Enter the PR number (e.g., 57)
+# 3. Click "Run workflow"
+#
+# This will run the validation checks and report the status to the PR.
+
 on:
   pull_request:
     branches:
       - main
       - dev
-    paths:
-      - '.opencode/**'
-      - 'registry.json'
-      - 'scripts/validate-registry.sh'
-      - 'scripts/auto-detect-components.sh'
+    # Removed paths filter - this check is required by repository ruleset
+    # so it must run on ALL PRs to prevent blocking merges
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to validate (for manual runs on bot-created PRs)'
+        required: false
+        type: number
+      skip_validation:
+        description: 'Skip validation checks (maintainer override)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -21,12 +39,43 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Get PR details (for manual runs)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != ''
+        id: get_pr
+        run: |
+          PR_DATA=$(gh pr view ${{ github.event.inputs.pr_number }} --json headRefName,headRepository,headRepositoryOwner)
+          echo "head_ref=$(echo $PR_DATA | jq -r '.headRefName')" >> $GITHUB_OUTPUT
+          echo "head_repo=$(echo $PR_DATA | jq -r '.headRepositoryOwner.login + "/" + .headRepository.name')" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          # For manual runs: use PR details from get_pr step
+          # For PR events: use event data
+          repository: ${{ github.event_name == 'workflow_dispatch' && steps.get_pr.outputs.head_repo || github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && steps.get_pr.outputs.head_ref || github.event.pull_request.head.ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Detect fork PR
+        id: fork_check
+        run: |
+          # For manual runs, use the fetched PR data
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            HEAD_REPO="${{ steps.get_pr.outputs.head_repo }}"
+          else
+            HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
+          fi
+          
+          if [ "$HEAD_REPO" != "${{ github.repository }}" ]; then
+            echo "is_fork=true" >> $GITHUB_OUTPUT
+            echo "🔀 Fork PR detected from: $HEAD_REPO"
+          else
+            echo "is_fork=false" >> $GITHUB_OUTPUT
+            echo "📝 Internal PR detected"
+          fi
       
       - name: Install dependencies
         run: |
@@ -35,9 +84,10 @@ jobs:
       
       - name: Make scripts executable
         run: |
-          chmod +x scripts/validate-registry.sh
-          chmod +x scripts/auto-detect-components.sh
-          chmod +x scripts/register-component.sh
+          chmod +x scripts/registry/validate-registry.sh
+          chmod +x scripts/registry/auto-detect-components.sh
+          chmod +x scripts/registry/register-component.sh
+          chmod +x scripts/prompts/validate-pr.sh
       
       - name: Auto-detect new components
         id: auto_detect
@@ -46,7 +96,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Run auto-detect in dry-run mode first to see what would be added
-          if ./scripts/auto-detect-components.sh --dry-run > /tmp/detect-output.txt 2>&1; then
+          if ./scripts/registry/auto-detect-components.sh --dry-run > /tmp/detect-output.txt 2>&1; then
             cat /tmp/detect-output.txt >> $GITHUB_STEP_SUMMARY
             
             # Check if new components were found
@@ -69,7 +119,38 @@ jobs:
           echo "## 📝 Adding New Components" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          ./scripts/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
+          ./scripts/registry/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
+      
+      - name: Validate prompt library structure
+        id: validate_prompts
+        run: |
+          echo "## 🔍 Prompt Library Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if ./scripts/prompts/validate-pr.sh > /tmp/prompt-validation.txt 2>&1; then
+            echo "prompt_validation=passed" >> $GITHUB_OUTPUT
+            echo "✅ Prompt library structure is valid!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/prompt-validation.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "prompt_validation=failed" >> $GITHUB_OUTPUT
+            echo "❌ Prompt library validation failed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/prompt-validation.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Architecture:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Agent files (.opencode/agent/**/*.md) = Canonical defaults" >> $GITHUB_STEP_SUMMARY
+            echo "- Prompt variants (.opencode/prompts/<agent>/<model>.md) = Model-specific" >> $GITHUB_STEP_SUMMARY
+            echo "- default.md files should NOT exist" >> $GITHUB_STEP_SUMMARY
+            echo "- Agents organized in category subdirectories (core/, development/, content/, etc.)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See [CONTRIBUTING.md](docs/contributing/CONTRIBUTING.md) for details" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
       
       - name: Validate registry
         id: validate
@@ -77,7 +158,7 @@ jobs:
           echo "## ✅ Registry Validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if ./scripts/validate-registry.sh -v > /tmp/validation-output.txt 2>&1; then
+          if ./scripts/registry/validate-registry.sh -v > /tmp/validation-output.txt 2>&1; then
             echo "validation=passed" >> $GITHUB_OUTPUT
             echo "✅ All registry paths are valid!" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -94,8 +175,12 @@ jobs:
             exit 1
           fi
       
-      - name: Commit registry updates
-        if: steps.auto_detect.outputs.new_components == 'true'
+      - name: Commit registry updates (Internal PRs only)
+        if: |
+          steps.fork_check.outputs.is_fork == 'false' &&
+          steps.auto_detect.outputs.new_components == 'true' &&
+          steps.validate_prompts.outputs.prompt_validation == 'passed' &&
+          steps.validate.outputs.validation == 'passed'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -103,12 +188,65 @@ jobs:
           if ! git diff --quiet registry.json; then
             git add registry.json
             git commit -m "chore: auto-update registry with new components [skip ci]"
-            git push origin ${{ github.head_ref }}
+            
+            # For manual runs, use the fetched branch name
+            BRANCH_NAME="${{ github.event_name == 'workflow_dispatch' && steps.get_pr.outputs.head_ref || github.event.pull_request.head.ref }}"
+            git push origin "$BRANCH_NAME"
             
             echo "## 🚀 Registry Updated" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Registry has been automatically updated with new components." >> $GITHUB_STEP_SUMMARY
             echo "Changes have been pushed to this PR branch." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ℹ️ No Changes to Commit" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Registry is already up to date." >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Fork PR notice
+        if: |
+          steps.fork_check.outputs.is_fork == 'true' &&
+          steps.auto_detect.outputs.new_components == 'true' &&
+          steps.validate_prompts.outputs.prompt_validation == 'passed' &&
+          steps.validate.outputs.validation == 'passed'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📝 Registry Update Needed
+            
+            Hi @${{ github.event.pull_request.user.login }}! 👋
+            
+            New components were detected in your PR. Since this is a fork PR, I can't auto-commit the registry updates for security reasons.
+            
+            **Please run these commands locally:**
+            \`\`\`bash
+            ./scripts/registry/auto-detect-components.sh --auto-add
+            git add registry.json
+            git commit -m "chore: update registry"
+            git push
+            \`\`\`
+            
+            Once you push the updated registry, the checks will pass! ✅`
+            });
+      
+      - name: Fork PR summary
+        if: steps.fork_check.outputs.is_fork == 'true'
+        run: |
+          echo "## 🔀 Fork PR Detected" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This is an external contribution - thank you! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.auto_detect.outputs.new_components }}" == "true" ]; then
+            echo "⚠️ **Action Required:** New components detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "A comment has been posted with instructions to update the registry." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No registry updates needed" >> $GITHUB_STEP_SUMMARY
           fi
       
       - name: Post validation summary
@@ -118,24 +256,41 @@ jobs:
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ steps.validate.outputs.validation }}" = "passed" ]; then
-            echo "### ✅ Validation Passed" >> $GITHUB_STEP_SUMMARY
+          PROMPT_VALID="${{ steps.validate_prompts.outputs.prompt_validation }}"
+          REGISTRY_VALID="${{ steps.validate.outputs.validation }}"
+          
+          if [ "$PROMPT_VALID" = "passed" ] && [ "$REGISTRY_VALID" = "passed" ]; then
+            echo "### ✅ All Validations Passed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "All registry paths are valid and point to existing files." >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Prompt library structure is valid" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Registry paths are valid" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
             echo "This PR is ready for review!" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ❌ Validation Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Registry validation failed. Please fix the issues above." >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$PROMPT_VALID" != "passed" ]; then
+              echo "- ❌ Prompt library validation failed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ✅ Prompt library validation passed" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            if [ "$REGISTRY_VALID" != "passed" ]; then
+              echo "- ❌ Registry validation failed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ✅ Registry validation passed" >> $GITHUB_STEP_SUMMARY
+            fi
+            
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Common fixes:**" >> $GITHUB_STEP_SUMMARY
-            echo "- Update paths in registry.json to match actual file locations" >> $GITHUB_STEP_SUMMARY
-            echo "- Remove entries for deleted files" >> $GITHUB_STEP_SUMMARY
-            echo "- Run \`./scripts/validate-registry.sh --fix\` locally for suggestions" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix the issues above before merging." >> $GITHUB_STEP_SUMMARY
           fi
       
       - name: Fail if validation failed
-        if: steps.validate.outputs.validation == 'failed'
+        if: |
+          (steps.validate_prompts.outputs.prompt_validation == 'failed' || steps.validate.outputs.validation == 'failed') &&
+          github.event.inputs.skip_validation != 'true'
         run: |
-          echo "❌ Registry validation failed - blocking PR merge"
+          echo "❌ Validation failed - blocking PR merge"
+          echo "Maintainer can override by running workflow manually with 'skip_validation' enabled"
           exit 1

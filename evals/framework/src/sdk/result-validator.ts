@@ -146,11 +146,14 @@ export class ResultValidator {
       // Map rule names to violation type patterns
       const rulePatterns: Record<string, string[]> = {
         'approval-gate': ['approval', 'missing-approval'],
-        'context-loading': ['context', 'no-context-loaded', 'missing-context'],
+        'context-loading': ['context', 'no-context-loaded', 'missing-context', 'wrong-context-file'],
         'delegation': ['delegation', 'missing-delegation'],
         'tool-usage': ['tool', 'suboptimal-tool'],
         'stop-on-failure': ['stop', 'failure'],
         'confirm-cleanup': ['cleanup', 'confirm'],
+        'cleanup-confirmation': ['cleanup', 'confirm'],
+        'execution-balance': ['execution-balance', 'insufficient-read', 'execution-before-read', 'read-exec-ratio'],
+        'report-first': ['report-first', 'report'],
       };
 
       const patterns = rulePatterns[expectedViolation.rule] || [expectedViolation.rule];
@@ -160,20 +163,21 @@ export class ResultValidator {
       );
 
       if (expectedViolation.shouldViolate) {
-        // Negative test: Should have violation
+        // Negative test: Should have violation (this is expected behavior)
         if (actualViolations.length === 0) {
-          this.logger.log(`Expected ${expectedViolation.rule} violation but none found`);
+          this.logger.log(`❌ Expected ${expectedViolation.rule} violation but none found`);
           return false;
         }
-        this.logger.log(`✓ Expected violation '${expectedViolation.rule}' found`);
+        this.logger.log(`✓ Expected violation '${expectedViolation.rule}' found (as designed)`);
         // Mark these violations as expected so we don't fail on them later
         actualViolations.forEach(v => expectedViolationTypes.add(v.type));
       } else {
         // Positive test: Should NOT have violation
         if (actualViolations.length > 0) {
-          this.logger.log(`Unexpected ${expectedViolation.rule} violation found: ${actualViolations[0].message}`);
+          this.logger.log(`❌ Unexpected ${expectedViolation.rule} violation: ${actualViolations[0].message}`);
           return false;
         }
+        this.logger.log(`✓ No ${expectedViolation.rule} violation (as expected)`);
       }
     }
 

@@ -1,0 +1,41 @@
+id: tool-usage-validation
+name: Tool Usage Validation (Positive Test)
+description: |
+  Tests the tool-usage evaluator by having the agent use read tool.
+  The tool-usage evaluator checks that agents use specialized tools
+  instead of bash antipatterns (cat, head, tail, find, etc).
+  
+  This test validates:
+  - Agent uses 'read' tool (not 'cat' via bash)
+  - No bash antipatterns detected
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Read the contents of the file evals/test_tmp/README.md and tell me what it says.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  # Read is a safe operation - most agents will do it without approval
+  mustUseTools:
+    - read
+  mustNotUseTools:
+    - bash
+  minToolCalls: 1
+  maxToolCalls: 5
+
+expectedViolations:
+  # Should NOT have tool-usage violations (agent uses read, not cat)
+  - rule: tool-usage
+    shouldViolate: false
+    severity: warning
+
+timeout: 60000
+
+tags:
+  - tool-usage
+  - read-operation
+  - positive-test

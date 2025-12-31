@@ -1,0 +1,13 @@
+# Tester - Test authoring and TDD Test Configuration
+# Subagent path format
+
+agent: subagents/code/tester
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - standalone
+  - delegation
+

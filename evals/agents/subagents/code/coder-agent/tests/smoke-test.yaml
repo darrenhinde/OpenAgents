@@ -1,0 +1,37 @@
+id: code-coder-agent-smoke-test
+name: "Coder Agent: Smoke Test - Basic Operation"
+description: |
+  Basic sanity check that the Coder Agent subagent can respond to a simple request.
+  
+  This validates the subagent is properly configured and can execute basic operations.
+  
+  Validates:
+  - Subagent can receive and understand a prompt
+  - Subagent can use basic tools
+  - Subagent responds appropriately
+category: developer
+
+prompts:
+  - text: |
+      Read the file evals/test_tmp/README.md and summarize it in one sentence.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  minToolCalls: 1
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+
+timeout: 60000
+
+tags:
+  - smoke-test
+  - subagent
+  - code-coder-agent
+  - safe
+

@@ -1,0 +1,13 @@
+# Image Specialist - Image editing and analysis Test Configuration
+# Subagent path format
+
+agent: subagents/utils/image-specialist
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - standalone
+  - delegation
+

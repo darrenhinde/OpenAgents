@@ -1,0 +1,13 @@
+# Task Manager - Task breakdown and management Test Configuration
+# Subagent path format
+
+agent: subagents/core/task-manager
+model: anthropic/claude-sonnet-4-5
+timeout: 60000
+
+# Test suite configuration
+suites:
+  - smoke
+  - standalone
+  - delegation
+

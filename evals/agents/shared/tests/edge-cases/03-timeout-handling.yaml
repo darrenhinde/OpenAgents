@@ -1,0 +1,48 @@
+id: edge-03-timeout-handling
+name: "Edge Case 03: Long Running Task Handling"
+description: |
+  Tests that the agent handles potentially long-running tasks appropriately.
+  
+  The agent should:
+  1. Recognize this could take time
+  2. Provide progress updates or warnings
+  3. Complete within reasonable timeout
+  
+  Validates:
+  - Agent handles multi-step tasks
+  - Agent provides appropriate feedback
+  - Timeout handling works correctly
+
+category: edge-case
+
+prompts:
+  - text: |
+      List all TypeScript files in the evals/framework/src directory and count them.
+      Then summarize what types of files are there.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseAnyOf:
+    - [glob]
+    - [list]
+    - [bash]
+  minToolCalls: 1
+  maxToolCalls: 5
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+  - rule: tool-usage
+    shouldViolate: false
+    severity: warning
+
+timeout: 90000
+
+tags:
+  - edge-case
+  - timeout
+  - multi-step
+  - safe

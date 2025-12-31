@@ -129,8 +129,8 @@ Use when:
 ⚠ Found 8 file collision(s):
 
   Agents (2):
-    .opencode/agent/task-manager.md
-    .opencode/agent/opencoder.md
+    .opencode/agent/core/task-manager.md
+    .opencode/agent/core/opencoder.md
     
   Subagents (3):
     .opencode/agent/subagents/reviewer.md

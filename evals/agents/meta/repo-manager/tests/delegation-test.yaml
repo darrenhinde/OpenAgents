@@ -1,0 +1,53 @@
+name: "Delegation Test"
+description: "Verify repo-manager delegates appropriately and creates context bundles"
+test_cases:
+  - id: "delegation-001"
+    name: "Complex Feature - Delegates to Task Manager"
+    prompt: "Build a new eval framework feature for parallel test execution (6+ files)"
+    expected_behavior:
+      - "Identifies as complex task (6+ files)"
+      - "Decides to delegate to task-manager"
+      - "Creates context bundle"
+      - "Passes bundle to subagent"
+    evaluators:
+      - type: "delegation"
+        config:
+          should_delegate: true
+          expected_subagent: "subagents/core/task-manager"
+      - type: "context_bundle"
+        config:
+          should_create_bundle: true
+          bundle_location: ".tmp/context/"
+  
+  - id: "delegation-002"
+    name: "Simple Task - Direct Execution"
+    prompt: "Update the README to add a new section about installation"
+    expected_behavior:
+      - "Identifies as simple task (1 file)"
+      - "Executes directly"
+      - "Does not delegate"
+      - "Loads standards/docs.md"
+    evaluators:
+      - type: "delegation"
+        config:
+          should_delegate: false
+      - type: "context_loading"
+        config:
+          required_files:
+            - ".opencode/context/core/standards/docs.md"
+  
+  - id: "delegation-003"
+    name: "Documentation Task - Delegates to Documentation"
+    prompt: "Create comprehensive API documentation for the eval framework"
+    expected_behavior:
+      - "Identifies as comprehensive documentation task"
+      - "Decides to delegate to documentation subagent"
+      - "Creates context bundle with requirements"
+    evaluators:
+      - type: "delegation"
+        config:
+          should_delegate: true
+          expected_subagent: "subagents/core/documentation"
+      - type: "context_bundle"
+        config:
+          should_create_bundle: true

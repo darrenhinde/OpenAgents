@@ -1,0 +1,48 @@
+id: stop-on-failure-positive-001
+name: Stop On Failure - No Failures Scenario
+description: |
+  Tests the stop-on-failure evaluator with a session that has no failures.
+  
+  The stop-on-failure evaluator checks that when bash commands fail,
+  the agent stops and reports rather than auto-fixing.
+  
+  This test runs a simple bash command that succeeds, so:
+  - No failures occur
+  - No stop-on-failure violations should occur
+  
+  Note: execution-balance violations are expected since we're running
+  bash without prior reads (this is intentional for this test).
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Run 'echo "hello world"' in bash and show me the output.
+  - text: |
+      Yes, run it.
+    delayMs: 2000
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools:
+    - bash
+  minToolCalls: 1
+
+expectedViolations:
+  # No failures = no stop-on-failure issues
+  - rule: stop-on-failure
+    shouldViolate: false
+    severity: error
+  # Execution without reads is expected for this simple bash test
+  - rule: execution-balance
+    shouldViolate: true
+    severity: warning
+
+timeout: 60000
+
+tags:
+  - stop-on-failure
+  - no-failure
+  - positive-test

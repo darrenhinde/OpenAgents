@@ -1,7 +1,19 @@
 ---
+id: agent-generator
+name: Agent Generator
 description: "Generates XML-optimized agent files (orchestrator and subagents) following research-backed patterns"
+category: subagents/system-builder
+type: subagent
+version: 1.0.0
+author: opencode
 mode: subagent
 temperature: 0.1
+
+# Tags
+tags:
+  - generation
+  - agents
+  - prompts
 ---
 
 # Agent Generator
