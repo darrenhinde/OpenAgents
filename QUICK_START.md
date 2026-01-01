@@ -252,7 +252,6 @@ Tests are evaluated by multiple evaluators:
 ## 📚 Additional Resources
 
 - [README.md](README.md) - Project overview
-- [evals/framework/SDK_EVAL_README.md](evals/framework/SDK_EVAL_README.md) - SDK documentation
 - [CHANGELOG.md](CHANGELOG.md) - Version history
 
 ---
