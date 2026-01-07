@@ -69,9 +69,120 @@ Would update:
 
 ---
 
+## Frontmatter Metadata (Auto-Extracted)
+
+The auto-detect script automatically extracts `tags` and `dependencies` from component frontmatter. This is the **recommended way** to add metadata.
+
+### Supported Formats
+
+**Multi-line arrays** (recommended for readability):
+```yaml
+---
+description: Your component description
+tags:
+  - tag1
+  - tag2
+  - tag3
+dependencies:
+  - subagent:coder-agent
+  - context:core/standards/code
+  - command:context
+---
+```
+
+**Inline arrays** (compact format):
+```yaml
+---
+description: Your component description
+tags: [tag1, tag2, tag3]
+dependencies: [subagent:coder-agent, context:core/standards/code]
+---
+```
+
+### Component-Specific Examples
+
+**Command** (`.opencode/command/your-command.md`):
+```yaml
+---
+description: Brief description of what this command does
+tags:
+  - category
+  - feature
+  - use-case
+dependencies:
+  - subagent:context-organizer
+  - subagent:context-retriever
+---
+```
+
+**Subagent** (`.opencode/agent/subagents/category/your-agent.md`):
+```yaml
+---
+id: your-agent
+name: Your Agent Name
+description: What this agent does
+category: specialist
+type: specialist
+tags:
+  - domain
+  - capability
+dependencies:
+  - subagent:coder-agent
+  - context:core/standards/code
+---
+```
+
+**Context** (`.opencode/context/category/your-context.md`):
+```yaml
+---
+description: What knowledge this context provides
+tags:
+  - domain
+  - topic
+dependencies:
+  - context:core/standards/code
+---
+```
+
+### Dependency Format
+
+Dependencies use the format: `type:id`
+
+**Valid types**:
+- `subagent:` - References a subagent (e.g., `subagent:coder-agent`)
+- `command:` - References a command (e.g., `command:context`)
+- `context:` - References a context file (e.g., `context:core/standards/code`)
+- `agent:` - References a main agent (e.g., `agent:openagent`)
+
+**Examples**:
+```yaml
+dependencies:
+  - subagent:coder-agent          # Depends on coder-agent subagent
+  - context:core/standards/code   # Requires code standards context
+  - command:context               # Uses context command
+```
+
+### How It Works
+
+1. **Create component** with frontmatter (tags + dependencies)
+2. **Run auto-detect**: `./scripts/registry/auto-detect-components.sh --dry-run`
+3. **Verify extraction**: Check that tags/dependencies appear in output
+4. **Apply changes**: `./scripts/registry/auto-detect-components.sh --auto-add`
+5. **Validate**: `./scripts/registry/validate-registry.sh`
+
+The script automatically:
+- ✅ Extracts `description`, `tags`, `dependencies` from frontmatter
+- ✅ Handles both inline and multi-line array formats
+- ✅ Converts to proper JSON arrays in registry
+- ✅ Validates dependency references exist
+
+---
+
 ## Manual Updates (Not Recommended)
 
 Only edit `registry.json` manually if auto-detect doesn't work.
+
+**Prefer frontmatter**: Add tags/dependencies to component frontmatter instead of editing registry directly.
 
 ### Adding Component Manually
 
@@ -152,10 +263,10 @@ cat registry.json | jq '.components.agents[] | select(.id == "your-agent")'
 
 ## Common Tasks
 
-### Add New Agent to Registry
+### Add New Component to Registry
 
 ```bash
-# 1. Create agent file with frontmatter
+# 1. Create component file with frontmatter (including tags/dependencies)
 # 2. Run auto-detect
 ./scripts/registry/auto-detect-components.sh --auto-add
 
@@ -163,15 +274,55 @@ cat registry.json | jq '.components.agents[] | select(.id == "your-agent")'
 ./scripts/registry/validate-registry.sh
 ```
 
+**Example**: Adding a new command with tags/dependencies:
+
+```bash
+# 1. Create .opencode/command/my-command.md with frontmatter:
+cat > .opencode/command/my-command.md << 'EOF'
+---
+description: My custom command description
+tags: [automation, workflow]
+dependencies: [subagent:coder-agent]
+---
+
+# My Command
+...
+EOF
+
+# 2. Auto-detect extracts metadata
+./scripts/registry/auto-detect-components.sh --dry-run
+
+# 3. Apply changes
+./scripts/registry/auto-detect-components.sh --auto-add
+
+# 4. Validate
+./scripts/registry/validate-registry.sh
+```
+
 ### Update Component Metadata
 
 ```bash
-# 1. Update frontmatter in component file
-# 2. Run auto-detect with force
-./scripts/registry/auto-detect-components.sh --auto-add --force
+# 1. Update frontmatter in component file (tags, dependencies, description)
+# 2. Run auto-detect
+./scripts/registry/auto-detect-components.sh --auto-add
 
 # 3. Validate
 ./scripts/registry/validate-registry.sh
+```
+
+**Example**: Adding tags to existing component:
+
+```bash
+# 1. Edit .opencode/command/existing-command.md frontmatter:
+# Add or update:
+#   tags: [new-tag, another-tag]
+#   dependencies: [subagent:new-dependency]
+
+# 2. Auto-detect picks up changes
+./scripts/registry/auto-detect-components.sh --dry-run
+
+# 3. Apply
+./scripts/registry/auto-detect-components.sh --auto-add
 ```
 
 ### Remove Component
@@ -209,11 +360,15 @@ Registry can be auto-updated after merge:
 
 ## Best Practices
 
+✅ **Use frontmatter** - Add tags/dependencies to component files, not registry  
 ✅ **Use auto-detect** - Don't manually edit registry  
 ✅ **Validate often** - Catch issues early  
 ✅ **Test locally** - Use local registry for testing  
 ✅ **Dry run first** - See changes before applying  
 ✅ **Version consistency** - Keep versions in sync  
+✅ **Multi-line arrays** - More readable than inline format  
+✅ **Meaningful tags** - Use descriptive, searchable tags  
+✅ **Declare dependencies** - Helps with component discovery and validation  
 
 ---
 
@@ -225,5 +380,58 @@ Registry can be auto-updated after merge:
 
 ---
 
-**Last Updated**: 2025-12-10  
-**Version**: 0.5.0
+## Troubleshooting
+
+### Tags/Dependencies Not Extracted
+
+**Problem**: Auto-detect doesn't extract tags or dependencies from frontmatter.
+
+**Solutions**:
+1. **Check frontmatter format**:
+   - Must be at top of file
+   - Must start/end with `---`
+   - Must use valid YAML syntax
+
+2. **Verify array format**:
+   ```yaml
+   # ✅ Valid formats
+   tags: [tag1, tag2]
+   tags:
+     - tag1
+     - tag2
+   
+   # ❌ Invalid
+   tags: tag1, tag2  # Missing brackets
+   ```
+
+3. **Check dependency format**:
+   ```yaml
+   # ✅ Valid
+   dependencies: [subagent:coder-agent, context:core/standards/code]
+   
+   # ❌ Invalid
+   dependencies: [coder-agent]  # Missing type prefix
+   ```
+
+4. **Run dry-run to debug**:
+   ```bash
+   ./scripts/registry/auto-detect-components.sh --dry-run
+   # Check output shows extracted tags/dependencies
+   ```
+
+### Dependency Validation Errors
+
+**Problem**: Validation fails with "Missing dependency" error.
+
+**Solution**: Ensure referenced component exists in registry:
+```bash
+# Check if dependency exists
+jq '.components.subagents[] | select(.id == "coder-agent")' registry.json
+
+# If missing, add the dependency component first
+```
+
+---
+
+**Last Updated**: 2025-01-06  
+**Version**: 2.0.0
