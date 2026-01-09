@@ -648,7 +648,7 @@
         "id": "telegram-bot",
         "name": "Telegram Bot Library",
         "type": "plugin",
-        "path": ".opencode/plugin/lib/telegram-bot.ts",
+        "path": ".opencode/_lib/telegram-bot.ts",
         "description": "Simple Telegram Bot wrapper for sending notifications",
         "tags": [
           "telegram",
