@@ -336,7 +336,14 @@ resolve_dependencies() {
     if [ -n "$deps" ]; then
         for dep in $deps; do
             # Add dependency if not already in list
-            if [[ ! " ${SELECTED_COMPONENTS[@]} " =~ " ${dep} " ]]; then
+            local found=0
+            for existing in "${SELECTED_COMPONENTS[@]}"; do
+                if [ "$existing" = "$dep" ]; then
+                    found=1
+                    break
+                fi
+            done
+            if [ "$found" -eq 0 ]; then
                 SELECTED_COMPONENTS+=("$dep")
                 # Recursively resolve dependencies
                 resolve_dependencies "$dep"
@@ -1041,7 +1048,15 @@ show_post_install() {
     # Show installation location info
     print_info "Installation directory: ${CYAN}${INSTALL_DIR}${NC}"
     
-    if [ -d "${INSTALL_DIR}.backup."* ] 2>/dev/null; then
+    # Check for backup directories
+    local has_backup=0
+    for backup_dir in "${INSTALL_DIR}.backup."* 2>/dev/null; do
+        if [ -d "$backup_dir" ]; then
+            has_backup=1
+            break
+        fi
+    done
+    if [ "$has_backup" -eq 1 ]; then
         print_info "Backup created - you can restore files from ${INSTALL_DIR}.backup.* if needed"
     fi
     
