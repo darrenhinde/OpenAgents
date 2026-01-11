@@ -567,8 +567,10 @@ show_profile_menu() {
         resolve_dependencies "$comp"
     done
     
-    if [ ${#SELECTED_COMPONENTS[@]} -gt $original_count ]; then
-        print_info "Added $((${#SELECTED_COMPONENTS[@]} - original_count)) dependencies"
+    local new_count=${#SELECTED_COMPONENTS[@]}
+    if [ "$new_count" -gt "$original_count" ]; then
+        local added=$((new_count - original_count))
+        print_info "Added $added dependencies"
     fi
     
     show_installation_preview
@@ -1245,8 +1247,10 @@ main() {
             resolve_dependencies "$comp"
         done
 
-        if [ ${#SELECTED_COMPONENTS[@]} -gt $original_count ]; then
-            print_info "Added $((${#SELECTED_COMPONENTS[@]} - original_count)) dependencies"
+        local new_count=${#SELECTED_COMPONENTS[@]}
+        if [ "$new_count" -gt "$original_count" ]; then
+            local added=$((new_count - original_count))
+            print_info "Added $added dependencies"
         fi
 
         show_installation_preview
