@@ -333,17 +333,17 @@
           "knowledge-management"
         ],
         "dependencies": [
-          "context:core/context-system/operations/harvest",
-          "context:core/context-system/operations/extract",
-          "context:core/context-system/operations/organize",
-          "context:core/context-system/operations/update",
-          "context:core/context-system/operations/error",
-          "context:core/context-system/standards/mvi",
-          "context:core/context-system/standards/structure",
-          "context:core/context-system/standards/templates",
-          "context:core/context-system/guides/workflows",
-          "context:core/context-system/guides/compact",
-          "context:core/context-system/guides/creation"
+          "context:harvest",
+          "context:extract",
+          "context:organize",
+          "context:update",
+          "context:error",
+          "context:mvi",
+          "context:structure",
+          "context:templates",
+          "context:workflows",
+          "context:compact",
+          "context:creation"
         ],
         "category": "meta"
       },
@@ -390,11 +390,11 @@
         ],
         "dependencies": [
           "command:check-context-deps",
-          "context:openagents-repo/quality/registry-dependencies",
-          "context:core/context-system",
-          "context:core/context-system/standards/mvi",
-          "context:core/context-system/standards/structure",
-          "context:core/context-system/guides/workflows"
+          "context:registry-dependencies",
+          "context:context-system",
+          "context:mvi",
+          "context:structure",
+          "context:workflows"
         ],
         "category": "core"
       },
@@ -699,6 +699,36 @@
         "tags": [
           "notifications",
           "alerts"
+        ],
+        "dependencies": [],
+        "category": "specialized"
+      }
+    ],
+    "skills": [
+      {
+        "id": "task-management",
+        "name": "Task Management",
+        "type": "skill",
+        "path": ".opencode/skill/task-management/SKILL.md",
+        "description": "Task management CLI for tracking and managing feature subtasks with status, dependencies, and validation",
+        "tags": [
+          "tasks",
+          "cli",
+          "workflow"
+        ],
+        "dependencies": [],
+        "category": "essential"
+      },
+      {
+        "id": "smart-router-skill",
+        "name": "Smart Router Skill",
+        "type": "skill",
+        "path": ".opencode/skill/smart-router-skill/SKILL.md",
+        "description": "Movie character personality skill with configurable missions and themed workflows",
+        "tags": [
+          "routing",
+          "personality",
+          "demo"
         ],
         "dependencies": [],
         "category": "specialized"
