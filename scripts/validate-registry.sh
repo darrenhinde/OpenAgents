@@ -128,7 +128,8 @@ validate_component_paths() {
     [ "$VERBOSE" = true ] && echo -e "\n${BOLD}Checking ${category_display}...${NC}"
     
     # Get all components in this category
-    local components=$(jq -r ".components.${category}[]? | @json" "$REGISTRY_FILE" 2>/dev/null)
+    local components
+    components=$(jq -r ".components.${category}[]? | @json" "$REGISTRY_FILE" 2>/dev/null)
     
     if [ -z "$components" ]; then
         [ "$VERBOSE" = true ] && print_info "No ${category_display} found in registry"
@@ -136,9 +137,12 @@ validate_component_paths() {
     fi
     
     while IFS= read -r component; do
-        local id=$(echo "$component" | jq -r '.id')
-        local path=$(echo "$component" | jq -r '.path')
-        local name=$(echo "$component" | jq -r '.name')
+        local id
+        local path
+        local name
+        id=$(echo "$component" | jq -r '.id')
+        path=$(echo "$component" | jq -r '.path')
+        name=$(echo "$component" | jq -r '.name')
         
         TOTAL_PATHS=$((TOTAL_PATHS + 1))
         
@@ -164,12 +168,14 @@ suggest_fix() {
     local component_id=$2
     
     # Extract directory and filename
-    local dir=$(dirname "$missing_path")
-    local filename=$(basename "$missing_path")
-    local base_dir=$(echo "$dir" | cut -d'/' -f1-3)  # e.g., .opencode/command
+    local dir
+    local base_dir
+    dir=$(dirname "$missing_path")
+    base_dir=$(echo "$dir" | cut -d'/' -f1-3)  # e.g., .opencode/command
     
     # Look for similar files in the expected directory and subdirectories
-    local similar_files=$(find "$REPO_ROOT/$base_dir" -type f -name "*.md" 2>/dev/null | grep -i "$component_id" || true)
+    local similar_files
+    similar_files=$(find "$REPO_ROOT/$base_dir" -type f -name "*.md" 2>/dev/null | grep -i "$component_id" || true)
     
     if [ -n "$similar_files" ]; then
         echo -e "  ${YELLOW}→ Possible matches:${NC}"
@@ -184,7 +190,8 @@ scan_for_orphaned_files() {
     [ "$VERBOSE" = true ] && echo -e "\n${BOLD}Scanning for orphaned files...${NC}"
     
     # Get all paths from registry
-    local registry_paths=$(jq -r '.components | to_entries[] | .value[] | .path' "$REGISTRY_FILE" 2>/dev/null | sort -u)
+    local registry_paths
+    registry_paths=$(jq -r '.components | to_entries[] | .value[] | .path' "$REGISTRY_FILE" 2>/dev/null | sort -u)
     
     # Scan .opencode directory for markdown files
     local categories=("agent" "command" "tool" "plugin" "context")

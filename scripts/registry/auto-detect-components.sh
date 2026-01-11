@@ -204,7 +204,8 @@ find_similar_path() {
         while IFS= read -r candidate; do
             local candidate_rel
             candidate_rel="${candidate#$REPO_ROOT/}"
-            local candidate_name=$(basename "$candidate")
+            local candidate_name
+            candidate_name=$(basename "$candidate")
             
             # Exact filename match
             if [[ "$candidate_name" == "$filename" ]]; then
@@ -226,7 +227,8 @@ find_similar_path() {
         while IFS= read -r candidate; do
             local candidate_rel
             candidate_rel="${candidate#$REPO_ROOT/}"
-            local candidate_name=$(basename "$candidate")
+            local candidate_name
+            candidate_name=$(basename "$candidate")
             
             # Simple similarity check
             if [[ "$candidate_name" == *"$filename"* ]] || [[ "$filename" == *"$candidate_name"* ]]; then

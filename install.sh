@@ -437,7 +437,8 @@ show_install_location_menu() {
                 return
             fi
             
-            local normalized_path=$(normalize_and_validate_path "$custom_path")
+            local normalized_path
+            normalized_path=$(normalize_and_validate_path "$custom_path")
             
             if [ $? -ne 0 ]; then
                 print_error "Invalid path"
@@ -668,7 +669,8 @@ show_component_selection() {
     local component_details=()
     
     for category in "${categories[@]}"; do
-        local cat_display=$(echo "$category" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
+        local cat_display
+        cat_display=$(echo "$category" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
         echo -e "${CYAN}${BOLD}${cat_display}:${NC}"
         
         local components
