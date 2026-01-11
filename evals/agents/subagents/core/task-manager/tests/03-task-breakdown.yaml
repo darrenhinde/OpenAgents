@@ -2,47 +2,59 @@ id: core-task-manager-task-breakdown
 name: "Task Manager: Task Breakdown - Create Subtask Structure"
 description: |
   Tests the task-manager's ability to break down a feature into atomic,
-  implementation-ready subtasks.
+  implementation-ready JSON subtasks and create task files.
   
   Validates:
   - Creates feature slug (kebab-case)
   - Generates 2-digit task sequences
   - Defines clear objectives per task
   - Specifies deliverables
-  - Includes test requirements
   - Defines acceptance criteria
-  - Requests approval before file creation
+  - Includes exit criteria
   
   Critical Behavior:
-  - MUST create structured task plan
+  - MUST create structured JSON task plan
   - MUST use proper naming conventions
-  - MUST request approval before creating files
   - MUST include exit criteria
 category: developer
 
 prompts:
   - text: |
-      Break down a simple feature "add-dark-mode" into subtasks. The feature should:
-      1. Add a theme toggle component
-      2. Implement theme state management
-      3. Apply dark mode styles
-      
-      Create the task breakdown plan but DO NOT create files yet - just show me
-      the plan and wait for approval.
+      Break down the feature "add-dark-mode" into JSON subtasks.
+
+      Objective: Add a dark theme toggle and styles across the UI.
+      Deliverables:
+      - src/ui/theme-toggle.tsx
+      - src/state/theme-store.ts
+      - src/styles/dark-theme.css
+
+      Context files:
+      - .opencode/context/core/standards/code-quality.md
+
+      Use the write tool to create .tmp/tasks/add-dark-mode/task.json and subtask_NN.json files.
 
 approvalStrategy:
   type: auto-approve
 
 behavior:
-  mustNotUseTools:
+  mustUseTools:
+    - read
+    - bash
     - write
-  minToolCalls: 0
-  maxToolCalls: 5
+  requiresContext: true
+  expectedContextFiles:
+    - .opencode/context/core/task-management/navigation.md
+    - .opencode/context/core/task-management/standards/task-schema.md
+    - .opencode/context/core/task-management/guides/splitting-tasks.md
+    - .opencode/context/core/task-management/guides/managing-tasks.md
+  minToolCalls: 3
+  maxToolCalls: 15
 
 expectedViolations:
   - rule: approval-gate
-    shouldViolate: false
+    shouldViolate: true
     severity: error
+    description: Subagents do not request approvals
 
 timeout: 120000
 
@@ -51,4 +63,3 @@ tags:
   - breakdown
   - planning
   - core-subagent
-  - approval-required

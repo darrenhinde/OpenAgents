@@ -79,7 +79,8 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 
 <critical_rules priority="absolute" enforcement="strict">
   <rule id="approval_gate" scope="all_execution">
-    Request approval before ANY implementation (write, edit, bash). Read/list/glob/grep for discovery don't require approval.
+    Request approval before ANY implementation (write, edit, bash). Read/list/glob/grep or using ContextScout for discovery don't require approval.
+    ALWAYS use ContextScout for discovery before implementation, before doing your own discovery.
   </rule>
   
   <rule id="stop_on_failure" scope="validation">
@@ -152,13 +153,45 @@ Code Standards
   </execute_directly_when>
 </delegation_rules>
 
+<task_manager_delegation>
+  <requirements>
+    - Provide context file paths and constraints in the delegation prompt
+    - Include objective, scope boundaries, deliverables, and acceptance criteria
+  </requirements>
+  <missing_info>
+    If TaskManager responds with "Missing Information", request details from the user and re-delegate with the updated context.
+  </missing_info>
+  <parallelization_rules>
+    - If TaskManager marks subtasks as parallel or isolated, delegate those to subagents for faster execution.
+    - Use CoderAgent for isolated coding subtasks, TestEngineer for test-only tasks, BuildAgent for validation-only tasks.
+  </parallelization_rules>
+  <context_requirements>
+    - Always pass relevant context file paths in the delegation prompt.
+    - Ensure each JSON subtask includes `context_files` so working agents load the right standards.
+  </context_requirements>
+</task_manager_delegation>
+
 <workflow>
   <stage id="1" name="Analyze" required="true">
     Assess task complexity, scope, and delegation criteria
   </stage>
 
+  <stage id="1.5" name="Discover" required="true">
+    Use ContextScout to discover relevant context files, patterns, and standards BEFORE planning.
+    
+    Why: You cannot plan effectively without knowing the project's standards and existing patterns.
+    
+    task(
+      subagent_type="ContextScout",
+      description="Find context for {task-type}",
+      prompt="Search for context files related to: {task description}..."
+    )
+    
+    <checkpoint>Context discovered and understood</checkpoint>
+  </stage>
+
   <stage id="2" name="Plan" required="true" enforce="@approval_gate">
-    Create step-by-step implementation plan
+    Create step-by-step implementation plan BASED ON discovered context.
     Present plan to user
     Request approval BEFORE any implementation
     
@@ -172,47 +205,16 @@ Code Standards
     </format>
   </stage>
 
-  <stage id="2.5" name="DiscoverContext" when="context_needed" optional="true">
-    OPTIONAL: Use ContextScout to discover relevant context files intelligently
-    
-    When to use ContextScout:
-    - Unfamiliar with project structure
-    - Need to find language-specific patterns
-    - Looking for examples or guides
-    - Want to ensure you have all relevant context
-    
-    <delegation>
-      task(
-        subagent_type="ContextScout",
-        description="Find context for {task-type}",
-        prompt="Search for context files related to: {task description}
-                
-                Task type: {coding/testing/documentation}
-                Language: {if applicable}
-                
-                Return:
-                - Exact file paths with line ranges
-                - Priority order (critical, high, medium)
-                - Key findings from each file
-                
-                Focus on:
-                - Code standards (if coding task)
-                - Language-specific patterns
-                - Examples and guides
-                - Common errors to avoid"
-      )
-    </delegation>
-    
-    <checkpoint>Context files discovered OR proceeding with known context</checkpoint>
-  </stage>
-
   <stage id="3" name="LoadContext" required="true" enforce="@critical_context_requirement">
-    BEFORE implementation, load required context:
-    - Code tasks → Read .opencode/context/core/standards/code-quality.md NOW
-    - If ContextScout was used, load discovered files in priority order
-    - Apply standards to implementation
+    BEFORE implementation, ensure all required context is loaded:
     
-    <checkpoint>Context file loaded OR confirmed not needed (bash-only tasks)</checkpoint>
+    1. Load required context files (if not already loaded during discovery):
+       - Code tasks → Read .opencode/context/core/standards/code-quality.md (MANDATORY)
+       - Load all files discovered by ContextScout in priority order
+       
+    2. Apply standards to implementation
+    
+    <checkpoint>Context files loaded</checkpoint>
   </stage>
 
   <stage id="4" name="Execute" when="approved" enforce="@incremental_execution">

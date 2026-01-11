@@ -13,19 +13,38 @@ category: developer
 
 prompts:
   - text: |
-      Analyze the evals/test_tmp directory and tell me how you would break down work here.
+      Break down the feature "profile-settings" into JSON subtasks.
+
+      Objective: Allow users to update profile details and preferences.
+      Deliverables:
+      - src/profile/settings-form.tsx
+      - src/profile/preferences-store.ts
+      - src/profile/api/update-preferences.ts
+
+      Use the write tool to create .tmp/tasks/profile-settings/task.json and subtask_NN.json files.
 
 approvalStrategy:
   type: auto-approve
 
 behavior:
-  minToolCalls: 1
-  maxToolCalls: 5
+  mustUseTools:
+    - read
+    - bash
+    - write
+  requiresContext: true
+  expectedContextFiles:
+    - .opencode/context/core/task-management/navigation.md
+    - .opencode/context/core/task-management/standards/task-schema.md
+    - .opencode/context/core/task-management/guides/splitting-tasks.md
+    - .opencode/context/core/task-management/guides/managing-tasks.md
+  minToolCalls: 3
+  maxToolCalls: 15
 
 expectedViolations:
   - rule: approval-gate
-    shouldViolate: false
+    shouldViolate: true
     severity: error
+    description: Subagents do not request approvals
 
 timeout: 60000
 

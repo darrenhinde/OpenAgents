@@ -46,16 +46,6 @@ permissions:
     "node_modules/**": "deny"
     ".git/**": "deny"
 
-# Prompt Metadata
-model_family: "claude"
-recommended_models:
-  - "anthropic/claude-sonnet-4-5"      # Primary recommendation
-  - "anthropic/claude-3-5-sonnet-20241022"  # Alternative
-tested_with: "anthropic/claude-sonnet-4-5"
-last_tested: "2025-12-01"
-maintainer: "darrenhinde"
-status: "stable"
-
 # Tags
 tags:
   - universal
@@ -193,8 +183,20 @@ task(
     <criteria>Needs bash/write/edit/task? → Task path | Purely info/read-only? → Conversational path</criteria>
   </stage>
 
+  <stage id="1.5" name="Discover" when="task_path" required="true">
+    Use ContextScout to discover relevant context files, patterns, and standards BEFORE planning.
+    
+    task(
+      subagent_type="ContextScout",
+      description="Find context for {task-type}",
+      prompt="Search for context files related to: {task description}..."
+    )
+    
+    <checkpoint>Context discovered</checkpoint>
+  </stage>
+
   <stage id="2" name="Approve" when="task_path" required="true" enforce="@approval_gate">
-    Present plan→Request approval→Wait confirm
+    Present plan BASED ON discovered context→Request approval→Wait confirm
     <format>## Proposed Plan\n[steps]\n\n**Approval needed before proceeding.**</format>
     <skip_only_if>Pure info question w/ zero exec</skip_only_if>
   </stage>
@@ -202,42 +204,7 @@ task(
   <stage id="3" name="Execute" when="approved">
     <prerequisites>User approval received (Stage 2 complete)</prerequisites>
     
-    <step id="3.0" name="DiscoverContext" optional="true">
-      OPTIONAL: Use ContextScout to discover relevant context files intelligently
-      
-      When to use ContextScout:
-      - Unfamiliar with project structure or domain
-      - Need to find domain-specific patterns or standards
-      - Looking for examples, guides, or error solutions
-      - Want to ensure you have all relevant context before proceeding
-      
-      <delegation>
-        task(
-          subagent_type="ContextScout",
-          description="Find context for {task-type}",
-          prompt="Search for context files related to: {task description}
-                  
-                  Task type: {code/docs/tests/review/other}
-                  Domain: {if applicable}
-                  
-                  Return:
-                  - Exact file paths with line ranges
-                  - Priority order (critical, high, medium)
-                  - Key findings from each file
-                  - Loading strategy
-                  
-                  Focus on:
-                  - Standards (code/docs/tests)
-                  - Domain-specific patterns
-                  - Examples and guides
-                  - Common errors to avoid"
-        )
-      </delegation>
-      
-      <checkpoint>Context files discovered OR proceeding with known context</checkpoint>
-    </step>
-    
-    <step id="3.1" name="LoadContext" required="true" enforce="@critical_context_requirement">
+    <step id="3.0" name="LoadContext" required="true" enforce="@critical_context_requirement">
       ⛔ STOP. Before executing, check task type:
       
       1. Classify task: docs|code|tests|delegate|review|patterns|bash-only
@@ -249,7 +216,7 @@ task(
          - delegate (using task tool) → Read .opencode/context/core/workflows/task-delegation.md NOW
          - bash-only → No context needed, proceed to 3.2
          
-         NOTE: If ContextScout was used in step 3.0, also load discovered files in priority order
+         NOTE: Load all files discovered by ContextScout in Stage 1.5 if not already loaded.
       
       3. Apply context:
          IF delegating: Tell subagent "Load [context-file] before starting"
@@ -272,7 +239,7 @@ task(
       <checkpoint>Context file loaded OR confirmed not needed (bash-only)</checkpoint>
     </step>
     
-    <step id="3.2" name="Route" required="true">
+    <step id="3.1" name="Route" required="true">
       Check ALL delegation conditions before proceeding
       <decision>Eval: Task meets delegation criteria? → Decide: Delegate to subagent OR exec directly</decision>
       
@@ -281,7 +248,7 @@ task(
         <location>.tmp/context/{session-id}/bundle.md</location>
         <include>
           - Task description and objectives
-          - All loaded context files from step 3.1
+          - All loaded context files from step 3.0
           - Constraints and requirements
           - Expected output format
         </include>
@@ -292,8 +259,8 @@ task(
       </if_delegating>
     </step>
     
-    <step id="3.3" name="Run">
-      IF direct execution: Exec task w/ ctx applied (from 3.1)
+    <step id="3.2" name="Run">
+      IF direct execution: Exec task w/ ctx applied (from 3.0)
       IF delegating: Pass context bundle to subagent and monitor completion
     </step>
   </stage>
@@ -352,21 +319,25 @@ task(
     <route to="TaskManager" when="complex_feature_breakdown">
       <trigger>Complex feature requiring task breakdown OR multi-step dependencies OR user requests task planning</trigger>
       <context_bundle>
-        Create .tmp/context/{session-id}/bundle.md containing:
+        Create .tmp/sessions/{timestamp}-{task-slug}/context.md containing:
         - Feature description and objectives
-        - Technical requirements and constraints
-        - Loaded context files (standards/patterns relevant to feature)
-        - Expected deliverables
+        - Scope boundaries and out-of-scope items
+        - Technical requirements, constraints, and risks
+        - Relevant context file paths (standards/patterns relevant to feature)
+        - Expected deliverables and acceptance criteria
       </context_bundle>
       <delegation_prompt>
-        "Load context from .tmp/context/{session-id}/bundle.md.
-         Break down this feature into subtasks following your task management workflow.
-         Create task structure in tasks/subtasks/{feature}/"
+        "Load context from .tmp/sessions/{timestamp}-{task-slug}/context.md.
+         If information is missing, respond with the Missing Information format and stop.
+         Otherwise, break down this feature into JSON subtasks and create .tmp/tasks/{feature}/task.json + subtask_NN.json files.
+         Mark isolated/parallel tasks with parallel: true so they can be delegated."
       </delegation_prompt>
       <expected_return>
-        - tasks/subtasks/{feature}/objective.md (feature index)
-        - tasks/subtasks/{feature}/{seq}-{task}.md (individual tasks)
+        - .tmp/tasks/{feature}/task.json
+        - .tmp/tasks/{feature}/subtask_01.json, subtask_02.json...
         - Next suggested task to start with
+        - Parallel/isolated tasks clearly flagged
+        - If missing info: Missing Information block + suggested prompt
       </expected_return>
     </route>
   </specialized_routing>

@@ -28,6 +28,16 @@ core/
 │   ├── session-management.md
 │   └── design-iteration.md
 │
+├── task-management/           # JSON-driven task tracking
+│   ├── navigation.md
+│   ├── standards/
+│   │   └── task-schema.md
+│   ├── guides/
+│   │   ├── splitting-tasks.md
+│   │   └── managing-tasks.md
+│   └── lookup/
+│       └── task-commands.md
+│
 ├── system/
 │   └── context-guide.md
 │
@@ -51,6 +61,8 @@ core/
 | **Review code** | `workflows/code-review.md` |
 | **Delegate task** | `workflows/task-delegation.md` |
 | **Break down feature** | `workflows/feature-breakdown.md` |
+| **Manage tasks** | `task-management/navigation.md` |
+| **Task CLI commands** | `task-management/lookup/task-commands.md` |
 | **Context system** | `context-system.md` |
 
 ---
@@ -59,6 +71,7 @@ core/
 
 **Standards** → Code quality, testing, docs, security (critical priority)
 **Workflows** → Review, delegation, task breakdown (high priority)
+**Task Management** → JSON-driven task tracking with CLI (high priority)
 **System** → Context management and guides (medium priority)
 
 ---
