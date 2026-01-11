@@ -47,8 +47,10 @@ count_tokens() {
         return 0
     fi
     
-    local word_count=$(wc -w < "$file" 2>/dev/null || echo 0)
-    local token_estimate=$(echo "$word_count * $TOKEN_MULTIPLIER" | bc | cut -d. -f1)
+    local word_count
+    word_count=$(wc -w < "$file" 2>/dev/null || echo 0)
+    local token_estimate
+    token_estimate=$(echo "$word_count * $TOKEN_MULTIPLIER" | bc | cut -d. -f1)
     
     echo -e "${GREEN}✓${NC} ${label}"
     echo -e "  ${YELLOW}→${NC} $file"
@@ -67,8 +69,10 @@ count_tokens_from_output() {
         return 0
     fi
     
-    local word_count=$(echo "$output" | wc -w)
-    local token_estimate=$(echo "$word_count * $TOKEN_MULTIPLIER" | bc | cut -d. -f1)
+    local word_count
+    word_count=$(echo "$output" | wc -w)
+    local token_estimate
+    token_estimate=$(echo "$word_count * $TOKEN_MULTIPLIER" | bc | cut -d. -f1)
     
     echo -e "${GREEN}✓${NC} ${label}"
     echo -e "  ${CYAN}~$token_estimate tokens${NC} ($word_count words)"

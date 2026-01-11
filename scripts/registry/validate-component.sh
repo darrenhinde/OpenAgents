@@ -34,7 +34,8 @@ validate_markdown_frontmatter() {
     fi
     
     # Extract frontmatter
-    local frontmatter=$(awk '/^---$/{if(++n==2)exit;next}n==1' "$file")
+    local frontmatter
+    frontmatter=$(awk '/^---$/{if(++n==2)exit;next}n==1' "$file")
     
     # Check for description
     if ! echo "$frontmatter" | grep -q "^description:"; then

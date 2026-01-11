@@ -16,7 +16,6 @@ for agent in $agents; do
   category=$(cat registry.json | jq -r ".components.agents[] | select(.id == \"$agent\") | .category")
   
   # Check which profiles include this agent
-  in_essential=$(cat registry.json | jq -r ".profiles.essential.components[] | select(. == \"agent:$agent\")" 2>/dev/null || echo "")
   in_developer=$(cat registry.json | jq -r ".profiles.developer.components[] | select(. == \"agent:$agent\")" 2>/dev/null || echo "")
   in_business=$(cat registry.json | jq -r ".profiles.business.components[] | select(. == \"agent:$agent\")" 2>/dev/null || echo "")
   in_full=$(cat registry.json | jq -r ".profiles.full.components[] | select(. == \"agent:$agent\")" 2>/dev/null || echo "")

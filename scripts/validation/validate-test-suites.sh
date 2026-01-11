@@ -65,7 +65,8 @@ echo ""
 validate_suite() {
     local agent=$1
     local suite_file=$2
-    local suite_name=$(basename "$suite_file" .json)
+    local suite_name
+    suite_name=$(basename "$suite_file" .json)
     
     TOTAL_SUITES=$((TOTAL_SUITES + 1))
     
@@ -116,7 +117,8 @@ validate_suite() {
     done < <(jq -r '.tests[].path' "$suite_file")
     
     # 4. Check test count matches
-    local declared_count=$(jq -r '.totalTests' "$suite_file")
+    local declared_count
+    declared_count=$(jq -r '.totalTests' "$suite_file")
     if [[ "$test_count" -ne "$declared_count" ]]; then
         echo -e "  ${YELLOW}⚠️  Test count mismatch: found $test_count, declared $declared_count${NC}"
         suite_warnings=$((suite_warnings + 1))
@@ -129,10 +131,13 @@ validate_suite() {
             echo -e "     - $missing"
             
             # Suggest similar files
-            local dir=$(dirname "$missing")
-            local filename=$(basename "$missing")
+            local dir
+            dir=$(dirname "$missing")
+            local filename
+            filename=$(basename "$missing")
             if [[ -d "$tests_dir/$dir" ]]; then
-                local similar=$(find "$tests_dir/$dir" -name "*.yaml" -type f -exec basename {} \; | grep -i "$(echo $filename | cut -d'-' -f1)" | head -3)
+                local similar
+                similar=$(find "$tests_dir/$dir" -name "*.yaml" -type f -exec basename {} \; | grep -i "$(echo $filename | cut -d'-' -f1)" | head -3)
                 if [[ -n "$similar" ]]; then
                     echo -e "       ${YELLOW}Did you mean?${NC}"
                     echo "$similar" | sed 's/^/         - /'

@@ -9,7 +9,7 @@ version: 4.0.0
 author: darrenhinde
 model: "opencode/grok-code"
 
-# Agent Configuration
+# Agent Configuration£
 mode: subagent
 temperature: 0.1
 tools:

@@ -6,7 +6,7 @@
 PORT=${1:-8000}
 TIMEOUT=${2:-15}
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit
 
 echo "🚀 Starting HTTP server on port $PORT..."
 echo "📊 Opening dashboard in browser..."

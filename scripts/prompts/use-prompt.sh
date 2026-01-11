@@ -155,7 +155,7 @@ if [[ ! -f "$AGENT_FILE" ]]; then
     echo -e "${RED}Error: Agent not found: $AGENT_FILE${NC}"
     echo ""
     echo "Available agents:"
-    ls -1 "$AGENT_DIR/"*.md 2>/dev/null | xargs -I {} basename {} .md || echo "  (none found)"
+    find "$AGENT_DIR" -maxdepth 1 -name "*.md" -exec basename {} .md \; || echo "  (none found)"
     exit 1
 fi
 
@@ -181,7 +181,7 @@ if [[ ! -f "$PROMPT_FILE" ]]; then
     echo "Available variants for $AGENT_NAME:"
     echo "  - default (canonical agent file)"
     if [[ -d "$PROMPTS_DIR/$AGENT_NAME" ]]; then
-        ls -1 "$PROMPTS_DIR/$AGENT_NAME/"*.md 2>/dev/null | grep -v "TEMPLATE.md" | grep -v "README.md" | xargs -I {} basename {} .md || echo "  (no model variants found)"
+        find "$PROMPTS_DIR/$AGENT_NAME" -maxdepth 1 -name "*.md" -not -name "TEMPLATE.md" -not -name "README.md" -exec basename {} .md \; || echo "  (no model variants found)"
     else
         echo "  (no model variants found)"
     fi

@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-AGENT="${1:-build}"
-SESSION_ID="${2:-demo}"
+# AGENT="${1:-build}" # Unused
+# SESSION_ID="${2:-demo}" # Unused
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  What Gets Sent to AI API (Anthropic/Claude)"

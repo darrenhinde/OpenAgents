@@ -47,7 +47,7 @@ for TEST_FILE in $TEST_FILES; do
   BATCH_COUNT=$((BATCH_COUNT + 1))
   
   # Run batch when it reaches BATCH_SIZE or is the last file
-  if [ $BATCH_COUNT -eq $BATCH_SIZE ] || [ $(echo "$TEST_FILES" | grep -c "$TEST_FILE") -eq $TOTAL_TESTS ]; then
+  if [ $BATCH_COUNT -eq $BATCH_SIZE ] || [ "$(echo "$TEST_FILES" | grep -c "$TEST_FILE")" -eq $TOTAL_TESTS ]; then
     echo -e "${YELLOW}📦 Running Batch $BATCH_NUM (${#CURRENT_BATCH[@]} tests)${NC}"
     echo "----------------------------------------"
     

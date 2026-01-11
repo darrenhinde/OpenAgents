@@ -174,7 +174,7 @@ else
         echo "Available variants for $AGENT_NAME:"
         echo "  - default (canonical agent file)"
         if [[ -d "$PROMPTS_DIR/$AGENT_NAME" ]]; then
-            ls -1 "$PROMPTS_DIR/$AGENT_NAME/"*.md 2>/dev/null | grep -v "TEMPLATE.md" | grep -v "README.md" | xargs -I {} basename {} .md || echo "  (no model variants found)"
+            find "$PROMPTS_DIR/$AGENT_NAME" -maxdepth 1 -name "*.md" -not -name "TEMPLATE.md" -not -name "README.md" -exec basename {} .md \; || echo "  (no model variants found)"
         fi
         exit 1
     fi
@@ -264,6 +264,7 @@ cd "$EVALS_DIR"
 set +e  # Don't exit on test failure
 npm run eval:sdk:core -- --agent="$AGENT_NAME" --model="$MODEL"
 TEST_EXIT_CODE=$?
+export TEST_EXIT_CODE
 set -e
 
 echo ""

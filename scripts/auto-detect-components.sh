@@ -89,7 +89,8 @@ extract_metadata_from_file() {
     fi
     
     # Generate ID from filename
-    local filename=$(basename "$file" .md)
+    local filename
+    filename=$(basename "$file" .md)
     id=$(echo "$filename" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
     
     # Generate name from filename (capitalize words)
@@ -131,7 +132,8 @@ scan_for_new_components() {
     echo ""
     
     # Get all paths from registry
-    local registry_paths=$(jq -r '.components | to_entries[] | .value[] | .path' "$REGISTRY_FILE" 2>/dev/null | sort -u)
+    local registry_paths
+    registry_paths=$(jq -r '.components | to_entries[] | .value[] | .path' "$REGISTRY_FILE" 2>/dev/null | sort -u)
     
     # Scan .opencode directory
     local categories=("agent" "command" "tool" "plugin" "context")
@@ -160,11 +162,13 @@ scan_for_new_components() {
             # Check if this path is in registry
             if ! echo "$registry_paths" | grep -q "^${rel_path}$"; then
                 # Extract metadata
-                local metadata=$(extract_metadata_from_file "$file")
+                local metadata
+                metadata=$(extract_metadata_from_file "$file")
                 IFS='|' read -r id name description <<< "$metadata"
                 
                 # Detect component type
-                local comp_type=$(detect_component_type "$rel_path")
+                local comp_type
+                comp_type=$(detect_component_type "$rel_path")
                 
                 if [ "$comp_type" != "unknown" ]; then
                     NEW_COMPONENTS+=("${comp_type}|${id}|${name}|${description}|${rel_path}")
@@ -194,7 +198,8 @@ add_component_to_registry() {
     description=$(echo "$description" | sed 's/"/\\"/g' | sed "s/'/\\'/g")
     
     # Get registry key (agents, subagents, commands, etc.)
-    local registry_key=$(get_registry_key "$comp_type")
+    local registry_key
+    registry_key=$(get_registry_key "$comp_type")
     
     # Use jq to properly construct JSON (avoids escaping issues)
     local temp_file="${REGISTRY_FILE}.tmp"

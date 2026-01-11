@@ -189,18 +189,23 @@ find_similar_path() {
     local wrong_path=$1
     
     # Get directory and filename
-    local dir=$(dirname "$wrong_path")
-    local filename=$(basename "$wrong_path")
+    local dir
+    dir=$(dirname "$wrong_path")
+    local filename
+    filename=$(basename "$wrong_path")
     
     # First, try to find exact filename match in category subdirectories
     # e.g., .opencode/agent/opencoder.md → .opencode/agent/core/opencoder.md
-    local base_dir=$(echo "$dir" | cut -d'/' -f1-2)  # e.g., .opencode/agent
+    local base_dir
+    base_dir=$(echo "$dir" | cut -d'/' -f1-2)  # e.g., .opencode/agent
     
     if [ -d "$REPO_ROOT/$base_dir" ]; then
         # Search recursively in the base directory for exact filename match
         while IFS= read -r candidate; do
-            local candidate_rel="${candidate#$REPO_ROOT/}"
-            local candidate_name=$(basename "$candidate")
+            local candidate_rel
+            candidate_rel="${candidate#$REPO_ROOT/}"
+            local candidate_name
+            candidate_name=$(basename "$candidate")
             
             # Exact filename match
             if [[ "$candidate_name" == "$filename" ]]; then
@@ -220,8 +225,10 @@ find_similar_path() {
         
         # Find files with similar names
         while IFS= read -r candidate; do
-            local candidate_rel="${candidate#$REPO_ROOT/}"
-            local candidate_name=$(basename "$candidate")
+            local candidate_rel
+            candidate_rel="${candidate#$REPO_ROOT/}"
+            local candidate_name
+            candidate_name=$(basename "$candidate")
             
             # Simple similarity check
             if [[ "$candidate_name" == *"$filename"* ]] || [[ "$filename" == *"$candidate_name"* ]]; then
@@ -243,16 +250,21 @@ validate_existing_entries() {
     echo ""
     
     # Get all component types from registry
-    local component_types=$(jq -r '.components | keys[]' "$REGISTRY_FILE" 2>/dev/null)
+    local component_types
+    component_types=$(jq -r '.components | keys[]' "$REGISTRY_FILE" 2>/dev/null)
     
     while IFS= read -r comp_type; do
         # Get all components of this type
-        local count=$(jq -r ".components.${comp_type} | length" "$REGISTRY_FILE" 2>/dev/null)
+        local count
+        count=$(jq -r ".components.${comp_type} | length" "$REGISTRY_FILE" 2>/dev/null)
         
         for ((i=0; i<count; i++)); do
-            local id=$(jq -r ".components.${comp_type}[$i].id" "$REGISTRY_FILE" 2>/dev/null)
-            local name=$(jq -r ".components.${comp_type}[$i].name" "$REGISTRY_FILE" 2>/dev/null)
-            local path=$(jq -r ".components.${comp_type}[$i].path" "$REGISTRY_FILE" 2>/dev/null)
+            local id
+            id=$(jq -r ".components.${comp_type}[$i].id" "$REGISTRY_FILE" 2>/dev/null)
+            local name
+            name=$(jq -r ".components.${comp_type}[$i].name" "$REGISTRY_FILE" 2>/dev/null)
+            local path
+            path=$(jq -r ".components.${comp_type}[$i].path" "$REGISTRY_FILE" 2>/dev/null)
             
             # Skip if path is null or empty
             if [ -z "$path" ] || [ "$path" = "null" ]; then
@@ -362,7 +374,8 @@ extract_metadata_from_file() {
         # Extract tags from frontmatter (YAML array format)
         # Handles both: tags: [tag1, tag2] and multi-line format
         local in_tags=false
-        local frontmatter=$(sed -n '/^---$/,/^---$/p' "$file")
+        local frontmatter
+        frontmatter=$(sed -n '/^---$/,/^---$/p' "$file")
         while IFS= read -r line; do
             if [[ "$line" =~ ^tags: ]]; then
                 # Inline array format: tags: [tag1, tag2]
@@ -377,7 +390,8 @@ extract_metadata_from_file() {
                     # End of frontmatter
                     in_tags=false
                 elif [[ "$line" =~ ^[[:space:]]*- ]]; then
-                    local tag=$(echo "$line" | sed 's/^[[:space:]]*- *//')
+                    local tag
+                    tag=$(echo "$line" | sed 's/^[[:space:]]*- *//')
                     if [ -z "$tags" ]; then
                         tags="$tag"
                     else
@@ -407,7 +421,8 @@ extract_metadata_from_file() {
                     in_deps=false
                 elif [[ "$line" =~ ^[[:space:]]*- ]]; then
                     # Extract dependency (remove leading dash and whitespace)
-                    local dep=$(echo "$line" | sed 's/^[[:space:]]*- *//' | sed 's/"//g; s/'"'"'//g' | sed 's/#.*//' | xargs)
+                    local dep
+                    dep=$(echo "$line" | sed 's/^[[:space:]]*- *//' | sed 's/"//g; s/'"'"'//g' | sed 's/#.*//' | xargs)
                     # Skip empty lines and comments
                     if [ -n "$dep" ] && [[ ! "$dep" =~ ^# ]]; then
                         if [ -z "$dependencies" ]; then
@@ -433,7 +448,8 @@ extract_metadata_from_file() {
     fi
     
     # Generate ID from filename
-    local filename=$(basename "$file" .md)
+    local filename
+    filename=$(basename "$file" .md)
     id=$(echo "$filename" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
     
     # Generate name from filename (capitalize words)
@@ -475,7 +491,8 @@ extract_category_from_path() {
     elif [[ "$path" == *"/agent/"* ]]; then
         # For agents: .opencode/agent/core/openagent.md → core
         # Check if there's a category subdirectory
-        local category=$(echo "$path" | sed -E 's|.*/agent/([^/]+)/.*|\1|')
+        local category
+        category=$(echo "$path" | sed -E 's|.*/agent/([^/]+)/.*|\1|')
         # If category is the filename, it's a flat structure (no category)
         if [[ "$category" == *.md ]]; then
             echo "standard"
@@ -500,7 +517,8 @@ scan_for_new_components() {
     echo ""
     
     # Get all paths from registry
-    local registry_paths=$(jq -r '.components | to_entries[] | .value[] | .path' "$REGISTRY_FILE" 2>/dev/null | sort -u)
+    local registry_paths
+    registry_paths=$(jq -r '.components | to_entries[] | .value[] | .path' "$REGISTRY_FILE" 2>/dev/null | sort -u)
     
     # Scan .opencode directory
     local categories=("agent" "command" "tool" "plugin" "context")
@@ -534,14 +552,17 @@ scan_for_new_components() {
             # Check if this path is in registry
             if ! echo "$registry_paths" | grep -q "^${rel_path}$"; then
                 # Extract metadata
-                local metadata=$(extract_metadata_from_file "$file")
+                local metadata
+                metadata=$(extract_metadata_from_file "$file")
                 IFS='|' read -r id name description tags dependencies <<< "$metadata"
                 
                 # Detect component type
-                local comp_type=$(detect_component_type "$rel_path")
+                local comp_type
+                comp_type=$(detect_component_type "$rel_path")
                 
                 # Extract category from path
-                local comp_category=$(extract_category_from_path "$rel_path")
+                local comp_category
+                comp_category=$(extract_category_from_path "$rel_path")
                 
                 if [ "$comp_type" != "unknown" ]; then
                     NEW_COMPONENTS+=("${comp_type}|${id}|${name}|${description}|${rel_path}|${comp_category}|${tags}|${dependencies}")
@@ -566,7 +587,7 @@ scan_for_new_components() {
 
 check_dependencies() {
     local deps_str=$1
-    local component_name=$2
+    # local component_name=$2 # Unused
     
     if [ -z "$deps_str" ]; then
         return 0
@@ -607,7 +628,8 @@ check_dependencies() {
         esac
         
         # Check if exists in registry
-        local exists=$(jq -r ".components.${category}[]? | select(.id == \"${dep_id}\") | .id" "$REGISTRY_FILE" 2>/dev/null)
+        local exists
+        exists=$(jq -r ".components.${category}[]? | select(.id == \"${dep_id}\") | .id" "$REGISTRY_FILE" 2>/dev/null)
         
         if [ -z "$exists" ]; then
             echo "    ⚠ Dependency not found in registry: ${dep}"
@@ -645,7 +667,8 @@ add_component_to_registry() {
     fi
     
     # Get registry key (agents, subagents, commands, etc.)
-    local registry_key=$(get_registry_key "$comp_type")
+    local registry_key
+    registry_key=$(get_registry_key "$comp_type")
     
     # Use jq to properly construct JSON (avoids escaping issues)
     local temp_file="${REGISTRY_FILE}.tmp"

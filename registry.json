@@ -399,6 +399,21 @@
         "category": "core"
       },
       {
+        "id": "context-retriever",
+        "name": "Context Retriever",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/core/context-retriever.md",
+        "description": "Generic context search and retrieval specialist for finding relevant context files, standards, and guides in any repository",
+        "tags": [
+          "context",
+          "search",
+          "retrieval",
+          "subagent"
+        ],
+        "dependencies": [],
+        "category": "core"
+      },
+      {
         "id": "simple-responder",
         "name": "Simple Responder",
         "type": "subagent",
@@ -1936,6 +1951,296 @@
         ],
         "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "task-commands",
+        "name": "Task Commands",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/lookup/task-commands.md",
+        "description": "Lookup: Task CLI Commands",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "navigation",
+        "name": "Navigation",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/navigation.md",
+        "description": "Task Management Navigation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "splitting-tasks",
+        "name": "Splitting Tasks",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/guides/splitting-tasks.md",
+        "description": "Guide: Splitting Features into Tasks",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "managing-tasks",
+        "name": "Managing Tasks",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/guides/managing-tasks.md",
+        "description": "Guide: Managing Task Lifecycle",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "task-schema",
+        "name": "Task Schema",
+        "type": "context",
+        "path": ".opencode/context/core/task-management/standards/task-schema.md",
+        "description": "Standard: Task JSON Schema",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-assets",
+        "name": "Design Assets",
+        "type": "context",
+        "path": ".opencode/context/development/design-assets.md",
+        "description": "Design Assets",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "ui-styling-standards",
+        "name": "Ui Styling Standards",
+        "type": "context",
+        "path": ".opencode/context/development/ui-styling-standards.md",
+        "description": "UI Styling Standards",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "clean-code",
+        "name": "Clean Code",
+        "type": "context",
+        "path": ".opencode/context/development/clean-code.md",
+        "description": "Clean Code Principles",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "animation-patterns",
+        "name": "Animation Patterns",
+        "type": "context",
+        "path": ".opencode/context/development/animation-patterns.md",
+        "description": "Animation Patterns",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "design-systems",
+        "name": "Design Systems",
+        "type": "context",
+        "path": ".opencode/context/development/design-systems.md",
+        "description": "Design Systems",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "react-patterns",
+        "name": "React Patterns",
+        "type": "context",
+        "path": ".opencode/context/development/react-patterns.md",
+        "description": "React Patterns & Best Practices",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "api-design",
+        "name": "Api Design",
+        "type": "context",
+        "path": ".opencode/context/development/api-design.md",
+        "description": "API Design Patterns",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "mastra-config",
+        "name": "Mastra Config",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/lookup/mastra-config.md",
+        "description": "Lookup: Mastra Configuration",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "navigation",
+        "name": "Navigation",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/navigation.md",
+        "description": "MAStra AI Navigation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "modular-building",
+        "name": "Modular Building",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/guides/modular-building.md",
+        "description": "Guide: Modular Mastra Building",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "testing",
+        "name": "Testing",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/guides/testing.md",
+        "description": "Guide: Testing Mastra",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflow-step-structure",
+        "name": "Workflow Step Structure",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/guides/workflow-step-structure.md",
+        "description": "Guide: Workflow Step Structure",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflow-example",
+        "name": "Workflow Example",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/examples/workflow-example.md",
+        "description": "Example: Document Ingestion Workflow",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "storage",
+        "name": "Storage",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/storage.md",
+        "description": "Concept: Mastra Data Storage",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows",
+        "name": "Workflows",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/workflows.md",
+        "description": "Concept: Mastra Workflows",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "agents-tools",
+        "name": "Agents Tools",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/agents-tools.md",
+        "description": "Concept: Mastra Agents & Tools",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "core",
+        "name": "Core",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/core.md",
+        "description": "Concept: Mastra Core",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "evaluations",
+        "name": "Evaluations",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/concepts/evaluations.md",
+        "description": "Concept: Mastra Evaluations",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "mastra-errors",
+        "name": "Mastra Errors",
+        "type": "context",
+        "path": ".opencode/context/development/ai/mastra-ai/errors/mastra-errors.md",
+        "description": "Errors: Mastra Implementation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "navigation",
+        "name": "Navigation",
+        "type": "context",
+        "path": ".opencode/context/development/ai/navigation.md",
+        "description": "AI Navigation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "navigation",
+        "name": "Navigation",
+        "type": "context",
+        "path": ".opencode/context/development/frameworks/navigation.md",
+        "description": "Frameworks Navigation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "navigation",
+        "name": "Navigation",
+        "type": "context",
+        "path": ".opencode/context/development/frameworks/tanstack-start/navigation.md",
+        "description": "Tanstack Start Navigation",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "copywriting-frameworks",
+        "name": "Copywriting Frameworks",
+        "type": "context",
+        "path": ".opencode/context/content/copywriting-frameworks.md",
+        "description": "Copywriting Frameworks",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "tone-voice",
+        "name": "Tone Voice",
+        "type": "context",
+        "path": ".opencode/context/content/tone-voice.md",
+        "description": "Tone & Voice Guidelines",
+        "tags": [],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "config": [
@@ -1976,12 +2281,27 @@
       "components": [
         "agent:openagent",
         "subagent:task-manager",
+        "subagent:contextscout",
         "subagent:documentation",
+        "skill:task-management",
         "command:context",
         "command:clean",
         "tool:env",
         "context:essential-patterns",
         "context:project-context",
+        "context:quick-start",
+        "context:standards-code",
+        "context:standards-patterns",
+        "context:standards-tests",
+        "context:standards-docs",
+        "context:standards-analysis",
+        "context:workflows-delegation",
+        "context:workflows-sessions",
+        "context:workflows-task-breakdown",
+        "context:workflows-review",
+        "context:system-context-guide",
+        "context:adding-skill",
+        "context:adding-skill",
         "config:env-example"
       ]
     },
@@ -2003,6 +2323,8 @@
         "subagent:tester",
         "subagent:build-agent",
         "subagent:codebase-pattern-analyst",
+        "subagent:contextscout",
+        "skill:task-management",
         "command:commit",
         "command:test",
         "command:context",
@@ -2012,6 +2334,7 @@
         "tool:env",
         "context:essential-patterns",
         "context:project-context",
+        "context:quick-start",
         "context:standards-code",
         "context:standards-patterns",
         "context:standards-tests",
@@ -2022,6 +2345,7 @@
         "context:workflows-task-breakdown",
         "context:workflows-review",
         "context:system-context-guide",
+        "context:adding-skill",
         "config:env-example",
         "config:readme"
       ]
@@ -2035,8 +2359,10 @@
         "agent:technical-writer",
         "agent:data-analyst",
         "subagent:task-manager",
+        "subagent:contextscout",
         "subagent:documentation",
         "subagent:image-specialist",
+        "skill:task-management",
         "command:context",
         "command:clean",
         "command:prompt-enhancer",
@@ -2047,6 +2373,18 @@
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
+        "context:quick-start",
+        "context:standards-code",
+        "context:standards-patterns",
+        "context:standards-tests",
+        "context:standards-docs",
+        "context:standards-analysis",
+        "context:workflows-delegation",
+        "context:workflows-sessions",
+        "context:workflows-task-breakdown",
+        "context:workflows-review",
+        "context:system-context-guide",
+        "context:adding-skill",
         "config:env-example",
         "config:readme"
       ]
@@ -2072,6 +2410,8 @@
         "subagent:tester",
         "subagent:build-agent",
         "subagent:codebase-pattern-analyst",
+        "subagent:contextscout",
+        "skill:task-management",
         "subagent:image-specialist",
         "command:test",
         "command:commit",
@@ -2088,6 +2428,7 @@
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
+        "context:quick-start",
         "context:standards-code",
         "context:standards-patterns",
         "context:standards-tests",
@@ -2098,6 +2439,7 @@
         "context:workflows-task-breakdown",
         "context:workflows-review",
         "context:system-context-guide",
+        "context:adding-skill",
         "config:env-example",
         "config:readme"
       ]
@@ -2127,6 +2469,8 @@
         "subagent:codebase-pattern-analyst",
         "subagent:image-specialist",
         "subagent:context-retriever",
+        "subagent:contextscout",
+        "skill:task-management",
         "subagent:domain-analyzer",
         "subagent:agent-generator",
         "subagent:context-organizer",
@@ -2148,6 +2492,7 @@
         "plugin:telegram-notify",
         "context:essential-patterns",
         "context:project-context",
+        "context:quick-start",
         "context:standards-code",
         "context:standards-patterns",
         "context:standards-tests",
@@ -2158,6 +2503,7 @@
         "context:workflows-task-breakdown",
         "context:workflows-review",
         "context:system-context-guide",
+        "context:adding-skill",
         "config:env-example",
         "config:readme"
       ],
@@ -2168,7 +2514,7 @@
     }
   },
   "metadata": {
-    "lastUpdated": "2026-01-09",
+    "lastUpdated": "2026-01-11",
     "schemaVersion": "1.0.0"
   },
   "subagents": {

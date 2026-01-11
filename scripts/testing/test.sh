@@ -19,12 +19,43 @@ NC='\033[0m' # No Color
 AGENT=${1:-all}
 MODEL=${2:-opencode/grok-code-fast}
 shift 2 2>/dev/null || true
-EXTRA_ARGS="$@"
+EXTRA_ARGS=("$@")
 
 # Check if --core flag is present
 CORE_MODE=false
-if [[ "$AGENT" == "--core" ]] || [[ "$MODEL" == "--core" ]] || [[ "$EXTRA_ARGS" == *"--core"* ]]; then
+if [[ "$AGENT" == "--core" ]] || [[ "$MODEL" == "--core" ]] || [[ "${EXTRA_ARGS[*]}" == *"--core"* ]]; then
   CORE_MODE=true
+fi
+
+echo -e "${BLUE}🧪 OpenCode Agents Test Runner${NC}"
+echo -e "${BLUE}================================${NC}"
+echo ""
+if [ "$CORE_MODE" = true ]; then
+  echo -e "Mode:   ${YELLOW}CORE TEST SUITE (7 tests, ~5-8 min)${NC}"
+fi
+echo -e "Agent:  ${GREEN}${AGENT}${NC}"
+echo -e "Model:  ${GREEN}${MODEL}${NC}"
+if [ -n "${EXTRA_ARGS[*]}" ]; then
+  echo -e "Extra:  ${YELLOW}${EXTRA_ARGS[*]}${NC}"
+fi
+
+# Navigate to framework directory
+cd "$(dirname "$0")/../../evals/framework" || exit 1
+
+# Check if dependencies are installed
+if [ ! -d "node_modules" ]; then
+  echo -e "${YELLOW}⚠️  Dependencies not installed. Running npm install...${NC}"
+  npm install
+  echo ""
+fi
+
+# Run tests
+if [ "$AGENT" = "all" ]; then
+  echo -e "${YELLOW}Running tests for ALL agents...${NC}"
+  npm run eval:sdk -- --model="$MODEL" "${EXTRA_ARGS[@]}"
+else
+  echo -e "${YELLOW}Running tests for ${AGENT}...${NC}"
+  npm run eval:sdk -- --agent="$AGENT" --model="$MODEL" "${EXTRA_ARGS[@]}"
 fi
 
 echo -e "${BLUE}🧪 OpenCode Agents Test Runner${NC}"
