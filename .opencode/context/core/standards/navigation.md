@@ -12,6 +12,8 @@
 | `test-coverage.md` | Testing standards | ⭐⭐⭐⭐⭐ | Writing tests |
 | `documentation.md` | Documentation rules | ⭐⭐⭐⭐ | Writing docs |
 | `security-patterns.md` | Security best practices | ⭐⭐⭐⭐ | Security review, patterns |
+| `project-intelligence.md` | What and why | ⭐⭐⭐⭐ | Onboarding, understanding projects |
+| `project-intelligence-management.md` | How to manage | ⭐⭐⭐ | Managing intelligence files |
 | `code-analysis.md` | Analysis approaches | ⭐⭐⭐ | Analyzing code, debugging |
 
 ---
@@ -34,9 +36,14 @@
 2. Load `security-patterns.md` (high)
 3. Load `test-coverage.md` (high)
 
+**For project onboarding/understanding**:
+1. Load `project-intelligence.md` (high)
+2. Then load: `../../project-intelligence/` folder for full project context
+
 ---
 
 ## Related
 
 - **Workflows** → `../workflows/navigation.md`
 - **Development Principles** → `../../development/principles/`
+- **Project Intelligence** → `../../project-intelligence/navigation.md` (full project context)

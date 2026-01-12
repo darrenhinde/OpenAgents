@@ -2307,6 +2307,120 @@
         "tags": [],
         "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "project-intelligence",
+        "name": "Project Intelligence",
+        "type": "context",
+        "path": ".opencode/context/core/standards/project-intelligence.md",
+        "description": "What and why of project intelligence - bridging business and technical domains",
+        "tags": [
+          "project-intelligence",
+          "onboarding",
+          "business",
+          "technical"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-management",
+        "name": "Project Intelligence Management",
+        "type": "context",
+        "path": ".opencode/context/core/standards/project-intelligence-management.md",
+        "description": "How to manage project intelligence files - add, update, remove, version",
+        "tags": [
+          "project-intelligence",
+          "management",
+          "lifecycle"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-nav",
+        "name": "Project Intelligence Navigation",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/navigation.md",
+        "description": "Quick overview and routes for project intelligence files",
+        "tags": [
+          "project-intelligence",
+          "navigation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-business",
+        "name": "Business Domain",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/business-domain.md",
+        "description": "Business context, problems solved, target users, and value proposition",
+        "tags": [
+          "project-intelligence",
+          "business",
+          "domain"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-technical",
+        "name": "Technical Domain",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/technical-domain.md",
+        "description": "Technical foundation, stack, architecture, and key decisions",
+        "tags": [
+          "project-intelligence",
+          "technical",
+          "architecture"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-bridge",
+        "name": "Business Tech Bridge",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/business-tech-bridge.md",
+        "description": "How business needs map to technical solutions",
+        "tags": [
+          "project-intelligence",
+          "business",
+          "technical",
+          "mapping"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-decisions",
+        "name": "Decisions Log",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/decisions-log.md",
+        "description": "Major architectural and business decisions with full context",
+        "tags": [
+          "project-intelligence",
+          "decisions",
+          "context"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "project-intelligence-notes",
+        "name": "Living Notes",
+        "type": "context",
+        "path": ".opencode/context/project-intelligence/living-notes.md",
+        "description": "Active issues, technical debt, open questions, and insights",
+        "tags": [
+          "project-intelligence",
+          "issues",
+          "debt",
+          "notes"
+        ],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "config": [
