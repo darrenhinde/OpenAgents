@@ -17,12 +17,12 @@ FAILED=0
 
 pass() {
     echo -e "${GREEN}✓${NC} $1"
-    ((PASSED++))
+    ((PASSED+=1))
 }
 
 fail() {
     echo -e "${RED}✗${NC} $1"
-    ((FAILED++))
+    ((FAILED+=1))
 }
 
 warn() {
@@ -71,7 +71,7 @@ test_essential_profile() {
             pass "Found: $file"
         else
             fail "Missing: $file"
-            ((missing++))
+            ((missing+=1))
         fi
     done
     
@@ -101,7 +101,7 @@ test_developer_profile() {
     local found=0
     for file in "${expected_files[@]}"; do
         if [ -f "$install_dir/$file" ]; then
-            ((found++))
+            ((found+=1))
         fi
     done
     
@@ -244,7 +244,7 @@ test_help_and_list() {
         fail "Help command failed"
     fi
     
-    if bash "$REPO_ROOT/install.sh" list 2>&1 | grep -q "Available Components\|Agents"; then
+    if bash "$REPO_ROOT/install.sh" list 2>&1 | grep "Available Components\|Agents" > /dev/null; then
         pass "List command works"
     else
         fail "List command failed"

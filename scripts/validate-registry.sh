@@ -180,7 +180,7 @@ suggest_fix() {
     if [ -n "$similar_files" ]; then
         echo -e "  ${YELLOW}→ Possible matches:${NC}"
         while IFS= read -r file; do
-            local rel_path="${file#$REPO_ROOT/}"
+            local rel_path="${file#"$REPO_ROOT"/}"
             echo -e "    ${CYAN}${rel_path}${NC}"
         done <<< "$similar_files"
     fi
@@ -205,8 +205,8 @@ scan_for_orphaned_files() {
         
         # Find all .md and .ts files (excluding node_modules)
         while IFS= read -r file; do
-            local rel_path="${file#$REPO_ROOT/}"
-            
+            local rel_path="${file#"$REPO_ROOT"/}"
+
             # Skip node_modules
             if [[ "$rel_path" == *"/node_modules/"* ]]; then
                 continue

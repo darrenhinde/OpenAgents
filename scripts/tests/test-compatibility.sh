@@ -87,7 +87,7 @@ fi
 # Test 6: Profile argument parsing
 echo ""
 echo "Test 6: Profile Argument Parsing"
-for profile in core developer full advanced; do
+for profile in essential developer full advanced; do
     if echo "n" | bash install.sh "$profile" 2>&1 | grep -q "Profile:"; then
         pass "Profile '$profile' argument works"
     else
@@ -98,7 +98,7 @@ done
 # Test 7: Profile with dashes
 echo ""
 echo "Test 7: Profile Arguments with Dashes"
-for profile in --core --developer --full --advanced; do
+for profile in --essential --developer --full --advanced; do
     if echo "n" | bash install.sh "$profile" 2>&1 | grep -q "Profile:"; then
         pass "Profile '$profile' argument works"
     else

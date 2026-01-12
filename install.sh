@@ -291,14 +291,14 @@ fetch_registry() {
 
 get_profile_components() {
     local profile=$1
-    jq_exec ".profiles.${profile}.components[]" "$TEMP_DIR/registry.json"
+    jq_exec ".profiles.${profile}.components[]?" "$TEMP_DIR/registry.json"
 }
 
 get_component_info() {
     local component_id=$1
     local component_type=$2
     
-    jq_exec ".components.${component_type}[] | select(.id == \"${component_id}\")" "$TEMP_DIR/registry.json"
+    jq_exec ".components.${component_type}[]? | select(.id == \"${component_id}\")" "$TEMP_DIR/registry.json"
 }
 
 # Helper function to get the correct registry key for a component type
@@ -489,7 +489,7 @@ show_main_menu() {
     case $choice in
         1) INSTALL_MODE="profile" ;;
         2) INSTALL_MODE="custom" ;;
-        3) list_components; show_main_menu ;;
+        3) list_components; read -p "Press Enter to continue..."; show_main_menu ;;
         4) cleanup_and_exit 0 ;;
         *) print_error "Invalid choice"; sleep 2; show_main_menu ;;
     esac
@@ -614,7 +614,7 @@ show_custom_menu() {
     echo "Use space to toggle, Enter to continue"
     echo ""
     
-    local categories=("agents" "subagents" "commands" "tools" "plugins" "contexts" "config")
+    local categories=("agents" "subagents" "commands" "tools" "plugins" "skills" "contexts" "config")
     local selected_categories=()
     
     # Simple selection (for now, we'll make it interactive later)
@@ -674,14 +674,14 @@ show_component_selection() {
         echo -e "${CYAN}${BOLD}${cat_display}:${NC}"
         
         local components
-        components=$(jq_exec ".components.${category}[] | .id" "$TEMP_DIR/registry.json")
+        components=$(jq_exec ".components.${category}[]? | .id" "$TEMP_DIR/registry.json")
         
         local idx=1
         while IFS= read -r comp_id; do
             local comp_name
-            comp_name=$(jq_exec ".components.${category}[] | select(.id == \"${comp_id}\") | .name" "$TEMP_DIR/registry.json")
+            comp_name=$(jq_exec ".components.${category}[]? | select(.id == \"${comp_id}\") | .name" "$TEMP_DIR/registry.json")
             local comp_desc
-            comp_desc=$(jq_exec ".components.${category}[] | select(.id == \"${comp_id}\") | .description" "$TEMP_DIR/registry.json")
+            comp_desc=$(jq_exec ".components.${category}[]? | select(.id == \"${comp_id}\") | .description" "$TEMP_DIR/registry.json")
             
             echo "  ${idx}) ${comp_name}"
             echo "     ${comp_desc}"
@@ -759,6 +759,7 @@ show_installation_preview() {
     local commands=()
     local tools=()
     local plugins=()
+    local skills=()
     local contexts=()
     local configs=()
     
@@ -770,6 +771,7 @@ show_installation_preview() {
             command) commands+=("$comp") ;;
             tool) tools+=("$comp") ;;
             plugin) plugins+=("$comp") ;;
+            skill) skills+=("$comp") ;;
             context) contexts+=("$comp") ;;
             config) configs+=("$comp") ;;
         esac
@@ -780,6 +782,7 @@ show_installation_preview() {
     [ ${#commands[@]} -gt 0 ] && echo -e "${CYAN}Commands (${#commands[@]}):${NC} ${commands[*]##*:}"
     [ ${#tools[@]} -gt 0 ] && echo -e "${CYAN}Tools (${#tools[@]}):${NC} ${tools[*]##*:}"
     [ ${#plugins[@]} -gt 0 ] && echo -e "${CYAN}Plugins (${#plugins[@]}):${NC} ${plugins[*]##*:}"
+    [ ${#skills[@]} -gt 0 ] && echo -e "${CYAN}Skills (${#skills[@]}):${NC} ${skills[*]##*:}"
     [ ${#contexts[@]} -gt 0 ] && echo -e "${CYAN}Contexts (${#contexts[@]}):${NC} ${contexts[*]##*:}"
     [ ${#configs[@]} -gt 0 ] && echo -e "${CYAN}Config (${#configs[@]}):${NC} ${configs[*]##*:}"
     
@@ -820,6 +823,7 @@ show_collision_report() {
     local commands=()
     local tools=()
     local plugins=()
+    local skills=()
     local contexts=()
     local configs=()
     
@@ -837,6 +841,8 @@ show_collision_report() {
             tools+=("$file")
         elif [[ $file == *"/plugin/"* ]]; then
             plugins+=("$file")
+        elif [[ $file == *"/skill/"* ]]; then
+            skills+=("$file")
         elif [[ $file == *"/context/"* ]]; then
             contexts+=("$file")
         else
@@ -850,6 +856,7 @@ show_collision_report() {
     [ ${#commands[@]} -gt 0 ] && echo -e "${YELLOW}  Commands (${#commands[@]}):${NC}" && printf '    %s\n' "${commands[@]}"
     [ ${#tools[@]} -gt 0 ] && echo -e "${YELLOW}  Tools (${#tools[@]}):${NC}" && printf '    %s\n' "${tools[@]}"
     [ ${#plugins[@]} -gt 0 ] && echo -e "${YELLOW}  Plugins (${#plugins[@]}):${NC}" && printf '    %s\n' "${plugins[@]}"
+    [ ${#skills[@]} -gt 0 ] && echo -e "${YELLOW}  Skills (${#skills[@]}):${NC}" && printf '    %s\n' "${skills[@]}"
     [ ${#contexts[@]} -gt 0 ] && echo -e "${YELLOW}  Context (${#contexts[@]}):${NC}" && printf '    %s\n' "${contexts[@]}"
     [ ${#configs[@]} -gt 0 ] && echo -e "${YELLOW}  Config (${#configs[@]}):${NC}" && printf '    %s\n' "${configs[@]}"
     
@@ -901,7 +908,7 @@ perform_installation() {
         local registry_key
         registry_key=$(get_registry_key "$type")
         local path
-        path=$(jq_exec ".components.${registry_key}[] | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
+        path=$(jq_exec ".components.${registry_key}[]? | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
         
         if [ -n "$path" ] && [ "$path" != "null" ]; then
             local install_path
@@ -978,7 +985,7 @@ perform_installation() {
         
         # Get component path
         local path
-        path=$(jq_exec ".components.${registry_key}[] | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
+        path=$(jq_exec ".components.${registry_key}[]? | select(.id == \"${id}\") | .path" "$TEMP_DIR/registry.json")
         
         if [ -z "$path" ] || [ "$path" = "null" ]; then
             print_warning "Could not find path for ${comp}"
@@ -1111,12 +1118,12 @@ show_post_install() {
 #############################################################################
 
 list_components() {
-    clear
+    clear || true
     print_header
     
     echo -e "${BOLD}Available Components${NC}\n"
     
-    local categories=("agents" "subagents" "commands" "tools" "plugins" "contexts")
+    local categories=("agents" "subagents" "commands" "tools" "plugins" "skills" "contexts")
     
     for category in "${categories[@]}"; do
         local cat_display
@@ -1124,7 +1131,7 @@ list_components() {
         echo -e "${CYAN}${BOLD}${cat_display}:${NC}"
         
         local components
-        components=$(jq_exec ".components.${category}[] | \"\(.id)|\(.name)|\(.description)\"" "$TEMP_DIR/registry.json")
+        components=$(jq_exec ".components.${category}[]? | \"\(.id)|\(.name)|\(.description)\"" "$TEMP_DIR/registry.json")
         
         while IFS='|' read -r id name desc; do
             echo -e "  ${GREEN}${name}${NC} (${id})"
@@ -1133,8 +1140,6 @@ list_components() {
         
         echo ""
     done
-    
-    read -p "Press Enter to continue..."
 }
 
 #############################################################################
