@@ -53,6 +53,8 @@ Before working on this repo, understand these 4 systems:
 | Debug issue | `guides/debugging.md` |
 | Find files | `lookup/file-locations.md` |
 | Create release | `guides/creating-release.md` |
+| Write content or copy | `core-concepts/categories.md` + `../content-creation/principles/navigation.md` |
+| Use Claude Code helpers | `core-concepts/agents.md` + `guides/adding-agent.md` + `../to-be-consumed/claude-code-docs/create-subagents.md` |
 
 ---
 
@@ -163,5 +165,5 @@ opencode-agents/
 
 ---
 
-**Last Updated**: 2025-12-10  
-**Version**: 0.5.0
+**Last Updated**: 2026-01-13  
+**Version**: 0.5.1

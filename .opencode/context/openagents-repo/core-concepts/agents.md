@@ -158,6 +158,19 @@ Agents:
 
 ---
 
+## Claude Code Interop (Optional)
+
+OpenAgents can pair with Claude Code for local workflows and distribution:
+
+- **Subagents**: Project helpers in `.claude/agents/`
+- **Skills**: Auto-invoked guidance in `.claude/skills/`
+- **Hooks**: Shell commands on lifecycle events (use sparingly)
+- **Plugins**: Share agents/skills/hooks across projects
+
+Use this when you want Claude Code to follow OpenAgents standards or to ship reusable helpers.
+
+---
+
 ## Path Resolution
 
 The system supports multiple path formats for backward compatibility:
@@ -343,8 +356,12 @@ Before execution:
 - **Testing agents**: `guides/testing-agent.md`
 - **Category system**: `core-concepts/categories.md`
 - **File locations**: `lookup/file-locations.md`
+- **Claude Code subagents**: `../to-be-consumed/claude-code-docs/create-subagents.md`
+- **Claude Code skills**: `../to-be-consumed/claude-code-docs/agent-skills.md`
+- **Claude Code hooks**: `../to-be-consumed/claude-code-docs/hooks.md`
+- **Claude Code plugins**: `../to-be-consumed/claude-code-docs/plugins.md`
 
 ---
 
-**Last Updated**: 2025-12-10  
-**Version**: 0.5.0
+**Last Updated**: 2026-01-13  
+**Version**: 0.5.1

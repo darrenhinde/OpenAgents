@@ -1,0 +1,29 @@
+{
+  "name": "Essential (Minimal)",
+  "description": "Minimal starter kit - universal agent with core subagents. Great for learning the system or lightweight tasks. Upgrade to Developer or Business for full features.",
+  "components": [
+    "agent:openagent",
+    "subagent:task-manager",
+    "subagent:contextscout",
+    "subagent:documentation",
+    "skill:task-management",
+    "command:context",
+    "command:clean",
+    "tool:env",
+    "context:essential-patterns",
+    "context:project-context",
+    "context:quick-start",
+    "context:standards-code",
+    "context:standards-patterns",
+    "context:standards-tests",
+    "context:standards-docs",
+    "context:standards-analysis",
+    "context:workflows-delegation",
+    "context:session-management",
+    "context:feature-breakdown",
+    "context:workflows-review",
+    "context:system-context-guide",
+    "context:adding-skill",
+    "config:env-example"
+  ]
+}

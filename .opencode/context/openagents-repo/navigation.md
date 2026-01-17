@@ -2,7 +2,7 @@
 
 **Purpose**: Context files specific to the OpenAgents repository
 
-**Last Updated**: 2026-01-07
+**Last Updated**: 2026-01-13
 
 ---
 
@@ -127,6 +127,8 @@ All files follow MVI principle (<200 lines):
 - `../core/` - Core system context (standards, patterns)
 - `../core/context-system/` - Context management system
 - `quick-start.md` - 2-minute repo orientation
+- `../content-creation/navigation.md` - Content creation principles
+- `../to-be-consumed/claude-code-docs/plugins.md` - Claude Code extension docs
 
 ---
 

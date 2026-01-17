@@ -55,6 +55,16 @@ mkdir -p .opencode/skill/{skill-name}/scripts
 
 The SKILL.md file is required and provides skill documentation and integration details.
 
+### Optional: Claude Code Skills
+
+Claude Code Skills live in `.claude/skills/{skill-name}/SKILL.md` and support extra frontmatter:
+- `allowed-tools` for tool restrictions
+- `context` + `agent` to run in a forked subagent
+- `hooks` for lifecycle events
+- `user-invocable` to hide from slash menu
+
+Keep descriptions keyword-rich so auto-discovery triggers reliably. See `../to-be-consumed/claude-code-docs/agent-skills.md` for full details.
+
 ### SKILL.md Frontmatter
 
 ```markdown
@@ -443,3 +453,4 @@ Each skill should do one thing well:
 - **Plugin Overview**: `plugins/context/architecture/overview.md`
 - **Event System**: `plugins/context/capabilities/events.md`
 - **Adding Agents**: `guides/adding-agent.md`
+- **Claude Code Skills**: `../to-be-consumed/claude-code-docs/agent-skills.md`

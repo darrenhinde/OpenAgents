@@ -53,7 +53,10 @@ Categories are domain-based groupings that organize agents, context files, and t
 - copywriter, technical-writer
 
 **Context**:
-- copywriting-frameworks.md, tone-voice.md
+- copywriting-frameworks.md
+- tone-voice.md
+- audience-targeting.md
+- hooks.md
 
 **When to use**: Writing, documentation, marketing
 
@@ -437,8 +440,9 @@ evals/agents/development/
 - **Adding categories**: `guides/add-category.md`
 - **Agent concepts**: `core-concepts/agents.md`
 - **File locations**: `lookup/file-locations.md`
+- **Content creation principles**: `../content-creation/principles/navigation.md`
 
 ---
 
-**Last Updated**: 2025-12-10  
-**Version**: 0.5.0
+**Last Updated**: 2026-01-13  
+**Version**: 0.5.1

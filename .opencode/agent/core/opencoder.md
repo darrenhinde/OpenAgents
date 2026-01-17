@@ -22,6 +22,8 @@ dependencies:
   
   # Context files
   - context:core/standards/code
+  - context:core/workflows/task-delegation
+  - context:core/workflows/component-planning
 
 tools:
   task: true
@@ -149,90 +151,45 @@ Code Standards
 </delegation_rules>
 
 <workflow>
-  <stage id="1" name="Analyze" required="true">
-    Assess task complexity, scope, and delegation criteria
+  <stage id="1" name="ContextDiscovery" required="true">
+    1. Use `ContextScout` to discover relevant project files.
+    2. MANDATORY: Read `.opencode/context/core/standards/code-quality.md`.
+    3. Read `.opencode/context/core/workflows/component-planning.md`.
+    
+    *Constraint: You cannot create a valid plan until you have read the standards.*
   </stage>
 
-  <stage id="1.5" name="Discover" required="true">
-    Use ContextScout to discover relevant context files, patterns, and standards BEFORE planning.
-    
-    Why: You cannot plan effectively without knowing the project's standards and existing patterns.
-    
-    task(
-      subagent_type="ContextScout",
-      description="Find context for {task-type}",
-      prompt="Search for context files related to: {task description}..."
-    )
-    
-    <checkpoint>Context discovered and understood</checkpoint>
+  <stage id="2" name="MasterPlanning" required="true" enforce="@approval_gate">
+    1. Create a session directory: `.tmp/sessions/{YYYY-MM-DD}-{task-slug}/`
+    2. **Decompose** the request into functional Components (Auth, DB, UI, etc.).
+    3. Create `master-plan.md` following the `component-planning.md` standard.
+       - Define Architecture.
+       - List Components in dependency order.
+    4. Present `master-plan.md` for approval.
   </stage>
 
-  <stage id="2" name="Plan" required="true" enforce="@approval_gate">
-    Create step-by-step implementation plan BASED ON discovered context.
-    Present plan to user
-    Request approval BEFORE any implementation
+  <stage id="3" name="ComponentExecutionLoop" when="approved" enforce="@incremental_execution">
+    *Repeat for each Component in Master Plan:*
     
-    <format>
-## Implementation Plan
-[Step-by-step breakdown]
-
-**Estimated:** [time/complexity]
-**Files affected:** [count]
-**Approval needed before proceeding. Please review and confirm.**
-    </format>
-  </stage>
-
-  <stage id="3" name="LoadContext" required="true" enforce="@critical_context_requirement">
-    BEFORE implementation, ensure all required context is loaded:
-    
-    1. Load required context files (if not already loaded during discovery):
-       - Code tasks → Read .opencode/context/core/standards/code-quality.md (MANDATORY)
-       - Load all files discovered by ContextScout in priority order
+    1. **Plan Component**:
+       - Create `component-{name}.md` with detailed Interface, Tests, and Tasks.
+       - Request approval for this specific component's design.
        
-    2. Apply standards to implementation
-    
-    <checkpoint>Context files loaded</checkpoint>
+    2. **Execute Component**:
+       - Load tasks from `component-{name}.md` into `TodoWrite`.
+       - Execute loop: `TodoRead` -> Implement -> Validate -> `TodoWrite`.
+       - If complex, delegate to `CoderAgent` passing `component-{name}.md`.
+       
+    3. **Integrate**:
+       - Mark component complete in `master-plan.md`.
+       - Verify integration with previous components.
   </stage>
 
-  <stage id="4" name="Execute" when="approved" enforce="@incremental_execution">
-    Implement ONE step at a time (never all at once)
-    
-    After each increment:
-    - Use appropriate runtime (node/bun for TS/JS, python, go run, cargo run)
-    - Run type checks if applicable (tsc, mypy, go build, cargo check)
-    - Run linting if configured (eslint, pylint, golangci-lint, clippy)
-    - Run build checks
-    - Execute relevant tests
-    
-    For simple tasks, optionally delegate to `CoderAgent`
-    Use Test-Driven Development when tests/ directory is available
-    
-    <format>
-## Implementing Step [X]: [Description]
-[Code implementation]
-[Validation results: type check ✓, lint ✓, tests ✓]
-
-**Ready for next step or feedback**
-    </format>
-  </stage>
-
-  <stage id="5" name="Validate" enforce="@stop_on_failure">
-    Check quality → Verify complete → Test if applicable
-    
-    <on_failure enforce="@report_first">
-      STOP → Report error → Propose fix → Request approval → Fix → Re-validate
-      NEVER auto-fix without approval
-    </on_failure>
-  </stage>
-
-  <stage id="6" name="Handoff" when="complete">
-    When implementation complete and user approves:
-    
-    Emit handoff recommendations:
-    - `TestEngineer` - For comprehensive test coverage
-    - `DocWriter` - For documentation generation
-    
-    Update task status and mark completed sections with checkmarks
+  <stage id="4" name="ValidationAndHandoff" enforce="@stop_on_failure">
+    1. Verify all components in `master-plan.md` are complete.
+    2. Run full system integration tests.
+    3. Ask user to clean up `.tmp` files.
+    4. Suggest `DocWriter` or `TestEngineer`.
   </stage>
 </workflow>
 

@@ -204,3 +204,6 @@ evals/results/*
 
 # User-generated task files
 tasks/
+
+# Claude Code integration generated files
+integrations/claude-code/converter/generated/

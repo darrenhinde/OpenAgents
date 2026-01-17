@@ -2421,6 +2421,88 @@
         ],
         "dependencies": [],
         "category": "standard"
+      },
+      {
+        "id": "claude-agent-skills",
+        "name": "Claude Agent Skills",
+        "type": "context",
+        "path": ".opencode/context/to-be-consumed/claude-code-docs/agent-skills.md",
+        "description": "Claude Code: Agent Skills Documentation",
+        "tags": [
+          "claude",
+          "skills",
+          "docs"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "claude-create-subagents",
+        "name": "Claude Create Subagents",
+        "type": "context",
+        "path": ".opencode/context/to-be-consumed/claude-code-docs/create-subagents.md",
+        "description": "Claude Code: Creating Subagents",
+        "tags": [
+          "claude",
+          "subagents",
+          "docs"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "claude-hooks",
+        "name": "Claude Hooks",
+        "type": "context",
+        "path": ".opencode/context/to-be-consumed/claude-code-docs/hooks.md",
+        "description": "Claude Code: Hooks Documentation",
+        "tags": [
+          "claude",
+          "hooks",
+          "docs"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "claude-plugins",
+        "name": "Claude Plugins",
+        "type": "context",
+        "path": ".opencode/context/to-be-consumed/claude-code-docs/plugins.md",
+        "description": "Claude Code: Plugins Documentation",
+        "tags": [
+          "claude",
+          "plugins",
+          "docs"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-delegation",
+        "name": "Delegation Workflow",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/delegation.md",
+        "description": "Delegation Workflow (Symlink)",
+        "tags": [
+          "workflows",
+          "delegation"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "workflows-review",
+        "name": "Review Workflow",
+        "type": "context",
+        "path": ".opencode/context/core/workflows/review.md",
+        "description": "Review Workflow (Symlink)",
+        "tags": [
+          "workflows",
+          "review"
+        ],
+        "dependencies": [],
+        "category": "standard"
       }
     ],
     "config": [
@@ -2516,6 +2598,7 @@
         "context:quick-start",
         "context:core/*",
         "context:project-intelligence/*",
+        "context:to-be-consumed/*",
         "context:adding-skill",
         "config:env-example",
         "config:readme"
@@ -2547,6 +2630,7 @@
         "context:quick-start",
         "context:core/*",
         "context:project-intelligence/*",
+        "context:to-be-consumed/*",
         "context:adding-skill",
         "config:env-example",
         "config:readme"
@@ -2594,6 +2678,7 @@
         "context:quick-start",
         "context:core/*",
         "context:project-intelligence/*",
+        "context:to-be-consumed/*",
         "context:adding-skill",
         "config:env-example",
         "config:readme"
@@ -2650,6 +2735,7 @@
         "context:quick-start",
         "context:core/*",
         "context:project-intelligence/*",
+        "context:to-be-consumed/*",
         "context:adding-skill",
         "config:env-example",
         "config:readme"

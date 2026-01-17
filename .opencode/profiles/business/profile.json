@@ -1,0 +1,32 @@
+{
+  "name": "Business",
+  "description": "Business process automation, content creation, and visual workflows. Includes image generation, notifications, and documentation tools.",
+  "components": [
+    "agent:openagent",
+    "agent:copywriter",
+    "agent:technical-writer",
+    "agent:data-analyst",
+    "subagent:task-manager",
+    "subagent:contextscout",
+    "subagent:documentation",
+    "subagent:image-specialist",
+    "skill:task-management",
+    "command:context",
+    "command:clean",
+    "command:prompt-enhancer",
+    "tool:env",
+    "tool:gemini",
+    "plugin:notify",
+    "plugin:telegram-bot",
+    "plugin:telegram-notify",
+    "context:essential-patterns",
+    "context:project-context",
+    "context:quick-start",
+    "context:core/*",
+    "context:project-intelligence/*",
+    "context:to-be-consumed/*",
+    "context:adding-skill",
+    "config:env-example",
+    "config:readme"
+  ]
+}

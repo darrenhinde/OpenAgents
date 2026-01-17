@@ -73,6 +73,19 @@ dependencies: []
 
 ---
 
+## Optional: Claude Code Subagent
+
+If you want a Claude Code-only helper for this repo, create a project subagent:
+
+- Path: `.claude/agents/{subagent-name}.md`
+- Required frontmatter: `name`, `description`
+- Optional: `tools`, `disallowedTools`, `permissionMode`, `skills`, `hooks`
+- Reload: restart Claude Code or run `/agents`
+
+For full Claude Code subagent details, see `../to-be-consumed/claude-code-docs/create-subagents.md`.
+
+---
+
 ## Step 2: Create Test Structure
 
 ### Create Directories
@@ -317,8 +330,9 @@ After adding agent:
 - **Testing guide**: `guides/testing-agent.md`
 - **Registry guide**: `guides/updating-registry.md`
 - **Debugging**: `guides/debugging.md`
+- **Claude Code subagents**: `../to-be-consumed/claude-code-docs/create-subagents.md`
 
 ---
 
-**Last Updated**: 2025-12-10  
-**Version**: 0.5.0
+**Last Updated**: 2026-01-13  
+**Version**: 0.5.1

@@ -1,0 +1,38 @@
+id: workflow-test
+name: "Workflow Test: Component Planning"
+description: |
+  Tests the Component-Based Planning workflow.
+  
+  Expected workflow:
+  1. Agent receives coding request.
+  2. Agent loads context (standards + component-planning).
+  3. Agent creates master-plan.md.
+  4. Agent requests approval.
+
+category: developer
+agent: core/opencoder
+model: anthropic/claude-sonnet-4-5
+
+prompt: "Create a simple Python script that prints 'Hello World' and a test for it."
+
+behavior:
+  requiresApproval: false
+  minToolCalls: 2
+
+expectations:
+  - type: context_loaded
+    contexts: 
+      - core/standards/code-quality.md
+      - core/workflows/component-planning.md
+  - type: tool_usage
+    tools: ["write", "todowrite"]
+    min_count: 1
+
+approvalStrategy:
+  type: auto-approve
+
+timeout: 300000
+
+tags:
+  - workflow
+  - planning

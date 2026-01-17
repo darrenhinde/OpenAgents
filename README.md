@@ -391,6 +391,86 @@ cp env.example .env
 
 **Get API key:** https://makersuite.google.com/app/apikey
 
+### 🤖 Use with Claude Code (Beta)
+
+> **⚠️ Beta Feature** - This integration allows Claude Code to understand and use OpenAgents standards. Works with Claude Code v2.1.6+
+
+OpenAgents includes a bridge that makes Claude Code automatically load context files and follow your coding patterns.
+
+<details>
+<summary><b>For This Repository (Contributors)</b></summary>
+
+If you're working **on** this repository and want Claude Code to understand OpenAgents:
+
+```bash
+cd /path/to/opencode-agents
+claude
+```
+
+Claude will automatically:
+- Load the `openagents-standards` Skill
+- Use `context-scout` to find relevant context files
+- Apply OpenAgents standards to any task
+
+**If it doesn't auto-trigger**, restart Claude Code and start your request with:
+```
+[Use OpenAgents standards]
+```
+
+</details>
+
+<details>
+<summary><b>For Your Own OpenAgents Projects</b></summary>
+
+If you've set up OpenAgents in your own project and want Claude Code support:
+
+```bash
+# One-line installer (recommended)
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/integrations/claude-code/bootstrap-install.sh | bash
+
+# Use with Claude Code
+claude --plugin-dir ~/.claude/plugins/openagents-bridge
+```
+
+**Prereqs**: `git`, `bash`
+
+**Verify Claude Code**:
+```bash
+claude --version
+```
+
+**Manual install (if you already cloned this repo):**
+```bash
+cd /path/to/opencode-agents/integrations/claude-code
+./install.sh
+```
+
+**How it works:**
+- The installer downloads the Claude integration bundle
+- The plugin converts your `.opencode/` files to Claude format
+- Claude automatically discovers and follows your patterns
+- No duplication - works with your existing OpenAgents setup
+
+</details>
+
+<details>
+<summary><b>CLI Reference</b></summary>
+
+| Command | Description |
+|---------|-------------|
+| `claude` | Start interactive session |
+| `claude "request"` | One-shot request |
+| `claude --plugin-dir ~/.claude/plugins/openagents-bridge` | Load with OpenAgents plugin |
+| `claude --print-plugins` | Show loaded plugins |
+| `claude --debug` | Debug mode (shows plugin loading) |
+
+**Manual workaround** if plugin doesn't trigger:
+```
+"Load context from .opencode/context/ then help me create a new agent"
+```
+
+</details>
+
 ---
 
 ## Common Questions
