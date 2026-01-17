@@ -426,13 +426,13 @@ If you've set up OpenAgents in your own project and want Claude Code support:
 
 ```bash
 # One-line installer (recommended)
-curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/integrations/claude-code/bootstrap-install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/darrenhinde/OpenAgents/main/integrations/claude-code/install-claude.sh | bash
 
 # Use with Claude Code
 claude --plugin-dir ~/.claude/plugins/openagents-bridge
 ```
 
-**Prereqs**: `git`, `bash`
+**Prereqs**: `git`, `bash`, `node`
 
 **Verify Claude Code**:
 ```bash
@@ -442,12 +442,12 @@ claude --version
 **Manual install (if you already cloned this repo):**
 ```bash
 cd /path/to/opencode-agents/integrations/claude-code
-./install.sh
+./install-claude.sh
 ```
 
 **How it works:**
-- The installer downloads the Claude integration bundle
-- The plugin converts your `.opencode/` files to Claude format
+- The installer automatically converts your `.opencode/` files to Claude format
+- Converts agents, subagents, and creates context-scout skill
 - Claude automatically discovers and follows your patterns
 - No duplication - works with your existing OpenAgents setup
 
