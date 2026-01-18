@@ -39,6 +39,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Checkout repository (for manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Get PR details (for manual runs)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != ''
         id: get_pr
