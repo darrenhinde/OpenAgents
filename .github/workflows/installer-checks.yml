@@ -113,6 +113,8 @@ jobs:
         run: brew install jq || true
       
       - name: Run E2E tests
+        env:
+          OPENCODE_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: bash scripts/tests/test-e2e-install.sh
       
       - name: Summary
@@ -166,6 +168,8 @@ jobs:
         run: sudo apt-get install -y jq curl
       
       - name: Test ${{ matrix.profile }} profile
+        env:
+          OPENCODE_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
           TEST_DIR="/tmp/profile-test-${{ matrix.profile }}"
           mkdir -p "$TEST_DIR"
