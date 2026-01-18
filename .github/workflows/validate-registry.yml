@@ -5,11 +5,18 @@ name: Validate Registry on PR
 # For bot-created PRs (like automated version bumps), the workflow won't trigger automatically
 # due to GitHub's security restrictions. In those cases, you can manually trigger this workflow:
 #
+# Option 1 - Run Validation:
 # 1. Go to Actions > Validate Registry on PR > Run workflow
-# 2. Enter the PR number (e.g., 57)
-# 3. Click "Run workflow"
+# 2. Enter the PR number (e.g., 106)
+# 3. Leave "skip_validation" unchecked
+# 4. Click "Run workflow"
 #
-# This will run the validation checks and report the status to the PR.
+# Option 2 - Admin Bypass (for trusted bot PRs):
+# 1. Go to Actions > Validate Registry on PR > Run workflow
+# 2. Enter the PR number (e.g., 106)
+# 3. Check "skip_validation" checkbox
+# 4. Click "Run workflow"
+# 5. The check will pass immediately without running validation
 
 on:
   pull_request:
@@ -51,7 +58,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Validation checks skipped by maintainer." >> $GITHUB_STEP_SUMMARY
           echo "PR: #${{ github.event.inputs.pr_number }}" >> $GITHUB_STEP_SUMMARY
-          exit 0
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The workflow will complete successfully without running validation steps." >> $GITHUB_STEP_SUMMARY
       
       - name: Checkout repository (for manual runs)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.skip_validation != 'true'
@@ -82,6 +90,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Detect fork PR
+        if: github.event.inputs.skip_validation != 'true'
         id: fork_check
         run: |
           # For manual runs, use the fetched PR data
@@ -100,11 +109,13 @@ jobs:
           fi
       
       - name: Install dependencies
+        if: github.event.inputs.skip_validation != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
       
       - name: Make scripts executable
+        if: github.event.inputs.skip_validation != 'true'
         run: |
           chmod +x scripts/registry/validate-registry.sh
           chmod +x scripts/registry/auto-detect-components.sh
@@ -112,6 +123,7 @@ jobs:
           chmod +x scripts/prompts/validate-pr.sh
       
       - name: Auto-detect new components
+        if: github.event.inputs.skip_validation != 'true'
         id: auto_detect
         run: |
           echo "## 🔍 Auto-Detection Results" >> $GITHUB_STEP_SUMMARY
@@ -136,7 +148,7 @@ jobs:
           fi
       
       - name: Add new components to registry
-        if: steps.auto_detect.outputs.new_components == 'true'
+        if: steps.auto_detect.outputs.new_components == 'true' && github.event.inputs.skip_validation != 'true'
         run: |
           echo "## 📝 Adding New Components" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -144,6 +156,7 @@ jobs:
           ./scripts/registry/auto-detect-components.sh --auto-add | tee -a $GITHUB_STEP_SUMMARY
       
       - name: Validate prompt library structure
+        if: github.event.inputs.skip_validation != 'true'
         id: validate_prompts
         run: |
           echo "## 🔍 Prompt Library Validation" >> $GITHUB_STEP_SUMMARY
@@ -175,6 +188,7 @@ jobs:
           fi
       
       - name: Validate registry
+        if: github.event.inputs.skip_validation != 'true'
         id: validate
         run: |
           echo "## ✅ Registry Validation" >> $GITHUB_STEP_SUMMARY
@@ -199,6 +213,7 @@ jobs:
       
       - name: Commit registry updates (Internal PRs only)
         if: |
+          github.event.inputs.skip_validation != 'true' &&
           steps.fork_check.outputs.is_fork == 'false' &&
           steps.auto_detect.outputs.new_components == 'true' &&
           steps.validate_prompts.outputs.prompt_validation == 'passed' &&
@@ -227,6 +242,7 @@ jobs:
       
       - name: Fork PR notice
         if: |
+          github.event.inputs.skip_validation != 'true' &&
           steps.fork_check.outputs.is_fork == 'true' &&
           steps.auto_detect.outputs.new_components == 'true' &&
           steps.validate_prompts.outputs.prompt_validation == 'passed' &&
@@ -256,7 +272,7 @@ jobs:
             });
       
       - name: Fork PR summary
-        if: steps.fork_check.outputs.is_fork == 'true'
+        if: steps.fork_check.outputs.is_fork == 'true' && github.event.inputs.skip_validation != 'true'
         run: |
           echo "## 🔀 Fork PR Detected" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
